@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+    <title>Report - SR Group</title>
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet">
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+        rel="stylesheet">
+
+    <link
+        rel="stylesheet"
+        href="sidebar/sidebar.css">
+
+    <style>
+        body { background: #f5f6f8; }
+
+        #sidebar-container {
+            position: fixed;
+            top: 0; left: 0;
+            width: 250px; height: 100vh;
+            z-index: 1000;
+        }
+
+        #main-content {
+            margin-left: 250px;
+            padding: 25px;
+        }
+
+        @media (max-width: 767px) {
+            #sidebar-container { width: 0; }
+            #main-content { margin-left: 0; padding: 15px; }
+        }
+
+        .section-title {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #6c757d;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .summary-card {
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 0.7rem 0.9rem;
+            background: #fff;
+            height: 100%;
+        }
+
+        .summary-card .summary-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            color: #6c757d;
+            font-weight: 600;
+        }
+
+        .summary-card .summary-value {
+            font-size: 1.15rem;
+            font-weight: 700;
+            line-height: 1.15;
+            color: #0d6efd;
+        }
+
+        .summary-card .summary-value.text-success { color: #198754; }
+        .summary-card .summary-value.text-warning { color: #b45309; }
+        .summary-card .summary-value.text-danger  { color: #dc3545; }
+        .summary-card .summary-value.text-purple  { color: #6f42c1; }
+
+        .summary-card .summary-sub {
+            font-size: 0.72rem;
+            color: #6c757d;
+        }
+
+        .report-tree {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.6rem;
+            overflow: hidden;
+        }
+
+        .tree-business {
+            border-bottom: 1px solid #eef0f3;
+        }
+
+        .tree-business:last-child { border-bottom: 0; }
+
+        .tree-business-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.85rem 1rem;
+            cursor: pointer;
+            background: #fff;
+            transition: background 0.15s ease;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .tree-business-header:hover { background: #f8fafc; }
+
+        .tree-business-header .biz-title {
+            font-weight: 700;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .tree-business-header .biz-id {
+            font-size: 0.75rem;
+            color: #6c757d;
+            font-weight: 500;
+        }
+
+        .tree-toggle-icon {
+            transition: transform 0.2s ease;
+            color: #6c757d;
+        }
+
+        .tree-business.open .tree-toggle-icon {
+            transform: rotate(90deg);
+        }
+
+        .tree-business-body {
+            display: none;
+            background: #fbfcfd;
+            padding: 0 1rem 1rem 1rem;
+        }
+
+        .tree-business.open .tree-business-body {
+            display: block;
+        }
+
+        .tree-kpi-strip {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .mini-kpi {
+            font-size: 0.72rem;
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            border-radius: 999px;
+            padding: 3px 9px;
+            color: #334155;
+            white-space: nowrap;
+        }
+
+        .mini-kpi strong { color: #0d6efd; }
+        .mini-kpi.green strong { color: #198754; }
+        .mini-kpi.amber strong { color: #b45309; }
+        .mini-kpi.purple strong { color: #6f42c1; }
+
+        .construction-tag {
+            font-size: 0.68rem;
+            padding: 2px 7px;
+            border-radius: 4px;
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffe69c;
+            font-weight: 600;
+        }
+
+        .project-block {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            margin-top: 0.75rem;
+            padding: 0.75rem 0.9rem;
+        }
+
+        .project-block-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 0.5rem;
+        }
+
+        .project-block-header .proj-title {
+            font-weight: 700;
+            font-size: 0.88rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .project-block-header .proj-id {
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            font-size: 0.72rem;
+            color: #6c757d;
+            background: #f1f5f9;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .proj-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .proj-stat {
+            background: #f8fafc;
+            border: 1px solid #eef0f3;
+            border-radius: 0.4rem;
+            padding: 0.45rem 0.6rem;
+        }
+
+        .proj-stat .ps-label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            color: #6c757d;
+            font-weight: 600;
+            letter-spacing: 0.03em;
+        }
+
+        .proj-stat .ps-value {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .proj-stat .ps-sub {
+            font-size: 0.68rem;
+            color: #6c757d;
+        }
+
+        .workflow-table {
+            width: 100%;
+            font-size: 0.78rem;
+            border-collapse: collapse;
+            margin-top: 0.5rem;
+        }
+
+        .workflow-table th {
+            background: #f1f5f9;
+            color: #475569;
+            font-weight: 600;
+            font-size: 0.68rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            padding: 5px 8px;
+            text-align: left;
+        }
+
+        .workflow-table td {
+            padding: 5px 8px;
+            border-top: 1px solid #eef0f3;
+        }
+
+        .workflow-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+        .phase-pill {
+            font-size: 0.68rem;
+            background: rgba(111, 66, 193, 0.1);
+            color: #6f42c1;
+            font-weight: 600;
+            padding: 2px 7px;
+            border-radius: 999px;
+        }
+
+        .progress-bar-thin {
+            height: 6px;
+            border-radius: 999px;
+            background: #eef0f3;
+            overflow: hidden;
+            margin-top: 3px;
+        }
+
+        .progress-bar-thin > div {
+            height: 100%;
+            background: #0d6efd;
+        }
+
+        .no-project-note {
+            font-size: 0.78rem;
+            color: #6c757d;
+            padding: 0.5rem 0;
+            font-style: italic;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #6c757d;
+            padding: 60px 16px;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            opacity: 0.4;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .report-loading {
+            text-align: center;
+            color: #6c757d;
+            padding: 60px 16px;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <div id="sidebar-container"></div>
+
+
+    <main id="main-content">
+
+        <div class="container-fluid p-0">
+
+            <!-- HEADER -->
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+                <div>
+                    <h3 class="fw-bold mb-1">
+                        <i class="bi bi-graph-up-arrow me-2"></i>
+                        Business & Project Report
+                    </h3>
+                    <p class="text-muted mb-0">
+                        Bills, profit, attendance and workflow — business-wise and project-wise.
+                    </p>
+                </div>
+
+                <div class="d-flex gap-2 flex-wrap align-items-center">
+                    <select id="dateRangeSelect"
+                        class="form-select form-select-sm"
+                        style="width: auto;">
+                        <option value="this-month">This month</option>
+                        <option value="this-year" selected>This year</option>
+                        <option value="30d">Last 30 days</option>
+                        <option value="7d">Last 7 days</option>
+                        <option value="today">Today</option>
+                        <option value="all">All time</option>
+                    </select>
+
+                    <button type="button"
+                        class="btn btn-sm btn-outline-secondary"
+                        id="refreshBtn">
+                        <i class="bi bi-arrow-clockwise me-1"></i>
+                        Refresh
+                    </button>
+                </div>
+            </div>
+
+
+            <!-- STATUS -->
+            <div id="statusMessage" class="alert d-none"></div>
+
+
+            <!-- LOADING -->
+            <div id="loadingBlock" class="report-loading">
+                <div class="spinner-border text-primary mb-2" role="status"></div>
+                <div>Loading report data...</div>
+            </div>
+
+
+            <!-- DENIED -->
+            <div id="deniedBlock" class="empty-state d-none">
+                <i class="bi bi-shield-x"></i>
+                <h5>Access Denied</h5>
+                <p class="mb-0">This report is available to Main Admin, Dev Admin and Owner roles only.</p>
+            </div>
+
+
+            <!-- CONTENT -->
+            <div id="reportContent" class="d-none">
+
+                <!-- GRAND TOTALS -->
+                <div class="section-title">
+                    <i class="bi bi-calculator me-1"></i>
+                    Grand Totals
+                </div>
+                <div class="row g-3 mb-4">
+                    <div class="col-6 col-md-3">
+                        <div class="summary-card">
+                            <div class="summary-label">Businesses</div>
+                            <div class="summary-value" id="totalBusinesses">0</div>
+                            <div class="summary-sub" id="totalProjectsSub">0 projects</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="summary-card">
+                            <div class="summary-label">Total Sales</div>
+                            <div class="summary-value text-success" id="totalSales">Rs 0.00</div>
+                            <div class="summary-sub" id="totalBillsSub">0 bills</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="summary-card">
+                            <div class="summary-label">Total Profit</div>
+                            <div class="summary-value text-warning" id="totalProfit">Rs 0.00</div>
+                            <div class="summary-sub" id="totalProfitMarginSub">— margin</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="summary-card">
+                            <div class="summary-label">Present Today</div>
+                            <div class="summary-value text-purple" id="totalPresentToday">0</div>
+                            <div class="summary-sub" id="totalAttendanceSub">0 marked</div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- TREE -->
+                <div class="section-title d-flex justify-content-between align-items-center">
+                    <span>
+                        <i class="bi bi-diagram-3 me-1"></i>
+                        Business &amp; Project Breakdown
+                    </span>
+                    <span>
+                        <button class="btn btn-sm btn-outline-secondary" id="expandAllBtn">
+                            <i class="bi bi-arrows-expand me-1"></i>Expand all
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary" id="collapseAllBtn">
+                            <i class="bi bi-arrows-collapse me-1"></i>Collapse all
+                        </button>
+                    </span>
+                </div>
+
+                <div id="reportTree" class="report-tree"></div>
+
+                <div id="emptyState" class="empty-state d-none">
+                    <i class="bi bi-inbox"></i>
+                    <div>No businesses found.</div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script type="module" src="sidebar/sidebar.js"></script>
+
+
+    <script type="module">
+
+        import { auth, db } from "./firebase-config.js";
+
+        import {
+            onAuthStateChanged
+        } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+
+        import {
+            ref, get
+        } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-database.js";
+
+
+        // =====================================================
+        // CONSTANTS
+        // =====================================================
+
+        const ALLOWED_ROLES = ["main-admin", "dev-admin", "owner"];
+
+
+        // =====================================================
+        // STATE
+        // =====================================================
+
+        let currentUser = null;
+        let currentUserData = null;
+        let currentRole = "";
+
+        let businesses = {};
+        let dateRange = "this-year";
+
+
+        // =====================================================
+        // ELEMENTS
+        // =====================================================
+
+        const statusMessage = document.getElementById("statusMessage");
+        const loadingBlock = document.getElementById("loadingBlock");
+        const deniedBlock = document.getElementById("deniedBlock");
+        const reportContent = document.getElementById("reportContent");
+        const reportTree = document.getElementById("reportTree");
+        const emptyState = document.getElementById("emptyState");
+        const dateRangeSelect = document.getElementById("dateRangeSelect");
+
+
+        // =====================================================
+        // HELPERS
+        // =====================================================
+
+        function showStatus(message, type = "danger") {
+            statusMessage.className = `alert alert-${type}`;
+            statusMessage.textContent = message;
+            statusMessage.classList.remove("d-none");
+
+            clearTimeout(showStatus._timer);
+            showStatus._timer = setTimeout(() => {
+                statusMessage.classList.add("d-none");
+            }, 4500);
+        }
+
+        function escapeHtml(value) {
+            return String(value ?? "")
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        function money(n) {
+            const v = Number(n) || 0;
+            try {
+                return "Rs " + v.toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+            } catch {
+                return "Rs " + v.toFixed(2);
+            }
+        }
+
+        function moneyShort(n) {
+            const v = Number(n) || 0;
+            const abs = Math.abs(v);
+
+            if (abs >= 1_00_00_000) return "Rs " + (v / 1_00_00_000).toFixed(2) + " Cr";
+            if (abs >= 1_00_000)    return "Rs " + (v / 1_00_000).toFixed(2) + " L";
+            if (abs >= 1_000)       return "Rs " + (v / 1_000).toFixed(2) + " K";
+
+            return "Rs " + v.toFixed(2);
+        }
+
+        function todayISO() {
+            const d = new Date();
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, "0");
+            const day = String(d.getDate()).padStart(2, "0");
+            return `${y}-${m}-${day}`;
+        }
+
+        function dateInRange(iso) {
+            if (!iso) return false;
+
+            if (dateRange === "all") return true;
+
+            const now = new Date();
+
+            if (dateRange === "today") {
+                return iso === todayISO();
+            }
+
+            if (dateRange === "this-month") {
+                const month = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+                return iso.startsWith(month);
+            }
+
+            if (dateRange === "this-year") {
+                return iso.startsWith(String(now.getFullYear()));
+            }
+
+            if (dateRange === "7d" || dateRange === "30d") {
+                const bDate = new Date(iso + "T00:00:00");
+                if (isNaN(bDate.getTime())) return false;
+                const diffDays = (now.getTime() - bDate.getTime()) / (1000 * 60 * 60 * 24);
+                return diffDays <= (dateRange === "7d" ? 7 : 30);
+            }
+
+            return true;
+        }
+
+
+        // =====================================================
+        // AUTH
+        // =====================================================
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                window.location.href = "login.html";
+                return;
+            }
+
+            currentUser = user;
+
+            try {
+                const snap = await get(ref(db, `sr_group/users/${user.uid}`));
+
+                if (!snap.exists()) {
+                    window.location.href = "login.html";
+                    return;
+                }
+
+                currentUserData = snap.val() || {};
+                currentRole = currentUserData.role || "";
+
+                if (currentUserData["user-status"] === false) {
+                    window.location.href = "login.html";
+                    return;
+                }
+
+                if (!ALLOWED_ROLES.includes(currentRole)) {
+                    loadingBlock.classList.add("d-none");
+                    deniedBlock.classList.remove("d-none");
+                    return;
+                }
+
+                await bootstrap();
+
+            } catch (err) {
+                console.error("Auth error:", err);
+                showStatus("Failed to load your profile.");
+                loadingBlock.classList.add("d-none");
+            }
+        });
+
+
+        // =====================================================
+        // BOOTSTRAP
+        // =====================================================
+
+        async function bootstrap() {
+            try {
+                const snap = await get(ref(db, "sr_group/businesses"));
+                businesses = snap.exists() ? (snap.val() || {}) : {};
+
+                await buildReport();
+
+            } catch (err) {
+                console.error("bootstrap:", err);
+                showStatus("Failed to load report data.");
+                loadingBlock.classList.add("d-none");
+            }
+        }
+
+
+        // =====================================================
+        // BUILD REPORT
+        // =====================================================
+
+        async function buildReport() {
+            loadingBlock.classList.remove("d-none");
+            reportContent.classList.add("d-none");
+
+            const bizIds = Object.keys(businesses);
+
+            const perBusiness = await Promise.all(bizIds.map(async bizId => {
+                return await buildBusinessReport(bizId, businesses[bizId]);
+            }));
+
+            renderReport(perBusiness);
+
+            loadingBlock.classList.add("d-none");
+            reportContent.classList.remove("d-none");
+        }
+
+
+        async function buildBusinessReport(bizId, bizData) {
+            const bizName = bizData?.name || bizId;
+            const isConstruction = bizData?.construction === true;
+
+            // ---- Bills (top-level) ----
+            let bills = [];
+            try {
+                const snap = await get(ref(db, `sr_group/businesses/${bizId}/bills`));
+                if (snap.exists()) {
+                    const raw = snap.val() || {};
+                    Object.entries(raw).forEach(([id, b]) => {
+                        bills.push(normalizeBill(id, b, null, null));
+                    });
+                }
+            } catch (err) {
+                console.warn(`bills ${bizId}:`, err);
+            }
+
+            // ---- Projects (only for construction) ----
+            let projects = [];
+
+            if (isConstruction) {
+                try {
+                    const snap = await get(ref(db, `sr_group/businesses/${bizId}/projects`));
+                    const raw = snap.exists() ? (snap.val() || {}) : {};
+
+                    const pushIds = Object.keys(raw).filter(k => k !== "_placeholder");
+
+                    projects = await Promise.all(pushIds.map(async pushId => {
+                        const proj = raw[pushId] || {};
+                        return await buildProjectReport(bizId, pushId, proj);
+                    }));
+
+                } catch (err) {
+                    console.warn(`projects ${bizId}:`, err);
+                }
+            }
+
+            // ---- Attendance (top-level) ----
+            const attendance = await loadAttendance(
+                `sr_group/businesses/${bizId}/attendance`
+            );
+
+            // ---- Project attendance ----
+            if (isConstruction) {
+                await Promise.all(projects.map(async p => {
+                    p.attendance = await loadAttendance(
+                        `sr_group/businesses/${bizId}/projects/${p.pushId}/attendance`
+                    );
+                }));
+            }
+
+            // ---- Merge project bills into totals ----
+            const projectBills = projects.flatMap(p => p.bills);
+
+            const allBills = [...bills, ...projectBills];
+
+            return {
+                bizId,
+                bizName,
+                isConstruction,
+                bills,
+                projects,
+                attendance,
+                totals: computeBillsTotals(allBills)
+            };
+        }
+
+
+        async function buildProjectReport(bizId, pushId, proj) {
+            const projectId = proj.projectId || "";
+            const projectName = proj.projectName || proj.name || "";
+
+            // ---- Bills ----
+            let bills = [];
+            try {
+                const snap = await get(
+                    ref(db, `sr_group/businesses/${bizId}/projects/${pushId}/bills`)
+                );
+                if (snap.exists()) {
+                    const raw = snap.val() || {};
+                    Object.entries(raw).forEach(([id, b]) => {
+                        bills.push(normalizeBill(id, b, pushId, projectId));
+                    });
+                }
+            } catch (err) {
+                console.warn(`project bills ${bizId}/${pushId}:`, err);
+            }
+
+            // ---- Workflow: resolved measurement records ----
+            let workflow = [];
+            try {
+                const snap = await get(
+                    ref(db, `sr_group/businesses/${bizId}/projects/${pushId}/resolved`)
+                );
+                if (snap.exists()) {
+                    const raw = snap.val() || {};
+                    workflow = Object.values(raw)
+                        .filter(r => r && typeof r === "object")
+                        .map(r => ({
+                            title: r.title || "",
+                            phase: r.phase || "",
+                            unit: r.unit || "",
+                            resolvedQuantity: Number(r.resolvedQuantity) || 0,
+                            resolvedAmount: Number(r.resolvedAmount) || 0,
+                            boqQuantity: Number(r.boqQuantity) || 0,
+                            boqAmount: Number(r.boqAmount) || 0,
+                            createdAt: Number(r.createdAt) || 0
+                        }))
+                        .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+                }
+            } catch (err) {
+                console.warn(`resolved ${bizId}/${pushId}:`, err);
+            }
+
+            return {
+                pushId,
+                projectId,
+                projectName,
+                bills,
+                workflow,
+                attendance: { total: 0, present: 0, today: [] }
+            };
+        }
+
+
+        function normalizeBill(id, b, projectPushId, projectId) {
+            return {
+                id,
+                billType: b.billType || "",
+                invoicenumber: b.invoicenumber || "",
+                invoicedate: b.invoicedate || "",
+                createdAt: Number(b.createdAt) || 0,
+                grandTotal: Number(b?.totals?.grandTotal) || 0,
+                profit: Number(b?.totals?.profit) || 0,
+                projectPushId: projectPushId || "",
+                projectId: projectId || ""
+            };
+        }
+
+
+        async function loadAttendance(basePath) {
+            const today = todayISO();
+
+            const result = {
+                total: 0,
+                present: 0,
+                today: []
+            };
+
+            try {
+                // Today's record
+                const todaySnap = await get(ref(db, `${basePath}/${today}`));
+                if (todaySnap.exists()) {
+                    const raw = todaySnap.val() || {};
+                    Object.values(raw).forEach(rec => {
+                        if (!rec || typeof rec !== "object") return;
+                        result.total++;
+                        if (rec.status === "P") result.present++;
+                        result.today.push({
+                            employeeId: rec.employeeId || "",
+                            employeeName: rec.employeeName || "",
+                            status: rec.status || ""
+                        });
+                    });
+                }
+            } catch (err) {
+                console.warn(`attendance ${basePath}:`, err);
+            }
+
+            return result;
+        }
+
+
+        function computeBillsTotals(bills) {
+            const inRange = bills.filter(b => dateInRange(b.invoicedate));
+
+            const sales = inRange.reduce((s, b) => s + (b.grandTotal || 0), 0);
+            const profit = inRange.reduce((s, b) => s + (b.profit || 0), 0);
+
+            return {
+                billCount: inRange.length,
+                totalBills: bills.length,
+                sales,
+                profit,
+                margin: sales > 0 ? (profit / sales) * 100 : 0
+            };
+        }
+
+
+        // =====================================================
+        // RENDER
+        // =====================================================
+
+        function renderReport(perBusiness) {
+
+            // Grand totals
+            let totalSales = 0;
+            let totalProfit = 0;
+            let totalBillCount = 0;
+            let totalProjectCount = 0;
+            let totalPresent = 0;
+            let totalMarked = 0;
+
+            perBusiness.forEach(b => {
+                totalSales += b.totals.sales;
+                totalProfit += b.totals.profit;
+                totalBillCount += b.totals.billCount;
+                totalProjectCount += b.projects.length;
+                totalPresent += b.attendance.present;
+                totalMarked += b.attendance.total;
+
+                b.projects.forEach(p => {
+                    totalPresent += p.attendance.present || 0;
+                    totalMarked += p.attendance.total || 0;
+                });
+            });
+
+            document.getElementById("totalBusinesses").textContent = perBusiness.length;
+            document.getElementById("totalProjectsSub").textContent =
+                `${totalProjectCount} project${totalProjectCount === 1 ? "" : "s"}`;
+
+            document.getElementById("totalSales").textContent = money(totalSales);
+            document.getElementById("totalBillsSub").textContent =
+                `${totalBillCount} bill${totalBillCount === 1 ? "" : "s"} in range`;
+
+            document.getElementById("totalProfit").textContent = money(totalProfit);
+            document.getElementById("totalProfitMarginSub").textContent =
+                totalSales > 0
+                    ? `${((totalProfit / totalSales) * 100).toFixed(1)}% margin`
+                    : "— margin";
+
+            document.getElementById("totalPresentToday").textContent = totalPresent;
+            document.getElementById("totalAttendanceSub").textContent =
+                `${totalMarked} marked today`;
+
+            // Tree
+            reportTree.innerHTML = "";
+
+            if (!perBusiness.length) {
+                emptyState.classList.remove("d-none");
+                return;
+            }
+
+            emptyState.classList.add("d-none");
+
+            perBusiness
+                .sort((a, b) => a.bizId.localeCompare(b.bizId))
+                .forEach(b => {
+                    reportTree.appendChild(renderBusinessNode(b));
+                });
+        }
+
+
+        function renderBusinessNode(b) {
+            const wrap = document.createElement("div");
+            wrap.className = "tree-business open";     // default expanded
+
+            const t = b.totals;
+
+            const profitClass =
+                t.profit > 0 ? "green" :
+                t.profit < 0 ? "text-danger" : "";
+
+            const constructionTag = b.isConstruction
+                ? `<span class="construction-tag"><i class="bi bi-cone-striped me-1"></i>Construction</span>`
+                : "";
+
+            wrap.innerHTML = `
+                <div class="tree-business-header">
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                        <i class="bi bi-chevron-right tree-toggle-icon"></i>
+                        <div class="biz-title">
+                            <i class="bi bi-building text-primary"></i>
+                            ${escapeHtml(b.bizName)}
+                            <span class="biz-id">(${escapeHtml(b.bizId)})</span>
+                            ${constructionTag}
+                        </div>
+                    </div>
+
+                    <div class="tree-kpi-strip">
+                        <span class="mini-kpi">
+                            Bills: <strong>${t.billCount}</strong>
+                        </span>
+                        <span class="mini-kpi green">
+                            Sales: <strong>${moneyShort(t.sales)}</strong>
+                        </span>
+                        <span class="mini-kpi amber">
+                            Profit: <strong>${moneyShort(t.profit)}</strong>
+                        </span>
+                        <span class="mini-kpi purple">
+                            Today: <strong>${b.attendance.present}/${b.attendance.total}</strong>
+                        </span>
+                        ${b.projects.length
+                            ? `<span class="mini-kpi">
+                                    Projects: <strong>${b.projects.length}</strong>
+                               </span>`
+                            : ""}
+                    </div>
+                </div>
+
+                <div class="tree-business-body">
+                    ${renderBusinessDetail(b)}
+                </div>
+            `;
+
+            const header = wrap.querySelector(".tree-business-header");
+            header.addEventListener("click", (e) => {
+                // ignore clicks on links / buttons inside header
+                if (e.target.closest("a, button")) return;
+                wrap.classList.toggle("open");
+            });
+
+            return wrap;
+        }
+
+
+        function renderBusinessDetail(b) {
+
+            const t = b.totals;
+
+            // Summary stats block
+            const summaryStats = `
+                <div class="proj-stats mb-3">
+                    <div class="proj-stat">
+                        <div class="ps-label">Bills in range</div>
+                        <div class="ps-value">${t.billCount}</div>
+                        <div class="ps-sub">of ${t.totalBills} total</div>
+                    </div>
+                    <div class="proj-stat">
+                        <div class="ps-label">Total Sales</div>
+                        <div class="ps-value text-success">${money(t.sales)}</div>
+                        <div class="ps-sub">in selected range</div>
+                    </div>
+                    <div class="proj-stat">
+                        <div class="ps-label">Total Profit</div>
+                        <div class="ps-value ${t.profit >= 0 ? "text-success" : "text-danger"}">
+                            ${money(t.profit)}
+                        </div>
+                        <div class="ps-sub">${t.margin.toFixed(1)}% margin</div>
+                    </div>
+                    <div class="proj-stat">
+                        <div class="ps-label">Attendance Today</div>
+                        <div class="ps-value">${b.attendance.present}/${b.attendance.total}</div>
+                        <div class="ps-sub">present / marked</div>
+                    </div>
+                </div>
+            `;
+
+            // Top-level bills table (non-construction or extra bills)
+            let topBillsHtml = "";
+
+            const topBillsInRange = b.bills.filter(x => dateInRange(x.invoicedate));
+
+            if (topBillsInRange.length > 0) {
+                const rows = topBillsInRange
+                    .sort((x, y) => (y.createdAt || 0) - (x.createdAt || 0))
+                    .slice(0, 10)
+                    .map(bill => `
+                        <tr>
+                            <td>${escapeHtml(bill.invoicenumber || "—")}</td>
+                            <td>${escapeHtml(bill.invoicedate || "—")}</td>
+                            <td>${escapeHtml(bill.billType || "—")}</td>
+                            <td class="num">${bill.grandTotal.toFixed(2)}</td>
+                            <td class="num ${bill.profit >= 0 ? "text-success" : "text-danger"}">
+                                ${bill.profit.toFixed(2)}
+                            </td>
+                        </tr>
+                    `)
+                    .join("");
+
+                topBillsHtml = `
+                    <div class="mt-2">
+                        <div class="section-title mb-1" style="font-size: 0.72rem;">
+                            <i class="bi bi-receipt me-1"></i>
+                            Business-level Bills (top ${Math.min(10, topBillsInRange.length)})
+                        </div>
+                        <table class="workflow-table">
+                            <thead>
+                                <tr>
+                                    <th>Invoice #</th>
+                                    <th>Date</th>
+                                    <th>Bill Type</th>
+                                    <th class="text-end">Amount</th>
+                                    <th class="text-end">Profit</th>
+                                </tr>
+                            </thead>
+                            <tbody>${rows}</tbody>
+                        </table>
+                    </div>
+                `;
+            }
+
+            // Projects section
+            let projectsHtml = "";
+
+            if (b.isConstruction) {
+                if (!b.projects.length) {
+                    projectsHtml = `
+                        <div class="no-project-note">
+                            <i class="bi bi-info-circle me-1"></i>
+                            No projects defined for this business yet.
+                        </div>
+                    `;
+                } else {
+                    projectsHtml = b.projects
+                        .sort((x, y) => x.projectId.localeCompare(y.projectId))
+                        .map(p => renderProjectBlock(p))
+                        .join("");
+                }
+            } else {
+                projectsHtml = `
+                    <div class="no-project-note">
+                        <i class="bi bi-info-circle me-1"></i>
+                        This business is not configured as a construction business,
+                        so it has no projects.
+                    </div>
+                `;
+            }
+
+            return summaryStats + topBillsHtml + projectsHtml;
+        }
+
+
+        function renderProjectBlock(p) {
+            const inRange = p.bills.filter(x => dateInRange(x.invoicedate));
+
+            const sales  = inRange.reduce((s, b) => s + (b.grandTotal || 0), 0);
+            const profit = inRange.reduce((s, b) => s + (b.profit || 0), 0);
+            const margin = sales > 0 ? (profit / sales) * 100 : 0;
+
+            // ---- Workflow aggregated by title + phase ----
+            let workflowHtml = "";
+
+            if (p.workflow.length) {
+
+                // Group by title + phase
+                const groups = new Map();
+
+                p.workflow.forEach(w => {
+                    const key = `${w.title}||${w.phase}`;
+                    if (!groups.has(key)) {
+                        groups.set(key, {
+                            title: w.title || "—",
+                            phase: w.phase || "—",
+                            unit: w.unit || "",
+                            resolvedQty: 0,
+                            resolvedAmt: 0,
+                            boqQty: w.boqQuantity || 0
+                        });
+                    }
+                    const g = groups.get(key);
+                    g.resolvedQty += w.resolvedQuantity;
+                    g.resolvedAmt += w.resolvedAmount;
+                    if (w.boqQuantity) g.boqQty = w.boqQuantity;
+                });
+
+                const rows = Array.from(groups.values()).map(g => {
+                    const pct = g.boqQty > 0
+                        ? Math.min(100, (g.resolvedQty / g.boqQty) * 100)
+                        : 0;
+
+                    return `
+                        <tr>
+                            <td>${escapeHtml(g.title)}</td>
+                            <td>
+                                <span class="phase-pill">${escapeHtml(g.phase)}</span>
+                            </td>
+                            <td class="num">
+                                ${g.resolvedQty}${g.unit ? " " + escapeHtml(g.unit) : ""}
+                                ${g.boqQty > 0
+                                    ? `<div class="ps-sub text-muted" style="font-size:0.68rem;">
+                                            of ${g.boqQty}
+                                       </div>
+                                       <div class="progress-bar-thin">
+                                           <div style="width:${pct}%"></div>
+                                       </div>`
+                                    : ""}
+                            </td>
+                            <td class="num">${g.resolvedAmt.toFixed(2)}</td>
+                        </tr>
+                    `;
+                }).join("");
+
+                workflowHtml = `
+                    <div class="mt-2">
+                        <div class="section-title mb-1" style="font-size: 0.72rem;">
+                            <i class="bi bi-diagram-3 me-1"></i>
+                            Workflow — Resolved Work by Phase
+                        </div>
+                        <table class="workflow-table">
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th>Phase</th>
+                                    <th class="text-end">Quantity Resolved</th>
+                                    <th class="text-end">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>${rows}</tbody>
+                        </table>
+                    </div>
+                `;
+            } else {
+                workflowHtml = `
+                    <div class="no-project-note">
+                        <i class="bi bi-info-circle me-1"></i>
+                        No workflow (resolved measurement) entries yet.
+                    </div>
+                `;
+            }
+
+            // ---- Bills for this project ----
+            let billsHtml = "";
+
+            if (inRange.length) {
+                const rows = inRange
+                    .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
+                    .slice(0, 8)
+                    .map(bill => `
+                        <tr>
+                            <td>${escapeHtml(bill.invoicenumber || "—")}</td>
+                            <td>${escapeHtml(bill.invoicedate || "—")}</td>
+                            <td>${escapeHtml(bill.billType || "—")}</td>
+                            <td class="num">${bill.grandTotal.toFixed(2)}</td>
+                            <td class="num ${bill.profit >= 0 ? "text-success" : "text-danger"}">
+                                ${bill.profit.toFixed(2)}
+                            </td>
+                        </tr>
+                    `)
+                    .join("");
+
+                billsHtml = `
+                    <div class="mt-2">
+                        <div class="section-title mb-1" style="font-size: 0.72rem;">
+                            <i class="bi bi-receipt me-1"></i>
+                            Project Bills (top ${Math.min(8, inRange.length)})
+                        </div>
+                        <table class="workflow-table">
+                            <thead>
+                                <tr>
+                                    <th>Invoice #</th>
+                                    <th>Date</th>
+                                    <th>Bill Type</th>
+                                    <th class="text-end">Amount</th>
+                                    <th class="text-end">Profit</th>
+                                </tr>
+                            </thead>
+                            <tbody>${rows}</tbody>
+                        </table>
+                    </div>
+                `;
+            }
+
+            return `
+                <div class="project-block">
+                    <div class="project-block-header">
+                        <div class="proj-title">
+                            <i class="bi bi-cone-striped text-warning"></i>
+                            ${escapeHtml(p.projectName || "Untitled project")}
+                            ${p.projectId
+                                ? `<span class="proj-id">${escapeHtml(p.projectId)}</span>`
+                                : ""}
+                        </div>
+                    </div>
+
+                    <div class="proj-stats">
+                        <div class="proj-stat">
+                            <div class="ps-label">Bills in range</div>
+                            <div class="ps-value">${inRange.length}</div>
+                            <div class="ps-sub">of ${p.bills.length} total</div>
+                        </div>
+                        <div class="proj-stat">
+                            <div class="ps-label">Sales</div>
+                            <div class="ps-value text-success">${money(sales)}</div>
+                            <div class="ps-sub">this project</div>
+                        </div>
+                        <div class="proj-stat">
+                            <div class="ps-label">Profit</div>
+                            <div class="ps-value ${profit >= 0 ? "text-success" : "text-danger"}">
+                                ${money(profit)}
+                            </div>
+                            <div class="ps-sub">${margin.toFixed(1)}% margin</div>
+                        </div>
+                        <div class="proj-stat">
+                            <div class="ps-label">Attendance Today</div>
+                            <div class="ps-value">
+                                ${p.attendance.present || 0}/${p.attendance.total || 0}
+                            </div>
+                            <div class="ps-sub">present / marked</div>
+                        </div>
+                        <div class="proj-stat">
+                            <div class="ps-label">Workflow Entries</div>
+                            <div class="ps-value">${p.workflow.length}</div>
+                            <div class="ps-sub">resolved records</div>
+                        </div>
+                    </div>
+
+                    ${workflowHtml}
+                    ${billsHtml}
+                </div>
+            `;
+        }
+
+
+        // =====================================================
+        // CONTROLS
+        // =====================================================
+
+        dateRangeSelect.addEventListener("change", async () => {
+            dateRange = dateRangeSelect.value;
+            await buildReport();
+        });
+
+        document.getElementById("refreshBtn").addEventListener("click", async () => {
+            showStatus("Refreshing...", "info");
+            await bootstrap();
+            showStatus("Report reloaded.", "success");
+        });
+
+        document.getElementById("expandAllBtn").addEventListener("click", () => {
+            document.querySelectorAll(".tree-business").forEach(el => el.classList.add("open"));
+        });
+
+        document.getElementById("collapseAllBtn").addEventListener("click", () => {
+            document.querySelectorAll(".tree-business").forEach(el => el.classList.remove("open"));
+        });
+
+    </script>
+
+</body>
+
+</html>

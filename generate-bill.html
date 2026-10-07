@@ -1,0 +1,3393 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+    <title>Generate Bill - SR Group</title>
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet">
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+        rel="stylesheet">
+
+    <link
+        rel="stylesheet"
+        href="sidebar/sidebar.css">
+
+    <style>
+        body { background: #f5f6f8; }
+
+        #sidebar-container {
+            position: fixed;
+            top: 0; left: 0;
+            width: 250px; height: 100vh;
+            z-index: 1000;
+        }
+
+        #main-content {
+            margin-left: 250px;
+            padding: 25px;
+        }
+
+        @media (max-width: 767px) {
+            #sidebar-container { width: 0; }
+            #main-content { margin-left: 0; padding: 15px; }
+        }
+
+        .section-title {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #6c757d;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+        }
+
+        .items-table th {
+            white-space: nowrap;
+            font-size: 0.85rem;
+        }
+
+        .items-table td { vertical-align: middle; }
+
+        .items-table input,
+        .items-table select { min-width: 60px; }
+
+        .totals-box {
+            background: #fff;
+            border: 1px solid #e9ecef;
+            border-radius: 0.5rem;
+            padding: 1rem;
+        }
+
+        .totals-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.35rem 0;
+        }
+
+        .totals-row.grand {
+            border-top: 2px solid #dee2e6;
+            margin-top: 0.5rem;
+            padding-top: 0.75rem;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .totals-row.discount {
+            color: #dc3545;
+            font-weight: 600;
+        }
+
+        .totals-row.profit-row {
+            color: #198754;
+            font-weight: 600;
+        }
+
+        .segment-header {
+            background: #eef2f7;
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.35rem;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #495057;
+            margin-bottom: 0.75rem;
+            border-left: 4px solid #0d6efd;
+        }
+
+        .dynamic-field[readonly] {
+            background-color: #f1f5f9;
+            cursor: not-allowed;
+        }
+
+        .items-table tbody tr.row-product > td {
+            background-color: rgba(13, 110, 253, 0.12) !important;
+            transition: background-color 0.15s ease;
+        }
+
+        .items-table tbody tr.row-service > td {
+            background-color: rgba(25, 135, 84, 0.12) !important;
+            transition: background-color 0.15s ease;
+        }
+
+        .items-table tbody tr.row-phase > td {
+            background-color: rgba(111, 66, 193, 0.12) !important;
+            transition: background-color 0.15s ease;
+        }
+
+        .items-table tbody tr.row-product > td:focus-within {
+            background-color: rgba(13, 110, 253, 0.22) !important;
+        }
+
+        .items-table tbody tr.row-service > td:focus-within {
+            background-color: rgba(25, 135, 84, 0.22) !important;
+        }
+
+        .items-table tbody tr.row-phase > td:focus-within {
+            background-color: rgba(111, 66, 193, 0.22) !important;
+        }
+
+        .items-table tbody tr.row-error > td {
+            background-color: rgba(220, 53, 69, 0.14) !important;
+        }
+
+        .row-error-msg {
+            color: #dc3545;
+            font-size: 0.78rem;
+            font-weight: 600;
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .item-tag {
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            padding: 2px 6px;
+            border-radius: 3px;
+            margin-left: 4px;
+            vertical-align: middle;
+            display: inline-block;
+        }
+
+        .item-tag.product { background: #0d6efd; color: #fff; }
+        .item-tag.service { background: #198754; color: #fff; }
+        .item-tag.phase   { background: #6f42c1; color: #fff; }
+
+        .item-search-wrap { position: relative; }
+
+        .item-suggest-panel {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            max-height: 260px;
+            overflow-y: auto;
+            background: #fff;
+            border: 1px solid #dee2e6;
+            border-radius: 0.375rem;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+            z-index: 1200;
+            margin-top: 2px;
+        }
+
+        .item-suggest-panel .suggest-row {
+            padding: 0.45rem 0.65rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+            border-bottom: 1px solid #f1f3f5;
+        }
+
+        .item-suggest-panel .suggest-row:last-child { border-bottom: none; }
+
+        .item-suggest-panel .suggest-row:hover,
+        .item-suggest-panel .suggest-row.active {
+            background: #f1f5ff;
+        }
+
+        .item-suggest-panel .suggest-row .left {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            min-width: 0;
+        }
+
+        .item-suggest-panel .suggest-row .name {
+            font-weight: 600;
+            color: #212529;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .item-suggest-panel .suggest-row .meta {
+            font-size: 0.75rem;
+            color: #6c757d;
+            white-space: nowrap;
+        }
+
+        .item-suggest-panel .suggest-empty {
+            padding: 0.6rem 0.75rem;
+            font-size: 0.85rem;
+            color: #6c757d;
+            text-align: center;
+        }
+
+        .suggest-badge {
+            font-size: 0.6rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 2px 5px;
+            border-radius: 3px;
+            flex-shrink: 0;
+        }
+
+        .suggest-badge.product { background: #0d6efd; color: #fff; }
+        .suggest-badge.service { background: #198754; color: #fff; }
+
+        .suggest-badge.out-of-stock {
+            background: #dc3545;
+            color: #fff;
+            margin-left: 4px;
+        }
+
+        .project-badge-construction {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffe69c;
+        }
+
+        .phase-selector-wrap {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .phase-selector-wrap label {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 0;
+            white-space: nowrap;
+        }
+
+        .phase-select {
+            min-width: 200px;
+            border: 1px solid #0d6efd;
+            background-color: #f0f6ff;
+            font-weight: 600;
+            color: #0d6efd;
+        }
+
+        .phase-hint {
+            font-size: 0.75rem;
+            color: #6c757d;
+        }
+
+        .import-phase-table {
+            font-size: 0.88rem;
+        }
+
+        .import-phase-table th {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: #6c757d;
+        }
+
+        .import-phase-table td {
+            vertical-align: middle;
+        }
+
+        /* Hidden columns — used for calculation / DB only */
+        .hidden-col { display: none !important; }
+    </style>
+
+</head>
+
+<body>
+
+    <div id="sidebar-container"></div>
+
+
+    <main id="main-content">
+
+        <div class="container-fluid p-0">
+
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+
+                <div>
+
+                    <h3 class="fw-bold mb-1">
+                        <i class="bi bi-receipt-cutoff me-2"></i>
+                        Generate Bill
+                    </h3>
+
+                    <p class="text-muted mb-0">
+                        Create tax invoices, purchase bills, e-way bills and cash memos.
+                    </p>
+
+                </div>
+
+                <div class="btn-group">
+
+                    <button
+                        type="button"
+                        class="btn btn-outline-secondary"
+                        id="resetBtn">
+
+                        <i class="bi bi-arrow-counterclockwise me-1"></i>
+                        Reset
+
+                    </button>
+
+                    <button
+                        type="button"
+                        class="btn btn-primary"
+                        id="saveBillBtn">
+
+                        <i class="bi bi-save me-1"></i>
+                        Save Bill
+
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <div id="statusMessage" class="alert d-none"></div>
+
+
+            <div class="card border-0 shadow-sm mb-4">
+
+                <div class="card-body">
+
+                    <div class="section-title">
+                        <i class="bi bi-building me-1"></i>
+                        Business, Project, GST &amp; Bill Type
+                    </div>
+
+                    <div class="row g-3">
+
+                        <div class="col-md-4">
+
+                            <label class="form-label fw-semibold">
+                                Select Business
+                                <span class="text-danger">*</span>
+                            </label>
+
+                            <select id="businessSelect" class="form-select" required>
+                                <option value="">-- Select Business --</option>
+                            </select>
+
+                        </div>
+
+
+                        <div class="col-md-4 d-none" id="projectCol">
+
+                            <label class="form-label fw-semibold">
+                                <i class="bi bi-cone-striped me-1 text-warning"></i>
+                                Project
+                                <span class="text-danger">*</span>
+                                <span class="badge project-badge-construction ms-1">
+                                    Construction
+                                </span>
+                            </label>
+
+                            <select id="projectSelect" class="form-select" disabled>
+                                <option value="">-- Select Project --</option>
+                            </select>
+
+                            <div class="form-text">
+                                Bill will be saved under this project.
+                            </div>
+
+                        </div>
+
+
+                        <div class="col-md-4">
+
+                            <label class="form-label fw-semibold">
+                                GST Setting
+                                <span class="text-danger">*</span>
+                            </label>
+
+                            <select id="gstSelect" class="form-select" disabled required>
+                                <option value="">-- Select Business First --</option>
+                            </select>
+
+                            <div class="form-text">
+                                Loaded from <code>sr_group/settings/gst-setting</code>
+                            </div>
+
+                        </div>
+
+
+                        <div class="col-md-4">
+
+                            <label class="form-label fw-semibold">
+                                Bill Type
+                                <span class="text-danger">*</span>
+                            </label>
+
+                            <select id="billType" class="form-select" required>
+                                <option value="">-- Loading Bill Types --</option>
+                            </select>
+
+                            <div class="form-text">
+                                Loaded from <code>sr_group/settings/bill-setting</code>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div id="dynamicBillSections">
+
+                <div class="card border-0 shadow-sm mb-4">
+
+                    <div class="card-body text-center text-muted py-5">
+
+                        <i class="bi bi-info-circle me-2"></i>
+
+                        Select a Bill Type to load its segments and fields.
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="card border-0 shadow-sm mb-4">
+
+                <div class="card-body">
+
+                    <div class="section-title">
+                        <i class="bi bi-percent me-1"></i>
+                        Tax Rates
+                    </div>
+
+                    <div class="row g-3">
+
+                        <div class="col-md-4">
+
+                            <label class="form-label fw-semibold">
+                                Supply Type
+                                <span class="text-danger">*</span>
+                            </label>
+
+                            <select id="supplyType" class="form-select">
+                                <option value="in-state">In-State (CGST + SGST)</option>
+                                <option value="out-of-state">Out-of-State (IGST)</option>
+                            </select>
+
+                        </div>
+
+                    </div>
+
+
+                    <div id="inStateRates" class="row g-3 mt-1">
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">CGST Rate (%)</label>
+                            <input type="number" id="cgstRate" class="form-control"
+                                value="9" min="0" step="0.01">
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">SGST Rate (%)</label>
+                            <input type="number" id="sgstRate" class="form-control"
+                                value="9" min="0" step="0.01">
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Total Tax Rate (%)</label>
+                            <input type="number" id="totalTaxRateIn" class="form-control"
+                                value="18" readonly>
+                        </div>
+
+                    </div>
+
+
+                    <div id="outStateRates" class="row g-3 mt-1 d-none">
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">IGST Total Tax Rate (%)</label>
+                            <input type="number" id="igstRate" class="form-control"
+                                value="18" min="0" step="0.01">
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="card border-0 shadow-sm mb-4">
+
+                <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
+
+                    <div>
+
+                        <strong>
+                            <i class="bi bi-box-seam me-2"></i>
+                            Items
+                        </strong>
+
+                        <div class="small text-muted">
+                            Add line items for this bill.
+                        </div>
+
+                    </div>
+
+                    <div class="phase-selector-wrap">
+
+                        <button type="button"
+                                class="btn btn-outline-primary btn-sm d-none"
+                                id="importPhaseBtn"
+                                title="Import resolved items from a workflow phase">
+
+                            <i class="bi bi-download me-1"></i>
+                            Import from Phase
+
+                        </button>
+
+                        <button type="button" class="btn btn-primary btn-sm" id="addItemBtn">
+                            <i class="bi bi-plus-lg me-1"></i>
+                            Add Item
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <div class="table-responsive" style="overflow: visible;">
+
+                    <table class="table items-table mb-0 align-middle">
+
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 30%;">Item Name</th>
+                                <th style="width: 12%;">Qty</th>
+                                <th style="width: 10%;">Unit</th>
+                                <th style="width: 16%;">Price/Unit (Rs)</th>
+                                <th style="width: 16%;">Amount (Rs)</th>
+                                <th style="width: 16%;" class="text-end">Action</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="itemsBody"></tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+
+            <div class="row justify-content-end mb-5">
+
+                <div class="col-md-5 col-lg-4">
+
+                    <div class="totals-box shadow-sm">
+
+                        <div class="totals-row">
+                            <span>Subtotal</span>
+                            <span>Rs <span id="subtotal">0.00</span></span>
+                        </div>
+
+
+                        <div class="totals-row discount align-items-center">
+
+                            <span class="d-flex align-items-center gap-2">
+
+                                Discount
+
+                                <select id="discountType"
+                                    class="form-select form-select-sm"
+                                    style="width: auto;">
+                                    <option value="percent">%</option>
+                                    <option value="amount">Rs</option>
+                                </select>
+
+                            </span>
+
+                            <span class="d-flex align-items-center gap-1">
+
+                                <input type="number" id="discountValue"
+                                    class="form-control form-control-sm text-end"
+                                    style="width: 90px;"
+                                    min="0" step="0.01" value="0">
+
+                                <span class="small text-muted">
+                                    (− Rs <span id="discountAmount">0.00</span>)
+                                </span>
+
+                            </span>
+
+                        </div>
+
+
+                        <div class="totals-row">
+                            <span>Taxable Amount</span>
+                            <span>Rs <span id="taxableAmount">0.00</span></span>
+                        </div>
+
+
+                        <div class="totals-row" id="cgstRow">
+                            <span>CGST (<span id="cgstRateLabel">0</span>%)</span>
+                            <span>Rs <span id="cgstAmount">0.00</span></span>
+                        </div>
+
+
+                        <div class="totals-row" id="sgstRow">
+                            <span>SGST (<span id="sgstRateLabel">0</span>%)</span>
+                            <span>Rs <span id="sgstAmount">0.00</span></span>
+                        </div>
+
+
+                        <div class="totals-row d-none" id="igstRow">
+                            <span>IGST (<span id="igstRateLabel">0</span>%)</span>
+                            <span>Rs <span id="igstAmount">0.00</span></span>
+                        </div>
+
+
+                        <div class="totals-row grand">
+                            <span>Grand Total</span>
+                            <span>Rs <span id="grandTotal">0.00</span></span>
+                        </div>
+
+
+                        <!-- Hidden — total profit is calculated and saved but not shown -->
+                        <div class="totals-row profit-row d-none">
+                            <span>
+                                <i class="bi bi-graph-up-arrow me-1"></i>
+                                Total Profit
+                            </span>
+                            <span>Rs <span id="totalProfit">0.00</span></span>
+                        </div>
+
+                    </div>
+
+                    <div class="d-grid gap-2 mt-3">
+
+                        <button type="button"
+                            class="btn btn-success"
+                            id="saveGenerateBtnBottom">
+
+                            <i class="bi bi-receipt me-1"></i>
+                            Save &amp; Generate
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+        </div>
+
+    </main>
+
+
+    <!-- ===================================================== -->
+    <!-- IMPORT FROM PHASE MODAL -->
+    <!-- ===================================================== -->
+    <div class="modal fade" id="importPhaseModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-download me-2"></i>
+                        Import Items from Phase
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+
+                    <div class="mb-3">
+                        <label for="importPhaseSelect" class="form-label fw-semibold">
+                            <i class="bi bi-layers-half text-primary me-1"></i>
+                            Select Phase
+                        </label>
+                        <select id="importPhaseSelect" class="form-select">
+                            <option value="">-- Select a Phase --</option>
+                        </select>
+                    </div>
+
+                    <div id="importItemsWrap">
+                        <div class="text-muted text-center py-4 small">
+                            Select a phase above to view its resolved items.
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <div class="me-auto small text-muted" id="importSummary"></div>
+
+                    <button type="button"
+                            class="btn btn-outline-secondary btn-sm"
+                            id="importToggleAllBtn"
+                            disabled>
+                        <i class="bi bi-check2-square me-1"></i>
+                        Toggle All
+                    </button>
+
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        Cancel
+                    </button>
+
+                    <button type="button" class="btn btn-success" id="confirmImportBtn" disabled>
+                        <i class="bi bi-check-lg me-1"></i>
+                        Import Selected
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script type="module" src="sidebar/sidebar.js"></script>
+
+
+    <script type="module">
+
+        import { auth, db } from "./firebase-config.js";
+
+        import {
+            onAuthStateChanged
+        } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+
+        import {
+            ref, get, push, set
+        } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-database.js";
+
+
+        // =====================================================
+        // STATE
+        // =====================================================
+
+        let currentUser = null;
+        let currentRole = "";
+        let currentUserData = null;
+        let businessAccess = {};
+        let selectedBusinessId = "";
+        let selectedBusinessIsConstruction = false;
+        let selectedProjectId = "";
+        let selectedProjectLabel = "";
+        let gstSettings = {};
+        let allBusinesses = {};
+        let allBillTypes = {};
+        let currentBillTypeData = null;
+
+        let itemCatalog = { products: [], services: [] };
+        let previousBills = [];
+
+        let productFieldMap = {};
+        let serviceFieldMap = {};
+
+        let availablePhases = [];
+        let selectedPhase = "";
+        let phaseResolvedItems = {};
+        let boqFieldMap = {};
+
+
+        // =====================================================
+        // LABEL CONSTANTS
+        // =====================================================
+
+        const PRODUCT_COST_LABEL = "Purchase Price";
+        const SERVICE_COST_LABEL = "Costing";
+
+        const PRODUCT_TITLE_NAME     = "Product Name";
+        const PRODUCT_TITLE_QTY      = "Total Quantity";
+        const PRODUCT_TITLE_UNIT     = "Unit";
+        const PRODUCT_TITLE_SELLING  = "Selling Price";
+        const PRODUCT_TITLE_PURCHASE = "Purchase Price";
+        const PRODUCT_TITLE_REMARKS  = "Remarks";
+
+        const SERVICE_TITLE_NAME     = "Title";
+        const SERVICE_TITLE_UNIT     = "Unit";
+        const SERVICE_TITLE_SELLING  = "Selling Price";
+        const SERVICE_TITLE_COSTING  = "Costing";
+        const SERVICE_TITLE_REMARKS  = "Remarks";
+
+        const BOQ_SETTING_KEY = "bill-of-quantity";
+
+
+        // =====================================================
+        // ELEMENTS
+        // =====================================================
+
+        const businessSelect = document.getElementById("businessSelect");
+        const projectCol = document.getElementById("projectCol");
+        const projectSelect = document.getElementById("projectSelect");
+        const gstSelect = document.getElementById("gstSelect");
+        const billTypeSelect = document.getElementById("billType");
+        const dynamicBillSections = document.getElementById("dynamicBillSections");
+        const supplyType = document.getElementById("supplyType");
+        const cgstRate = document.getElementById("cgstRate");
+        const sgstRate = document.getElementById("sgstRate");
+        const totalTaxRateIn = document.getElementById("totalTaxRateIn");
+        const igstRate = document.getElementById("igstRate");
+        const inStateRates = document.getElementById("inStateRates");
+        const outStateRates = document.getElementById("outStateRates");
+        const itemsBody = document.getElementById("itemsBody");
+        const addItemBtn = document.getElementById("addItemBtn");
+        const importPhaseBtn = document.getElementById("importPhaseBtn");
+        const saveBillBtn = document.getElementById("saveBillBtn");
+        const saveGenerateBtnBottom = document.getElementById("saveGenerateBtnBottom");
+        const resetBtn = document.getElementById("resetBtn");
+        const statusMessage = document.getElementById("statusMessage");
+
+        const discountType = document.getElementById("discountType");
+        const discountValue = document.getElementById("discountValue");
+
+        const importPhaseModalEl = document.getElementById("importPhaseModal");
+        const importPhaseModal = new bootstrap.Modal(importPhaseModalEl);
+        const importPhaseSelect = document.getElementById("importPhaseSelect");
+        const importItemsWrap = document.getElementById("importItemsWrap");
+        const importSummary = document.getElementById("importSummary");
+        const importToggleAllBtn = document.getElementById("importToggleAllBtn");
+        const confirmImportBtn = document.getElementById("confirmImportBtn");
+
+
+        // =====================================================
+        // HELPERS
+        // =====================================================
+
+        function showStatus(message, type = "danger") {
+            statusMessage.className = `alert alert-${type}`;
+            statusMessage.textContent = message;
+            statusMessage.classList.remove("d-none");
+
+            clearTimeout(showStatus._timer);
+            showStatus._timer = setTimeout(() => {
+                statusMessage.classList.add("d-none");
+            }, 4000);
+        }
+
+        function formatMoney(n) {
+            const v = Number(n) || 0;
+            return v.toFixed(2);
+        }
+
+        function escapeHtml(value) {
+            return String(value ?? "")
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        function isSuperAdmin() {
+            return currentRole === "main-admin" ||
+                   currentRole === "dev-admin" ||
+                   currentRole === "owner";
+        }
+
+        function isBusinessAdmin() {
+            return currentRole === "business-admin";
+        }
+
+        function isProjectAdmin() {
+            return currentRole === "project-admin";
+        }
+
+        function getAssignedBusinessIds() {
+            const raw = businessAccess;
+            if (!raw) return [];
+
+            if (Array.isArray(raw)) {
+                return raw.map(v => String(v).trim()).filter(Boolean);
+            }
+
+            if (typeof raw === "object") {
+                return Object.entries(raw)
+                    .filter(([, value]) => {
+                        if (value === true) return true;
+                        if (value && typeof value === "object") return true;
+                        if (typeof value === "string" && value) return true;
+                        return false;
+                    })
+                    .map(([key]) => String(key).trim())
+                    .filter(Boolean);
+            }
+
+            if (typeof raw === "string") {
+                return raw.split(",").map(v => v.trim()).filter(Boolean);
+            }
+
+            return [];
+        }
+
+        function getAssignedProjectBusinessIds() {
+            const raw = currentUserData?.projectAccess;
+            if (!raw || typeof raw !== "object") return [];
+            return Object.keys(raw).filter(k => {
+                const v = raw[k];
+                return v && typeof v === "object";
+            });
+        }
+
+        function hasBusinessAccess(businessId) {
+            if (!businessId) return false;
+            if (isSuperAdmin()) return true;
+
+            if (isProjectAdmin()) {
+                return getAssignedProjectBusinessIds().includes(String(businessId));
+            }
+
+            if (isBusinessAdmin()) {
+                return getAssignedBusinessIds().includes(String(businessId));
+            }
+
+            return false;
+        }
+
+
+        // =====================================================
+        // PATTERN HELPERS
+        // =====================================================
+
+        function makeAbbreviation(name) {
+            const raw = String(name || "").trim();
+            if (!raw) return "";
+
+            const parts = raw.split(/[\s\-_\/]+/).filter(Boolean);
+
+            if (parts.length >= 2) {
+                return parts
+                    .map(p => p.charAt(0).toUpperCase())
+                    .join("")
+                    .slice(0, 6);
+            }
+
+            return parts[0].slice(0, 2).toUpperCase();
+        }
+
+        function getBusinessAbbr() {
+            if (!selectedBusinessId) return "";
+
+            const business = allBusinesses?.[selectedBusinessId] || {};
+            const name = business.name || selectedBusinessId;
+
+            return makeAbbreviation(name);
+        }
+
+        function getProjectAbbr() {
+            if (!selectedBusinessIsConstruction || !selectedProjectId) return "";
+
+            const opt = projectSelect.options[projectSelect.selectedIndex];
+            const projectName =
+                opt?.dataset.projectName ||
+                (opt?.textContent || "").split("—").pop().trim() ||
+                "";
+
+            return makeAbbreviation(projectName);
+        }
+
+        function applyPattern(pattern, seq = 1) {
+            const now = new Date();
+            const day   = String(now.getDate()).padStart(2, "0");
+            const month = String(now.getMonth() + 1).padStart(2, "0");
+            const year  = String(now.getFullYear());
+
+            const bizAbbr  = getBusinessAbbr();
+            const projAbbr = getProjectAbbr();
+
+            const combined =
+                bizAbbr && projAbbr
+                    ? `${bizAbbr}-${projAbbr}`
+                    : (bizAbbr || projAbbr || "");
+
+            return String(pattern || "")
+                .replace(/\[business\]\[project\]/gi, combined)
+                .replace(/\[project\]\[business\]/gi, combined)
+                .replace(/\[day\]/gi,      day)
+                .replace(/\[month\]/gi,    month)
+                .replace(/\[year\]/gi,     year)
+                .replace(/\[number\]/gi,   String(seq).padStart(2, "0"))
+                .replace(/\[business\]/gi, bizAbbr)
+                .replace(/\[project\]/gi,  projAbbr);
+        }
+
+        function patternToRegex(pattern) {
+            let escaped = String(pattern || "")
+                .replace(/[.*+?^${}()|\\]/g, "\\$&");
+
+            escaped = escaped
+                .replace(/\[business\]\[project\]/gi, "[A-Za-z0-9\\-]+")
+                .replace(/\[project\]\[business\]/gi, "[A-Za-z0-9\\-]+")
+                .replace(/\[business\]/gi,            "[A-Za-z0-9]+")
+                .replace(/\[project\]/gi,             "[A-Za-z0-9]+")
+                .replace(/\[day\]/gi,                 "\\d{2}")
+                .replace(/\[month\]/gi,               "\\d{2}")
+                .replace(/\[year\]/gi,                "\\d{4}")
+                .replace(/\[num(?:ber)?\]/gi,         "(\\d+)");
+
+            return new RegExp(`^${escaped}$`, "i");
+        }
+
+        function findAutoGenerateField(billTypeData) {
+            if (!billTypeData || !billTypeData.segments) return null;
+
+            for (const seg of Object.values(billTypeData.segments)) {
+                if (!seg.fields) continue;
+                for (const field of Object.values(seg.fields)) {
+                    if (field.autoGenerate && field.autoPattern) return field;
+                }
+            }
+            return null;
+        }
+
+
+        // =====================================================
+        // BILLS PATH (PROJECT AWARE)
+        // =====================================================
+
+        function billsPath(businessId) {
+            if (selectedBusinessIsConstruction && selectedProjectId) {
+                return `sr_group/businesses/${businessId}/projects/${selectedProjectId}/bills`;
+            }
+            return `sr_group/businesses/${businessId}/bills`;
+        }
+
+
+        // =====================================================
+        // INVOICE NUMBER GENERATOR
+        // =====================================================
+
+        async function getNextInvoiceNumber(businessId, billTypeName, billTypeData) {
+            const autoField = findAutoGenerateField(billTypeData);
+
+            const pattern = autoField?.autoPattern
+                ? autoField.autoPattern
+                : `SR/[Business][Project]/INV/[year]/[Number]`;
+
+            const matcher = patternToRegex(pattern);
+            let maxNum = 0;
+
+            if (!businessId) {
+                return applyPattern(pattern, 1);
+            }
+
+            try {
+                const snapshot = await get(ref(db, billsPath(businessId)));
+
+                if (snapshot.exists()) {
+                    const bills = snapshot.val() || {};
+
+                    Object.values(bills).forEach(bill => {
+                        const num = bill?.invoicenumber;
+                        if (!num || typeof num !== "string") return;
+
+                        const match = matcher.exec(num.trim());
+                        if (!match) return;
+
+                        for (let i = 1; i < match.length; i++) {
+                            if (match[i] && /^\d+$/.test(match[i])) {
+                                const n = parseInt(match[i], 10);
+                                if (n > maxNum) maxNum = n;
+                                break;
+                            }
+                        }
+                    });
+                }
+            }
+            catch (err) {
+                console.warn("Could not read existing bills:", err);
+            }
+
+            return applyPattern(pattern, maxNum + 1);
+        }
+
+
+        // =====================================================
+        // AUTH
+        // =====================================================
+
+        onAuthStateChanged(auth, async user => {
+            if (!user) { location.href = "login.html"; return; }
+
+            currentUser = user;
+
+            const snapshot = await get(ref(db, `sr_group/users/${user.uid}`));
+
+            if (!snapshot.exists()) { location.href = "login.html"; return; }
+
+            const userData = snapshot.val();
+            currentUserData = userData;
+            currentRole = userData.role || "";
+            businessAccess = userData.businessAccess || {};
+
+            await loadBusinesses();
+            await loadGstSettings();
+            await loadBillTypes();
+
+            addItemRow();
+            updateTaxVisibility();
+            recalcTotals();
+        });
+
+
+        // =====================================================
+        // BUSINESSES
+        // =====================================================
+
+        async function loadBusinesses() {
+            businessSelect.innerHTML = `<option value="">-- Select Business --</option>`;
+
+            allBusinesses = {};
+
+            try {
+                if (isSuperAdmin()) {
+
+                    const snapshot = await get(ref(db, "sr_group/businesses"));
+                    if (snapshot.exists()) allBusinesses = snapshot.val() || {};
+
+                }
+                else if (isBusinessAdmin()) {
+
+                    const assignedIds = getAssignedBusinessIds();
+                    for (const businessId of assignedIds) {
+                        try {
+                            const snap = await get(ref(db, `sr_group/businesses/${businessId}`));
+                            if (snap.exists()) allBusinesses[businessId] = snap.val();
+                        }
+                        catch (err) { console.warn(`Unable to read ${businessId}`, err); }
+                    }
+
+                }
+                else if (isProjectAdmin()) {
+
+                    const assignedIds = getAssignedProjectBusinessIds();
+                    for (const businessId of assignedIds) {
+                        try {
+                            const snap = await get(ref(db, `sr_group/businesses/${businessId}`));
+                            if (snap.exists()) allBusinesses[businessId] = snap.val();
+                            else allBusinesses[businessId] = { name: businessId };
+                        }
+                        catch (err) {
+                            allBusinesses[businessId] = { name: businessId };
+                        }
+                    }
+
+                }
+                else {
+                    showStatus("You do not have permission to generate bills.");
+                    [saveBillBtn, saveGenerateBtnBottom].forEach(b => { if (b) b.disabled = true; });
+                    return;
+                }
+            }
+            catch (err) {
+                console.error("Load businesses error:", err);
+                showStatus("Failed to load businesses.");
+                return;
+            }
+
+            const ids = Object.keys(allBusinesses).sort();
+
+            if (!ids.length) {
+                businessSelect.innerHTML = `<option value="">-- No businesses available --</option>`;
+                return;
+            }
+
+            ids.forEach(id => {
+                const business = allBusinesses[id] || {};
+                const option = document.createElement("option");
+                option.value = id;
+                option.textContent = `${business.name || id} (${id})`;
+                option.dataset.construction =
+                    business.construction === true ? "true" : "false";
+                businessSelect.appendChild(option);
+            });
+        }
+
+
+        // =====================================================
+        // PROJECTS
+        // =====================================================
+
+        async function loadProjectsForBusiness(businessId) {
+
+            projectSelect.innerHTML = `<option value="">Loading...</option>`;
+            projectSelect.disabled = true;
+
+            let projects = {};
+
+            try {
+                const snap = await get(
+                    ref(db, `sr_group/businesses/${businessId}/projects`)
+                );
+                if (snap.exists()) projects = snap.val() || {};
+            }
+            catch (err) {
+                console.warn("Could not load projects:", err);
+            }
+
+            const cleaned = {};
+            Object.entries(projects).forEach(([id, p]) => {
+                if (id === "_placeholder") return;
+                if (!p || typeof p !== "object") return;
+                cleaned[id] = p;
+            });
+
+            let visible = cleaned;
+
+            if (isProjectAdmin()) {
+
+                const assigned =
+                    currentUserData?.projectAccess?.[businessId] || {};
+
+                const restricted = {};
+
+                Object.entries(cleaned).forEach(([pushId, p]) => {
+                    if (assigned[pushId]) restricted[pushId] = p;
+                });
+
+                if (!Object.keys(restricted).length) {
+                    Object.entries(assigned).forEach(([pushId, p]) => {
+                        if (pushId === "_placeholder") return;
+                        if (!p || typeof p !== "object") return;
+
+                        restricted[pushId] = {
+                            projectId: p.projectId || "",
+                            projectName: p.name || p.projectName || pushId
+                        };
+                    });
+                }
+
+                visible = restricted;
+            }
+
+            projectSelect.innerHTML = `<option value="">-- Select Project --</option>`;
+
+            const entries = Object.entries(visible);
+
+            if (!entries.length) {
+                projectSelect.innerHTML = `<option value="">-- No projects available --</option>`;
+                projectSelect.disabled = true;
+                return;
+            }
+
+            entries.forEach(([pushId, p]) => {
+                const opt = document.createElement("option");
+                opt.value = pushId;
+                const pId = p.projectId || "";
+                const pName = p.projectName || p.name || pushId;
+                opt.textContent = `${pId} — ${pName}`;
+                opt.dataset.projectId = pId;
+                opt.dataset.projectName = pName;
+                projectSelect.appendChild(opt);
+            });
+
+            projectSelect.disabled = false;
+        }
+
+
+        // =====================================================
+        // GST SETTINGS
+        // =====================================================
+
+        async function loadGstSettings() {
+            const snapshot = await get(ref(db, "sr_group/settings/gst-setting"));
+            gstSettings = snapshot.exists() ? snapshot.val() : {};
+            resetGstDropdown();
+        }
+
+        function resetGstDropdown() {
+            gstSelect.innerHTML = `<option value="">-- Select Business First --</option>`;
+            gstSelect.disabled = true;
+        }
+
+        function populateGstDropdown() {
+            gstSelect.innerHTML = `<option value="">-- Select GST Setting --</option>`;
+
+            const entries = Object.entries(gstSettings || {});
+
+            if (!entries.length) {
+                gstSelect.innerHTML = `<option value="">-- No GST settings found --</option>`;
+                gstSelect.disabled = true;
+                return;
+            }
+
+            entries.forEach(([id, item]) => {
+                const option = document.createElement("option");
+                option.value = id;
+
+                option.textContent = item.name
+                    ? `${item.name} (${item.gstNumber || ""})`
+                    : (item.gstNumber || id);
+
+                option.dataset.gst = JSON.stringify(item);
+                gstSelect.appendChild(option);
+            });
+
+            gstSelect.disabled = false;
+        }
+
+
+        // =====================================================
+        // BILL TYPES
+        // =====================================================
+
+        async function loadBillTypes() {
+            billTypeSelect.innerHTML = `<option value="">-- Loading Bill Types --</option>`;
+
+            try {
+                const snapshot = await get(ref(db, "sr_group/settings/bill-setting"));
+                allBillTypes = snapshot.exists() ? snapshot.val() : {};
+            }
+            catch (err) {
+                console.error("Failed to load bill types:", err);
+                allBillTypes = {};
+            }
+
+            const entries = Object.entries(allBillTypes);
+
+            if (!entries.length) {
+                billTypeSelect.innerHTML = `<option value="">-- No Bill Types found. Configure in Settings. --</option>`;
+                return;
+            }
+
+            billTypeSelect.innerHTML = `<option value="">-- Select Bill Type --</option>`;
+
+            entries.forEach(([id, item]) => {
+                const option = document.createElement("option");
+                option.value = id;
+                option.textContent = item.name || id;
+                billTypeSelect.appendChild(option);
+            });
+        }
+
+
+        // =====================================================
+        // FIELD MAP RESOLUTION
+        // =====================================================
+
+        async function loadFieldMaps() {
+            productFieldMap = {};
+            serviceFieldMap = {};
+
+            if (!selectedBusinessId) return;
+
+            try {
+                const [prodSnap, svcSnap] = await Promise.all([
+                    get(ref(db, `sr_group/settings/${selectedBusinessId}/products`)),
+                    get(ref(db, `sr_group/settings/${selectedBusinessId}/services`))
+                ]);
+
+                if (prodSnap.exists()) {
+                    const defs = prodSnap.val() || {};
+                    Object.entries(defs).forEach(([fieldId, def]) => {
+                        if (fieldId === "meta") return;
+                        const title = def?.title;
+                        if (title) productFieldMap[title] = fieldId;
+                    });
+                }
+
+                if (svcSnap.exists()) {
+                    const defs = svcSnap.val() || {};
+                    Object.entries(defs).forEach(([fieldId, def]) => {
+                        if (fieldId === "meta") return;
+                        const title = def?.title;
+                        if (title) serviceFieldMap[title] = fieldId;
+                    });
+                }
+            }
+            catch (err) {
+                console.error("Failed to load field maps:", err);
+            }
+        }
+
+        function getFieldValue(record, map, title) {
+            const fid = map[title];
+            if (!fid) return undefined;
+            return record?.[fid];
+        }
+
+
+        // =====================================================
+        // ITEM CATALOG — PROJECT AWARE
+        // =====================================================
+
+        function recordsBasePath() {
+            if (selectedBusinessIsConstruction && selectedProjectId) {
+                return `sr_group/businesses/${selectedBusinessId}/projects/${selectedProjectId}/records`;
+            }
+            return `sr_group/businesses/${selectedBusinessId}/records`;
+        }
+
+        async function loadItemCatalog() {
+            itemCatalog = { products: [], services: [] };
+
+            if (!selectedBusinessId) return;
+
+            if (selectedBusinessIsConstruction && !selectedProjectId) {
+                return;
+            }
+
+            await loadFieldMaps();
+
+            try {
+                const snap = await get(ref(db, recordsBasePath()));
+
+                if (!snap.exists()) return;
+
+                const records = snap.val() || {};
+
+                const prodRecs = records.products || {};
+                Object.entries(prodRecs).forEach(([id, rec]) => {
+                    const name = String(
+                        getFieldValue(rec, productFieldMap, PRODUCT_TITLE_NAME) ?? ""
+                    ).trim();
+                    if (!name) return;
+
+                    itemCatalog.products.push({
+                        id,
+                        name,
+                        unit:     String(
+                            getFieldValue(rec, productFieldMap, PRODUCT_TITLE_UNIT) ?? ""
+                        ),
+                        price:    Number(
+                            getFieldValue(rec, productFieldMap, PRODUCT_TITLE_SELLING)
+                        ) || 0,
+                        cost:     Number(
+                            getFieldValue(rec, productFieldMap, PRODUCT_TITLE_PURCHASE)
+                        ) || 0,
+                        quantity: Number(
+                            getFieldValue(rec, productFieldMap, PRODUCT_TITLE_QTY)
+                        ) || 0,
+                        type: "product"
+                    });
+                });
+
+                const svcRecs = records.services || {};
+                Object.entries(svcRecs).forEach(([id, rec]) => {
+                    const name = String(
+                        getFieldValue(rec, serviceFieldMap, SERVICE_TITLE_NAME) ?? ""
+                    ).trim();
+                    if (!name) return;
+
+                    itemCatalog.services.push({
+                        id,
+                        name,
+                        unit:  String(
+                            getFieldValue(rec, serviceFieldMap, SERVICE_TITLE_UNIT) ?? ""
+                        ),
+                        price: Number(
+                            getFieldValue(rec, serviceFieldMap, SERVICE_TITLE_SELLING)
+                        ) || 0,
+                        cost:  Number(
+                            getFieldValue(rec, serviceFieldMap, SERVICE_TITLE_COSTING)
+                        ) || 0,
+                        type: "service"
+                    });
+                });
+            }
+            catch (err) {
+                console.error("Failed to load item catalog:", err);
+            }
+        }
+
+        function getAllCatalogItems() {
+            return [...itemCatalog.products, ...itemCatalog.services];
+        }
+
+        function findCatalogItem(name) {
+            const q = String(name ?? "").trim().toLowerCase();
+            if (!q) return null;
+
+            return (
+                itemCatalog.products.find(p => p.name.toLowerCase() === q) ||
+                itemCatalog.services.find(s => s.name.toLowerCase() === q) ||
+                null
+            );
+        }
+
+        function getProductById(id) {
+            return itemCatalog.products.find(p => p.id === id) || null;
+        }
+
+
+        // =====================================================
+        // WORKFLOW — PHASES + RESOLVED ITEMS
+        // =====================================================
+
+        async function loadWorkflowPhases() {
+            availablePhases = [];
+            selectedPhase = "";
+            phaseResolvedItems = {};
+            boqFieldMap = {};
+
+            if (!selectedBusinessId || !selectedProjectId) {
+                updateImportPhaseButton();
+                return;
+            }
+
+            try {
+                const snap = await get(
+                    ref(db, `sr_group/settings/${selectedBusinessId}/${BOQ_SETTING_KEY}`)
+                );
+                if (snap.exists()) {
+                    const data = snap.val() || {};
+                    Object.entries(data).forEach(([fieldId, def]) => {
+                        if (fieldId === "meta") return;
+                        if (!def || typeof def !== "object") return;
+                        const title = def.title;
+                        if (title) boqFieldMap[title] = fieldId;
+                    });
+                }
+            }
+            catch (err) {
+                console.warn("Could not load BOQ field map:", err);
+            }
+
+            let resolved = {};
+
+            try {
+                const snap = await get(
+                    ref(db, `sr_group/businesses/${selectedBusinessId}/projects/${selectedProjectId}/resolved`)
+                );
+                if (snap.exists()) {
+                    resolved = snap.val() || {};
+                }
+            }
+            catch (err) {
+                console.warn("Could not load resolved records:", err);
+            }
+
+            const phaseSet = new Set();
+
+            Object.values(resolved).forEach(r => {
+                if (!r || typeof r !== "object") return;
+
+                const phase = String(r.phase || "").trim() || "Unassigned";
+                const title = String(r.title || "—").trim() || "—";
+
+                phaseSet.add(phase);
+
+                if (!phaseResolvedItems[phase]) {
+                    phaseResolvedItems[phase] = {};
+                }
+
+                if (!phaseResolvedItems[phase][title]) {
+                    phaseResolvedItems[phase][title] = {
+                        title,
+                        unit: String(r.unit || ""),
+                        quantity: 0,
+                        totalSelling: 0,
+                        totalCost: 0,
+                        sellingPrice: 0,
+                        costPrice: 0,
+                        recordIds: []
+                    };
+                }
+
+                const item = phaseResolvedItems[phase][title];
+
+                const qty = Number(r.resolvedQuantity) || 0;
+                const selling = Number(r.resolvedAmount) || 0;
+
+                let cost = Number(r.resolvedCosting);
+
+                if (!Number.isFinite(cost) || cost === 0) {
+                    const uCost = Number(r.unitCosting);
+                    if (Number.isFinite(uCost) && uCost > 0) {
+                        cost = uCost * qty;
+                    }
+                    else {
+                        const bCost = Number(r.boqCosting);
+                        if (Number.isFinite(bCost) && bCost > 0) {
+                            cost = bCost * qty;
+                        }
+                        else {
+                            cost = 0;
+                        }
+                    }
+                }
+
+                item.quantity += qty;
+                item.totalSelling += selling;
+                item.totalCost += cost;
+
+                if (!item.unit && r.unit) {
+                    item.unit = String(r.unit);
+                }
+
+                item.recordIds.push(r);
+            });
+
+            Object.values(phaseResolvedItems).forEach(itemsMap => {
+                Object.values(itemsMap).forEach(item => {
+                    item.sellingPrice = item.quantity > 0
+                        ? item.totalSelling / item.quantity
+                        : 0;
+
+                    item.costPrice = item.quantity > 0
+                        ? item.totalCost / item.quantity
+                        : 0;
+                });
+            });
+
+            availablePhases = Array.from(phaseSet).sort((a, b) => {
+                const na = parseInt(String(a).replace(/\D/g, "")) || 0;
+                const nb = parseInt(String(b).replace(/\D/g, "")) || 0;
+                if (na !== nb) return na - nb;
+                return String(a).localeCompare(String(b));
+            });
+
+            updateImportPhaseButton();
+        }
+
+
+        function updateImportPhaseButton() {
+            if (!importPhaseBtn) return;
+
+            const shouldShow =
+                selectedBusinessIsConstruction &&
+                !!selectedProjectId &&
+                availablePhases.length > 0;
+
+            importPhaseBtn.classList.toggle("d-none", !shouldShow);
+        }
+
+
+        // =====================================================
+        // IMPORT FROM PHASE MODAL
+        // =====================================================
+
+        importPhaseBtn.addEventListener("click", () => {
+
+            if (!availablePhases.length) {
+                showStatus("No resolved phases found for this project.", "warning");
+                return;
+            }
+
+            importPhaseSelect.innerHTML = `<option value="">-- Select a Phase --</option>`;
+
+            availablePhases.forEach(phase => {
+                const items = phaseResolvedItems[phase] || {};
+                const count = Object.keys(items).length;
+
+                const opt = document.createElement("option");
+                opt.value = phase;
+                opt.textContent = `${phase} (${count} item${count === 1 ? "" : "s"})`;
+                importPhaseSelect.appendChild(opt);
+            });
+
+            importItemsWrap.innerHTML = `
+                <div class="text-muted text-center py-4 small">
+                    Select a phase above to view its resolved items.
+                </div>
+            `;
+            importSummary.textContent = "";
+            confirmImportBtn.disabled = true;
+            importToggleAllBtn.disabled = true;
+
+            importPhaseModal.show();
+        });
+
+
+        importPhaseSelect.addEventListener("change", () => {
+            const phase = importPhaseSelect.value;
+
+            if (!phase) {
+                importItemsWrap.innerHTML = `
+                    <div class="text-muted text-center py-4 small">
+                        Select a phase above to view its resolved items.
+                    </div>
+                `;
+                importSummary.textContent = "";
+                confirmImportBtn.disabled = true;
+                importToggleAllBtn.disabled = true;
+                return;
+            }
+
+            renderImportItemsTable(phase);
+        });
+
+
+        function renderImportItemsTable(phase) {
+            const itemsMap = phaseResolvedItems[phase] || {};
+            const items = Object.values(itemsMap);
+
+            if (!items.length) {
+                importItemsWrap.innerHTML = `
+                    <div class="text-muted text-center py-4 small">
+                        No resolved items found in ${escapeHtml(phase)}.
+                    </div>
+                `;
+                importSummary.textContent = "";
+                confirmImportBtn.disabled = true;
+                importToggleAllBtn.disabled = true;
+                return;
+            }
+
+            // NOTE: Cost/Unit and Profit are intentionally NOT shown here.
+            // They are still carried through the row data on import.
+            let html = `
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover import-phase-table mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 36px;">
+                                    <input type="checkbox" class="form-check-input"
+                                           id="importCheckAll">
+                                </th>
+                                <th>Item</th>
+                                <th class="text-end" style="width: 90px;">Qty</th>
+                                <th style="width: 80px;">Unit</th>
+                                <th class="text-end" style="width: 120px;">Selling/Unit</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            items.forEach(item => {
+                html += `
+                    <tr>
+                        <td>
+                            <input type="checkbox"
+                                   class="form-check-input import-item-check"
+                                   data-title="${escapeHtml(item.title)}"
+                                   checked>
+                        </td>
+                        <td class="fw-semibold">${escapeHtml(item.title)}</td>
+                        <td class="text-end">${formatMoney(item.quantity)}</td>
+                        <td>${escapeHtml(item.unit || "—")}</td>
+                        <td class="text-end">${formatMoney(item.sellingPrice)}</td>
+                    </tr>
+                `;
+            });
+
+            html += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            importItemsWrap.innerHTML = html;
+
+            const checkAll = document.getElementById("importCheckAll");
+            checkAll.addEventListener("change", () => {
+                importItemsWrap
+                    .querySelectorAll(".import-item-check")
+                    .forEach(cb => { cb.checked = checkAll.checked; });
+                updateImportSummary(phase);
+            });
+
+            importItemsWrap
+                .querySelectorAll(".import-item-check")
+                .forEach(cb => cb.addEventListener("change", () => updateImportSummary(phase)));
+
+            importToggleAllBtn.disabled = false;
+            confirmImportBtn.disabled = false;
+
+            updateImportSummary(phase);
+        }
+
+
+        function updateImportSummary(phase) {
+            const checked = Array.from(
+                importItemsWrap.querySelectorAll(".import-item-check")
+            ).filter(cb => cb.checked);
+
+            importSummary.textContent =
+                checked.length +
+                ` item${checked.length === 1 ? "" : "s"} selected`;
+
+            confirmImportBtn.disabled = checked.length === 0;
+        }
+
+
+        importToggleAllBtn.addEventListener("click", () => {
+            const cbs = importItemsWrap.querySelectorAll(".import-item-check");
+            if (!cbs.length) return;
+
+            const anyUnchecked = Array.from(cbs).some(cb => !cb.checked);
+
+            cbs.forEach(cb => { cb.checked = anyUnchecked; });
+
+            const checkAll = document.getElementById("importCheckAll");
+            if (checkAll) checkAll.checked = anyUnchecked;
+
+            const phase = importPhaseSelect.value;
+            if (phase) updateImportSummary(phase);
+        });
+
+
+        confirmImportBtn.addEventListener("click", () => {
+            const phase = importPhaseSelect.value;
+            if (!phase) return;
+
+            const itemsMap = phaseResolvedItems[phase] || {};
+
+            const checked = Array.from(
+                importItemsWrap.querySelectorAll(".import-item-check")
+            ).filter(cb => cb.checked);
+
+            if (!checked.length) return;
+
+            const existingRows = itemsBody.querySelectorAll("tr");
+
+            if (existingRows.length === 1) {
+                const firstRow = existingRows[0];
+                const nameVal = firstRow.querySelector(".item-name")?.value.trim();
+                if (!nameVal) firstRow.remove();
+            }
+
+            let added = 0;
+
+            checked.forEach(cb => {
+                const title = cb.dataset.title;
+                const item = itemsMap[title];
+                if (!item) return;
+
+                const tr = createResolvedItemRow(item, phase);
+                itemsBody.appendChild(tr);
+                added++;
+            });
+
+            importPhaseModal.hide();
+            recalcTotals();
+
+            showStatus(
+                `Imported ${added} item${added === 1 ? "" : "s"} from ${phase}.`,
+                "success"
+            );
+        });
+
+
+        // =====================================================
+        // RESOLVE CATALOG MATCH
+        // =====================================================
+
+        function resolveCatalogItemForPhase(resolvedItem) {
+            if (!resolvedItem) return { item: null, matchedBy: "none" };
+
+            const rawTitle = String(resolvedItem.title || "").trim();
+            if (!rawTitle) return { item: null, matchedBy: "none" };
+
+            const titleLower = rawTitle.toLowerCase();
+            const all = getAllCatalogItems();
+
+            const exact =
+                itemCatalog.products.find(p => p.name === rawTitle) ||
+                itemCatalog.services.find(s => s.name === rawTitle) ||
+                null;
+            if (exact) return { item: exact, matchedBy: "exact" };
+
+            const ci =
+                itemCatalog.products.find(
+                    p => p.name.trim().toLowerCase() === titleLower
+                ) ||
+                itemCatalog.services.find(
+                    s => s.name.trim().toLowerCase() === titleLower
+                ) ||
+                null;
+            if (ci) return { item: ci, matchedBy: "ci" };
+
+            const loose =
+                all.find(it => it.name.toLowerCase().includes(titleLower)) ||
+                all.find(it => titleLower.includes(it.name.toLowerCase())) ||
+                null;
+            if (loose) return { item: loose, matchedBy: "loose" };
+
+            return { item: null, matchedBy: "none" };
+        }
+
+
+        // =====================================================
+        // CREATE RESOLVED ITEM ROW
+        // =====================================================
+
+        function createResolvedItemRow(item, phase) {
+            const tr = document.createElement("tr");
+
+            // Cost/Unit and Profit inputs are HIDDEN (class "hidden-col")
+            // — they still exist so calculation & DB save work.
+            tr.innerHTML = `
+                <td>
+                    <div class="item-search-wrap">
+                        <input
+                            type="text"
+                            class="form-control form-control-sm item-name"
+                            placeholder="Search product or service..."
+                            autocomplete="off">
+                        <div class="row-error-msg d-none">
+                            <i class="bi bi-exclamation-triangle-fill"></i>
+                            <span class="error-text">You don't have this product in stock.</span>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <input type="number" class="form-control form-control-sm item-qty"
+                        min="0" step="0.01" value="1">
+                </td>
+                <td>
+                    <input type="text" class="form-control form-control-sm item-unit"
+                        placeholder="Unit">
+                </td>
+                <td>
+                    <input type="number" class="form-control form-control-sm item-price"
+                        min="0" step="0.01" value="0">
+                </td>
+                <td>
+                    <input type="text" class="form-control form-control-sm item-amount"
+                        readonly value="0.00">
+                </td>
+                <td class="hidden-col">
+                    <input type="number" class="form-control form-control-sm item-cost"
+                        min="0" step="0.01" value="0">
+                </td>
+                <td class="hidden-col">
+                    <input type="text" class="form-control form-control-sm item-profit"
+                        readonly value="0.00">
+                </td>
+                <td class="text-end">
+                    <button type="button" class="btn btn-sm btn-outline-danger remove-item">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </td>
+            `;
+
+            wireUpItemRow(tr);
+
+            const nameInput  = tr.querySelector(".item-name");
+            const qtyInput   = tr.querySelector(".item-qty");
+            const unitInput  = tr.querySelector(".item-unit");
+            const priceInput = tr.querySelector(".item-price");
+            const costInput  = tr.querySelector(".item-cost");
+            const wrap       = tr.querySelector(".item-search-wrap");
+
+            if (phase) {
+                tr.dataset.itemPhase = phase;
+            }
+
+            const { item: matched } = resolveCatalogItemForPhase(item);
+
+            if (matched) {
+                tr.dataset.itemId = matched.id;
+                tr.dataset.itemType = matched.type;
+                tr.dataset.itemCostLabel = matched.type === "product"
+                    ? PRODUCT_COST_LABEL
+                    : SERVICE_COST_LABEL;
+
+                tr.classList.add(matched.type === "product" ? "row-product" : "row-service");
+
+                const tag = document.createElement("span");
+                tag.className = `item-tag ${matched.type}`;
+                tag.textContent = matched.type;
+                wrap.appendChild(tag);
+            }
+            else {
+                tr.dataset.itemType = "service";
+                tr.dataset.itemCostLabel = SERVICE_COST_LABEL;
+                tr.classList.add("row-phase");
+
+                const tag = document.createElement("span");
+                tag.className = "item-tag phase";
+                tag.textContent = "phase";
+                wrap.appendChild(tag);
+            }
+
+            if (phase && matched) {
+                const pTag = document.createElement("span");
+                pTag.className = "item-tag phase";
+                pTag.textContent = phase;
+                wrap.appendChild(pTag);
+            }
+
+            nameInput.value = item.title || "";
+            qtyInput.value = item.quantity || 1;
+            unitInput.value = item.unit || "";
+
+            priceInput.value = item.sellingPrice != null
+                ? Number(item.sellingPrice).toFixed(2)
+                : "0.00";
+
+            costInput.value = item.costPrice != null
+                ? Number(item.costPrice).toFixed(2)
+                : "0.00";
+
+            tr.querySelector(".item-qty").dispatchEvent(new Event("input", { bubbles: true }));
+
+            return tr;
+        }
+
+
+        // =====================================================
+        // PREVIOUS BILLS
+        // =====================================================
+
+        async function loadPreviousBills() {
+            previousBills = [];
+
+            if (!selectedBusinessId) return;
+
+            if (selectedBusinessIsConstruction && !selectedProjectId) {
+                return;
+            }
+
+            try {
+                const snap = await get(ref(db, billsPath(selectedBusinessId)));
+
+                if (!snap.exists()) return;
+
+                const bills = snap.val() || {};
+
+                previousBills = Object.entries(bills)
+                    .map(([id, b]) => ({ id, ...b }))
+                    .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+            }
+            catch (err) {
+                console.error("Failed to load previous bills:", err);
+            }
+        }
+
+
+        function buildSuggestListForField(segmentName, segFields, suggestFieldName) {
+            const suggestions = [];
+            const seen = new Set();
+
+            previousBills.forEach(bill => {
+                const seg = bill?.dynamicFields?.[segmentName];
+                if (!seg || typeof seg !== "object") return;
+
+                const value = String(seg[suggestFieldName] ?? "").trim();
+                if (!value) return;
+
+                const key = value.toLowerCase();
+                if (seen.has(key)) return;
+                seen.add(key);
+
+                const row = {};
+                Object.values(segFields).forEach(def => {
+                    const fname = def.name || "";
+                    row[fname] = seg[fname] ?? "";
+                });
+
+                suggestions.push({ value, row });
+            });
+
+            return suggestions;
+        }
+
+
+        // =====================================================
+        // BUSINESS CHANGE
+        // =====================================================
+
+        businessSelect.addEventListener("change", async () => {
+            selectedBusinessId = businessSelect.value;
+
+            selectedProjectId = "";
+            selectedProjectLabel = "";
+            projectCol.classList.add("d-none");
+            projectSelect.innerHTML = `<option value="">-- Select Project --</option>`;
+            projectSelect.disabled = true;
+
+            availablePhases = [];
+            selectedPhase = "";
+            phaseResolvedItems = {};
+            boqFieldMap = {};
+            updateImportPhaseButton();
+
+            if (!selectedBusinessId) {
+                resetGstDropdown();
+                itemCatalog = { products: [], services: [] };
+                previousBills = [];
+                productFieldMap = {};
+                serviceFieldMap = {};
+                selectedBusinessIsConstruction = false;
+                return;
+            }
+
+            if (!hasBusinessAccess(selectedBusinessId)) {
+                showStatus("You do not have access to this business.");
+                businessSelect.value = "";
+                selectedBusinessId = "";
+                resetGstDropdown();
+                return;
+            }
+
+            const opt =
+                businessSelect.querySelector(
+                    `option[value="${CSS.escape(selectedBusinessId)}"]`
+                );
+            selectedBusinessIsConstruction =
+                opt?.dataset.construction === "true";
+
+            populateGstDropdown();
+
+            if (selectedBusinessIsConstruction) {
+
+                projectCol.classList.remove("d-none");
+                await loadProjectsForBusiness(selectedBusinessId);
+
+                itemCatalog = { products: [], services: [] };
+                previousBills = [];
+                productFieldMap = {};
+                serviceFieldMap = {};
+
+            } else {
+
+                await loadItemCatalog();
+                await loadPreviousBills();
+            }
+
+            if (currentBillTypeData) {
+                await renderDynamicSections(currentBillTypeData);
+            }
+
+            await refreshAllAutoFields();
+        });
+
+
+        // =====================================================
+        // PROJECT CHANGE
+        // =====================================================
+
+        projectSelect.addEventListener("change", async () => {
+
+            selectedProjectId = projectSelect.value;
+
+            const opt =
+                projectSelect.options[projectSelect.selectedIndex];
+
+            selectedProjectLabel = opt ? opt.textContent : "";
+
+            itemCatalog = { products: [], services: [] };
+            previousBills = [];
+            productFieldMap = {};
+            serviceFieldMap = {};
+
+            availablePhases = [];
+            selectedPhase = "";
+            phaseResolvedItems = {};
+            boqFieldMap = {};
+
+            itemsBody.innerHTML = "";
+            addItemRow();
+            recalcTotals();
+
+            if (!selectedProjectId) {
+                updateImportPhaseButton();
+                await refreshAllAutoFields();
+                return;
+            }
+
+            await loadItemCatalog();
+            await loadPreviousBills();
+            await loadWorkflowPhases();
+
+            if (currentBillTypeData) {
+                await renderDynamicSections(currentBillTypeData);
+            }
+
+            await refreshAllAutoFields();
+        });
+
+
+        // =====================================================
+        // BILL TYPE CHANGE
+        // =====================================================
+
+        billTypeSelect.addEventListener("change", async () => {
+            const id = billTypeSelect.value;
+
+            if (!id) {
+                currentBillTypeData = null;
+                renderDynamicSections(null);
+                return;
+            }
+
+            currentBillTypeData = allBillTypes[id] || null;
+            await renderDynamicSections(currentBillTypeData);
+        });
+
+
+        // =====================================================
+        // RENDER DYNAMIC SEGMENTS
+        // =====================================================
+
+        async function renderDynamicSections(billTypeData) {
+            if (!billTypeData) {
+                dynamicBillSections.innerHTML = `
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-body text-center text-muted py-5">
+                            <i class="bi bi-info-circle me-2"></i>
+                            Select a Bill Type to load its segments and fields.
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            const segments = billTypeData.segments || {};
+            const segmentEntries = Object.entries(segments);
+
+            if (!segmentEntries.length) {
+                dynamicBillSections.innerHTML = `
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-body text-center text-muted py-5">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            This Bill Type has no segments defined yet.
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = "";
+
+            segmentEntries.forEach(([segId, seg]) => {
+                const fields = seg.fields || {};
+                const fieldEntries = Object.entries(fields);
+
+                html += `
+                    <div class="card border-0 shadow-sm mb-4" data-segment-id="${escapeHtml(segId)}">
+                        <div class="card-body">
+                            <div class="segment-header">
+                                <i class="bi bi-folder me-2"></i>
+                                ${escapeHtml(seg.name || "Segment")}
+                            </div>
+                            <div class="row g-3">
+                `;
+
+                if (!fieldEntries.length) {
+                    html += `<div class="col-12 text-muted small">No fields in this segment.</div>`;
+                }
+                else {
+                    fieldEntries.forEach(([fieldId, field]) => {
+                        html += renderField(segId, fieldId, field);
+                    });
+                }
+
+                html += `
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            dynamicBillSections.innerHTML = html;
+
+            attachAutoSuggestHandlers();
+
+            await refreshAllAutoFields();
+        }
+
+
+        function renderField(segId, fieldId, field) {
+            const fieldName = field.name || "Field";
+            const type = field.type || "text";
+
+            const dataAttrs = `
+                data-segment-id="${escapeHtml(segId)}"
+                data-field-id="${escapeHtml(fieldId)}"
+            `;
+
+            const autoGenerate = field.autoGenerate === true;
+            const autoSetDate = field.autoSetDate === true;
+            const autoSuggest = field.autoSuggest === true;
+
+            const readonlyAttr = (autoGenerate || autoSetDate) ? "readonly" : "";
+
+            const autoAttrs = `
+                data-autogenerate="${autoGenerate ? "true" : "false"}"
+                data-autoSetDate="${autoSetDate ? "true" : "false"}"
+                data-autoSuggest="${autoSuggest ? "true" : "false"}"
+                data-autoPattern="${escapeHtml(field.autoPattern || "")}"
+                data-dateFormat="${escapeHtml(field.dateFormat || "")}"
+            `;
+
+            let inputHtml = "";
+
+            switch (type) {
+                case "number":
+                    inputHtml = `
+                        <input type="number" class="form-control dynamic-field"
+                            ${dataAttrs} ${readonlyAttr} ${autoAttrs}
+                            step="0.01"
+                            placeholder="Enter ${escapeHtml(fieldName)}">
+                    `;
+                    break;
+
+                case "date":
+                    inputHtml = `
+                        <input type="text" class="form-control dynamic-field"
+                            ${dataAttrs} ${readonlyAttr} ${autoAttrs}
+                            placeholder="Enter ${escapeHtml(fieldName)}">
+                    `;
+                    break;
+
+                case "textarea":
+                    inputHtml = `
+                        <textarea class="form-control dynamic-field"
+                            ${dataAttrs} ${readonlyAttr} ${autoAttrs}
+                            rows="2"
+                            placeholder="Enter ${escapeHtml(fieldName)}"></textarea>
+                    `;
+                    break;
+
+                case "select":
+                    const options = field.options || {};
+                    let optHtml = `<option value="">-- Select ${escapeHtml(fieldName)} --</option>`;
+
+                    Object.values(options).forEach(opt => {
+                        const val = typeof opt === "object" && opt !== null ? opt.value : opt;
+                        optHtml += `<option value="${escapeHtml(val)}">${escapeHtml(val)}</option>`;
+                    });
+
+                    inputHtml = `
+                        <select class="form-select dynamic-field"
+                            ${dataAttrs} ${readonlyAttr} ${autoAttrs}>
+                            ${optHtml}
+                        </select>
+                    `;
+                    break;
+
+                case "text":
+                default:
+                    inputHtml = `
+                        <input type="text" class="form-control dynamic-field"
+                            ${dataAttrs} ${readonlyAttr} ${autoAttrs}
+                            autocomplete="off"
+                            placeholder="Enter ${escapeHtml(fieldName)}">
+                    `;
+                    break;
+            }
+
+            if (autoGenerate) {
+                inputHtml = inputHtml.replace(
+                    /^(\s*<(?:input|select|textarea)\b)/,
+                    `$1 id="invoiceNumber"`
+                );
+            }
+
+            const colClass = type === "textarea" ? "col-md-12" : "col-md-6";
+
+            return `
+                <div class="${colClass}">
+                    <label class="form-label fw-semibold">
+                        ${escapeHtml(fieldName)}
+                        ${autoGenerate ? '<span class="badge bg-info text-dark ms-1">Auto</span>' : ''}
+                        ${autoSetDate ? '<span class="badge bg-warning text-dark ms-1">Date</span>' : ''}
+                        ${autoSuggest ? '<span class="badge bg-secondary ms-1">Suggest</span>' : ''}
+                    </label>
+                    ${inputHtml}
+                </div>
+            `;
+        }
+
+
+        // =====================================================
+        // AUTOSUGGEST
+        // =====================================================
+
+        function attachAutoSuggestHandlers() {
+            if (!currentBillTypeData) return;
+
+            const segments = currentBillTypeData.segments || {};
+
+            dynamicBillSections
+                .querySelectorAll("[data-segment-id]")
+                .forEach(card => {
+                    const segId = card.dataset.segmentId;
+                    const seg = segments[segId] || {};
+                    const segmentName = seg.name || segId;
+                    const segFields = seg.fields || {};
+
+                    card.querySelectorAll(".dynamic-field").forEach(el => {
+                        const fieldId = el.dataset.fieldId;
+                        const fieldDef = segFields[fieldId] || {};
+
+                        if (fieldDef.autoGenerate || fieldDef.autoSetDate) return;
+                        if (fieldDef.autoSuggest !== true) return;
+
+                        const fieldName = fieldDef.name || "";
+                        const suggestions = buildSuggestListForField(
+                            segmentName,
+                            segFields,
+                            fieldName
+                        );
+
+                        if (!suggestions.length) return;
+
+                        attachSuggestToField(card, el, suggestions, fieldName);
+                    });
+                });
+        }
+
+
+        function attachSuggestToField(card, inputEl, suggestions, fieldName) {
+            const wrap = inputEl.parentElement;
+            wrap.style.position = "relative";
+
+            let panel = null;
+
+            function closePanel() {
+                if (panel) { panel.remove(); panel = null; }
+            }
+
+            function applyRow(row) {
+                card.querySelectorAll(".dynamic-field").forEach(fieldEl => {
+                    if (fieldEl.dataset.autogenerate === "true") return;
+                    if (fieldEl.dataset.autoSetDate === "true") return;
+
+                    const fieldId = fieldEl.dataset.fieldId;
+                    const segFields = currentBillTypeData
+                        ?.segments?.[card.dataset.segmentId]?.fields || {};
+                    const def = segFields[fieldId] || {};
+                    const fname = def.name || fieldId;
+
+                    if (Object.prototype.hasOwnProperty.call(row, fname)) {
+                        fieldEl.value = row[fname] ?? "";
+                        fieldEl.dispatchEvent(new Event("input", { bubbles: true }));
+                    }
+                });
+
+                closePanel();
+            }
+
+            function openPanel(query) {
+                closePanel();
+
+                const q = String(query || "").trim().toLowerCase();
+
+                const matches = q
+                    ? suggestions.filter(s => s.value.toLowerCase().includes(q))
+                    : suggestions;
+
+                if (!matches.length) return;
+
+                panel = document.createElement("div");
+                panel.className = "item-suggest-panel";
+
+                matches.slice(0, 30).forEach((s, idx) => {
+                    const rowEl = document.createElement("div");
+                    rowEl.className = "suggest-row";
+
+                    rowEl.innerHTML = `
+                        <div class="left">
+                            <span class="name">${escapeHtml(s.value)}</span>
+                        </div>
+                    `;
+
+                    rowEl.addEventListener("mousedown", ev => {
+                        ev.preventDefault();
+                        applyRow(s.row);
+                    });
+
+                    panel.appendChild(rowEl);
+                    if (idx === 0) rowEl.classList.add("active");
+                });
+
+                wrap.appendChild(panel);
+            }
+
+            inputEl.addEventListener("focus", () => openPanel(inputEl.value));
+            inputEl.addEventListener("input", () => openPanel(inputEl.value));
+
+            inputEl.addEventListener("blur", () => {
+                setTimeout(closePanel, 150);
+            });
+
+            inputEl.addEventListener("keydown", ev => {
+                if (ev.key === "Escape") closePanel();
+                if (ev.key === "Enter" && panel) {
+                    ev.preventDefault();
+                    const first = panel.querySelector(".suggest-row");
+                    if (first) first.dispatchEvent(new MouseEvent("mousedown"));
+                }
+            });
+        }
+
+
+        // =====================================================
+        // AUTO-FILL
+        // =====================================================
+
+        async function refreshAllAutoFields() {
+            if (!currentBillTypeData) return;
+
+            const autoGenFields =
+                dynamicBillSections.querySelectorAll("[data-autogenerate='true']");
+
+            if (autoGenFields.length) {
+                try {
+                    const next = await getNextInvoiceNumber(
+                        selectedBusinessId,
+                        currentBillTypeData.name || "",
+                        currentBillTypeData
+                    );
+                    autoGenFields.forEach(el => { el.value = next; });
+                }
+                catch (err) {
+                    console.error("Could not compute invoice number:", err);
+                }
+            }
+
+            dynamicBillSections
+                .querySelectorAll("[data-autoSetDate='true']")
+                .forEach(el => {
+                    const fmt = el.dataset.dateFormat || "[day]/[month]/[year]";
+                    el.value = applyPattern(fmt, 0);
+                });
+        }
+
+
+        // =====================================================
+        // SUPPLY TYPE
+        // =====================================================
+
+        supplyType.addEventListener("change", updateTaxVisibility);
+
+        function updateTaxVisibility() {
+            const isInState = supplyType.value === "in-state";
+
+            inStateRates.classList.toggle("d-none", !isInState);
+            outStateRates.classList.toggle("d-none", isInState);
+
+            document.getElementById("cgstRow").classList.toggle("d-none", !isInState);
+            document.getElementById("sgstRow").classList.toggle("d-none", !isInState);
+            document.getElementById("igstRow").classList.toggle("d-none", isInState);
+
+            recalcTotals();
+        }
+
+
+        // =====================================================
+        // CGST / SGST / IGST
+        // =====================================================
+
+        cgstRate.addEventListener("input", () => {
+            updateInStateTotal();
+            recalcTotals();
+        });
+
+        sgstRate.addEventListener("input", () => {
+            updateInStateTotal();
+            recalcTotals();
+        });
+
+        function updateInStateTotal() {
+            const cgst = Number(cgstRate.value) || 0;
+            const sgst = Number(sgstRate.value) || 0;
+            totalTaxRateIn.value = (cgst + sgst).toFixed(2);
+        }
+
+        igstRate.addEventListener("input", recalcTotals);
+
+
+        // =====================================================
+        // DISCOUNT
+        // =====================================================
+
+        discountType.addEventListener("change", recalcTotals);
+        discountValue.addEventListener("input", recalcTotals);
+
+        function getDiscountAmount(subtotal) {
+            const type = discountType.value;
+            const value = Number(discountValue.value) || 0;
+
+            if (type === "percent") {
+                return Math.max(0, Math.min(subtotal, subtotal * value / 100));
+            }
+            return Math.max(0, Math.min(subtotal, value));
+        }
+
+
+        // =====================================================
+        // ITEMS
+        // =====================================================
+
+        addItemBtn.addEventListener("click", () => addItemRow());
+
+
+        function wireUpItemRow(tr) {
+
+            const nameInput  = tr.querySelector(".item-name");
+            const qtyInput   = tr.querySelector(".item-qty");
+            const unitInput  = tr.querySelector(".item-unit");
+            const priceInput = tr.querySelector(".item-price");
+            const costInput  = tr.querySelector(".item-cost");
+            const wrap       = tr.querySelector(".item-search-wrap");
+            const errorBox   = tr.querySelector(".row-error-msg");
+            const errorText  = tr.querySelector(".error-text");
+
+            function validateStock() {
+                const itemId = tr.dataset.itemId;
+                const itemType = tr.dataset.itemType;
+
+                tr.classList.remove("row-error");
+                errorBox.classList.add("d-none");
+
+                if (itemType !== "product" || !itemId) return true;
+
+                const product = getProductById(itemId);
+                if (!product) return true;
+
+                const qty = Number(qtyInput.value) || 0;
+                const available = Number(product.quantity) || 0;
+
+                if (available <= 0) {
+                    tr.classList.add("row-error");
+                    errorText.textContent =
+                        `You don't have this product in stock (available: 0).`;
+                    errorBox.classList.remove("d-none");
+                    return false;
+                }
+
+                if (qty > available) {
+                    tr.classList.add("row-error");
+                    errorText.textContent =
+                        `Only ${available} ${product.unit || ""} available in stock.`;
+                    errorBox.classList.remove("d-none");
+                    return false;
+                }
+
+                return true;
+            }
+
+            function applyItem(item) {
+                tr.classList.remove("row-product", "row-service", "row-phase", "row-error");
+                delete tr.dataset.itemId;
+                delete tr.dataset.itemType;
+                delete tr.dataset.itemCostLabel;
+
+                const existingTags = tr.querySelectorAll(".item-tag");
+                existingTags.forEach(t => t.remove());
+
+                errorBox.classList.add("d-none");
+
+                if (!item) { recalcTotals(); return; }
+
+                tr.dataset.itemId = item.id;
+                tr.dataset.itemType = item.type;
+                tr.dataset.itemCostLabel = item.type === "product"
+                    ? PRODUCT_COST_LABEL
+                    : SERVICE_COST_LABEL;
+
+                tr.classList.add(item.type === "product" ? "row-product" : "row-service");
+
+                nameInput.value = item.name;
+                if (item.unit) unitInput.value = item.unit;
+                if (Number.isFinite(item.price)) priceInput.value = item.price;
+                if (Number.isFinite(item.cost)) costInput.value = item.cost;
+
+                if (tr.dataset.itemPhase) {
+                    const pTag = document.createElement("span");
+                    pTag.className = "item-tag phase";
+                    pTag.textContent = tr.dataset.itemPhase;
+                    wrap.appendChild(pTag);
+                }
+
+                const tag = document.createElement("span");
+                tag.className = `item-tag ${item.type}`;
+                tag.textContent = item.type;
+                wrap.appendChild(tag);
+
+                validateStock();
+                recalcRowAmount({ target: qtyInput });
+            }
+
+            tr.addEventListener("apply-item", ev => {
+                if (ev.detail && ev.detail.item) applyItem(ev.detail.item);
+            });
+
+            let panel = null;
+
+            function closePanel() {
+                if (panel) { panel.remove(); panel = null; }
+            }
+
+            function openPanel() {
+                closePanel();
+
+                const q = String(nameInput.value || "").trim().toLowerCase();
+                const all = getAllCatalogItems();
+
+                const matches = q
+                    ? all.filter(it => it.name.toLowerCase().includes(q))
+                    : all;
+
+                if (!matches.length) {
+                    if (!all.length) {
+                        panel = document.createElement("div");
+                        panel.className = "item-suggest-panel";
+                        panel.innerHTML = `
+                            <div class="suggest-empty">
+                                ${selectedBusinessIsConstruction && !selectedProjectId
+                                    ? "Select a project first to load items."
+                                    : "No products or services for this business."}
+                            </div>
+                        `;
+                        wrap.appendChild(panel);
+                    }
+                    return;
+                }
+
+                panel = document.createElement("div");
+                panel.className = "item-suggest-panel";
+
+                matches.slice(0, 40).forEach((item, idx) => {
+                    const row = document.createElement("div");
+                    row.className = "suggest-row";
+
+                    const outOfStock = item.type === "product"
+                        && (Number(item.quantity) || 0) <= 0;
+
+                    const stockText = item.type === "product"
+                        ? `Stock: ${item.quantity}`
+                        : "Service";
+
+                    row.innerHTML = `
+                        <div class="left">
+                            <span class="suggest-badge ${item.type}">${item.type}</span>
+                            <span class="name">${escapeHtml(item.name)}</span>
+                            ${outOfStock
+                                ? `<span class="suggest-badge out-of-stock">Out of stock</span>`
+                                : ""}
+                        </div>
+                        <div class="meta">
+                            ${escapeHtml(item.unit || "")}
+                            • Rs ${formatMoney(item.price)}
+                            • ${escapeHtml(stockText)}
+                        </div>
+                    `;
+
+                    row.addEventListener("mousedown", ev => {
+                        ev.preventDefault();
+                        applyItem(item);
+                        closePanel();
+                    });
+
+                    panel.appendChild(row);
+                    if (idx === 0) row.classList.add("active");
+                });
+
+                wrap.appendChild(panel);
+            }
+
+            nameInput.addEventListener("focus", openPanel);
+            nameInput.addEventListener("input", openPanel);
+
+            nameInput.addEventListener("blur", () => {
+                setTimeout(() => {
+                    closePanel();
+
+                    const match = findCatalogItem(nameInput.value);
+                    if (match && tr.dataset.itemId !== match.id) {
+                        applyItem(match);
+                    }
+                    else {
+                        validateStock();
+                    }
+                }, 150);
+            });
+
+            nameInput.addEventListener("keydown", ev => {
+                if (ev.key === "Escape") closePanel();
+                if (ev.key === "Enter" && panel) {
+                    ev.preventDefault();
+                    const first = panel.querySelector(".suggest-row");
+                    if (first) first.dispatchEvent(new MouseEvent("mousedown"));
+                }
+            });
+
+            qtyInput.addEventListener("input", () => {
+                validateStock();
+                recalcRowAmount({ target: qtyInput });
+            });
+
+            priceInput.addEventListener("input", recalcRowAmount);
+
+            if (costInput) {
+                costInput.addEventListener("input", recalcRowAmount);
+            }
+
+            tr.querySelector(".remove-item").addEventListener("click", () => {
+                tr.remove();
+                recalcTotals();
+            });
+        }
+
+
+        function addItemRow() {
+            const tr = document.createElement("tr");
+
+            // Cost/Unit and Profit inputs are HIDDEN — calculations still happen.
+            tr.innerHTML = `
+                <td>
+                    <div class="item-search-wrap">
+                        <input
+                            type="text"
+                            class="form-control form-control-sm item-name"
+                            placeholder="Search product or service..."
+                            autocomplete="off">
+                        <div class="row-error-msg d-none">
+                            <i class="bi bi-exclamation-triangle-fill"></i>
+                            <span class="error-text">You don't have this product in stock.</span>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <input type="number" class="form-control form-control-sm item-qty"
+                        min="0" step="0.01" value="1">
+                </td>
+                <td>
+                    <input type="text" class="form-control form-control-sm item-unit"
+                        placeholder="Unit">
+                </td>
+                <td>
+                    <input type="number" class="form-control form-control-sm item-price"
+                        min="0" step="0.01" value="0">
+                </td>
+                <td>
+                    <input type="text" class="form-control form-control-sm item-amount"
+                        readonly value="0.00">
+                </td>
+                <td class="hidden-col">
+                    <input type="number" class="form-control form-control-sm item-cost"
+                        min="0" step="0.01" value="0">
+                </td>
+                <td class="hidden-col">
+                    <input type="text" class="form-control form-control-sm item-profit"
+                        readonly value="0.00">
+                </td>
+                <td class="text-end">
+                    <button type="button" class="btn btn-sm btn-outline-danger remove-item">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </td>
+            `;
+
+            wireUpItemRow(tr);
+
+            itemsBody.appendChild(tr);
+        }
+
+
+        // =====================================================
+        // ROW AMOUNT + PROFIT (still calculated even if hidden)
+        // =====================================================
+
+        function recalcRowAmount(event) {
+            const row = event.target.closest("tr");
+            if (!row) return;
+
+            const qty = Number(row.querySelector(".item-qty").value) || 0;
+            const price = Number(row.querySelector(".item-price").value) || 0;
+            const cost = Number(row.querySelector(".item-cost")?.value) || 0;
+
+            const amount = qty * price;
+            const profit = amount - (qty * cost);
+
+            row.querySelector(".item-amount").value = formatMoney(amount);
+
+            const profitInput = row.querySelector(".item-profit");
+            if (profitInput) {
+                profitInput.value = formatMoney(profit);
+            }
+
+            recalcTotals();
+        }
+
+
+        // =====================================================
+        // TOTALS
+        // =====================================================
+
+        function getSubtotal() {
+            let subtotal = 0;
+
+            itemsBody.querySelectorAll("tr").forEach(row => {
+                const name = row.querySelector(".item-name")?.value.trim();
+                if (!name) return;
+
+                const qty = Number(row.querySelector(".item-qty")?.value) || 0;
+                const price = Number(row.querySelector(".item-price")?.value) || 0;
+
+                subtotal += qty * price;
+            });
+
+            return subtotal;
+        }
+
+
+        function getTotalProfit() {
+            let totalProfit = 0;
+
+            itemsBody.querySelectorAll("tr").forEach(row => {
+                const name = row.querySelector(".item-name")?.value.trim();
+                if (!name) return;
+
+                const qty = Number(row.querySelector(".item-qty")?.value) || 0;
+                const price = Number(row.querySelector(".item-price")?.value) || 0;
+                const cost = Number(row.querySelector(".item-cost")?.value) || 0;
+
+                totalProfit += (price - cost) * qty;
+            });
+
+            return totalProfit;
+        }
+
+
+        function recalcTotals() {
+            const subtotal = getSubtotal();
+            document.getElementById("subtotal").textContent = formatMoney(subtotal);
+
+            const discountAmt = getDiscountAmount(subtotal);
+            document.getElementById("discountAmount").textContent = formatMoney(discountAmt);
+
+            const taxable = subtotal - discountAmt;
+            document.getElementById("taxableAmount").textContent = formatMoney(taxable);
+
+            const isInState = supplyType.value === "in-state";
+
+            let cgstAmt = 0, sgstAmt = 0, igstAmt = 0;
+
+            if (isInState) {
+                const cgst = Number(cgstRate.value) || 0;
+                const sgst = Number(sgstRate.value) || 0;
+
+                cgstAmt = taxable * cgst / 100;
+                sgstAmt = taxable * sgst / 100;
+
+                document.getElementById("cgstRateLabel").textContent = cgst;
+                document.getElementById("sgstRateLabel").textContent = sgst;
+                document.getElementById("cgstAmount").textContent = formatMoney(cgstAmt);
+                document.getElementById("sgstAmount").textContent = formatMoney(sgstAmt);
+            }
+            else {
+                const igst = Number(igstRate.value) || 0;
+                igstAmt = taxable * igst / 100;
+
+                document.getElementById("igstRateLabel").textContent = igst;
+                document.getElementById("igstAmount").textContent = formatMoney(igstAmt);
+            }
+
+            const grand = taxable + cgstAmt + sgstAmt + igstAmt;
+            document.getElementById("grandTotal").textContent = formatMoney(grand);
+
+            // Still compute and store total profit (hidden in UI).
+            const totalProfit = getTotalProfit();
+            const totalProfitEl = document.getElementById("totalProfit");
+            if (totalProfitEl) {
+                totalProfitEl.textContent = formatMoney(totalProfit);
+            }
+        }
+
+
+        // =====================================================
+        // COLLECT DYNAMIC FIELDS
+        // =====================================================
+
+        function collectDynamicFields() {
+            const result = {};
+            if (!currentBillTypeData) return result;
+
+            const segments = currentBillTypeData.segments || {};
+
+            dynamicBillSections
+                .querySelectorAll("[data-segment-id]")
+                .forEach(card => {
+                    const segId = card.dataset.segmentId;
+                    const seg = segments[segId] || {};
+                    const segmentName = seg.name || segId;
+
+                    const segFields = {};
+
+                    card.querySelectorAll(".dynamic-field").forEach(el => {
+                        const fieldId = el.dataset.fieldId;
+                        const segmentData = seg.fields?.[fieldId] || {};
+                        const fieldName = segmentData.name || fieldId;
+
+                        let value;
+                        if (el.type === "checkbox") value = el.checked;
+                        else value = el.value;
+
+                        segFields[fieldName] = value;
+                    });
+
+                    if (Object.keys(segFields).length) {
+                        result[segmentName] = segFields;
+                    }
+                });
+
+            return result;
+        }
+
+
+        // =====================================================
+        // BUILD BILL PAYLOAD
+        // =====================================================
+
+        function buildBillPayload(items, dynamicFields, profitTotal) {
+            const supply = supplyType.value;
+            const isInState = supply === "in-state";
+
+            const subtotal = getSubtotal();
+            const discountAmt = getDiscountAmount(subtotal);
+            const taxable = subtotal - discountAmt;
+
+            const taxRates = isInState
+                ? {
+                    type: "in-state",
+                    cgstRate: Number(cgstRate.value) || 0,
+                    sgstRate: Number(sgstRate.value) || 0,
+                    totalRate: Number(totalTaxRateIn.value) || 0
+                }
+                : {
+                    type: "out-of-state",
+                    igstRate: Number(igstRate.value) || 0,
+                    totalRate: Number(igstRate.value) || 0
+                };
+
+            const cgstAmt = isInState ? taxable * taxRates.cgstRate / 100 : 0;
+            const sgstAmt = isInState ? taxable * taxRates.sgstRate / 100 : 0;
+            const igstAmt = !isInState ? taxable * taxRates.igstRate / 100 : 0;
+            const grandTotal = taxable + cgstAmt + sgstAmt + igstAmt;
+
+            let projectPayload = null;
+
+            if (selectedBusinessIsConstruction && selectedProjectId) {
+                const opt =
+                    projectSelect.options[projectSelect.selectedIndex];
+
+                projectPayload = {
+                    id: selectedProjectId,
+                    projectId: opt?.dataset.projectId || "",
+                    name: opt?.dataset.projectName || ""
+                };
+            }
+
+            const phases = Array.from(new Set(
+                items.map(it => it.phase).filter(Boolean)
+            ));
+
+            return {
+                billType: currentBillTypeData?.name || billTypeSelect.value || "",
+                businessId: selectedBusinessId,
+                project: projectPayload,
+                phase: phases.length === 1 ? phases[0] : "",
+                phases,
+                gstId: gstSelect.value,
+                invoicenumber:
+                    document.getElementById("invoiceNumber")?.value.trim() || "",
+                invoicedate: new Date().toISOString().slice(0, 10),
+                createdAt: Date.now(),
+                items,
+                discount: {
+                    type: discountType.value,
+                    value: Number(discountValue.value) || 0,
+                    amount: discountAmt
+                },
+                taxRates,
+                totals: {
+                    subtotal,
+                    discount: discountAmt,
+                    taxable,
+                    cgst: cgstAmt,
+                    sgst: sgstAmt,
+                    igst: igstAmt,
+                    grandTotal,
+                    profit: profitTotal
+                },
+                dynamicFields
+            };
+        }
+
+
+        // =====================================================
+        // COLLECT ITEMS (still captures cost & profit for DB)
+        // =====================================================
+
+        function collectItems() {
+            const items = [];
+
+            itemsBody.querySelectorAll("tr").forEach(row => {
+                const name = row.querySelector(".item-name").value.trim();
+                const qty = Number(row.querySelector(".item-qty").value) || 0;
+                const unit = row.querySelector(".item-unit").value.trim();
+                const price = Number(row.querySelector(".item-price").value) || 0;
+                const cost = Number(row.querySelector(".item-cost")?.value) || 0;
+
+                const amount = qty * price;
+                const costTotal = qty * cost;
+                const profit = amount - costTotal;
+
+                if (name && qty > 0) {
+                    const item = {
+                        name,
+                        quantity: qty,
+                        unit,
+                        price,
+                        amount,
+                        cost,
+                        costTotal: Number(costTotal.toFixed(2)),
+                        profit: Number(profit.toFixed(2))
+                    };
+
+                    if (row.dataset.itemId) {
+                        item.itemId = row.dataset.itemId;
+                        item.itemType = row.dataset.itemType;
+                    }
+                    else if (row.dataset.itemType) {
+                        item.itemType = row.dataset.itemType;
+                    }
+
+                    if (row.dataset.itemCostLabel) {
+                        item.costLabel = row.dataset.itemCostLabel;
+                        item[row.dataset.itemCostLabel] = cost;
+                    }
+
+                    if (row.dataset.itemPhase) {
+                        item.phase = row.dataset.itemPhase;
+                    }
+
+                    items.push(item);
+                }
+            });
+
+            return items;
+        }
+
+
+        function hasStockErrors() {
+            return itemsBody.querySelector("tr.row-error") !== null;
+        }
+
+
+        // =====================================================
+        // DEDUCT PRODUCT QUANTITIES AFTER SAVE
+        // =====================================================
+
+        async function deductProductQuantities(items) {
+            if (!selectedBusinessId || !items?.length) return;
+
+            const qtyFieldId = productFieldMap[PRODUCT_TITLE_QTY];
+
+            if (!qtyFieldId) {
+                console.warn(
+                    "Quantity field not found in settings for business " +
+                    selectedBusinessId + "; skipping deduction."
+                );
+                return;
+            }
+
+            const productLines = items.filter(
+                it => it.itemType === "product" && it.itemId
+            );
+
+            if (!productLines.length) return;
+
+            const base = recordsBasePath();
+            const updates = [];
+
+            for (const line of productLines) {
+                try {
+                    const path = `${base}/products/${line.itemId}/${qtyFieldId}`;
+
+                    const snap = await get(ref(db, path));
+                    const current = Number(snap.val()) || 0;
+                    const next = current - Number(line.quantity || 0);
+
+                    updates.push(set(ref(db, path), next < 0 ? 0 : next));
+                }
+                catch (err) {
+                    console.error(`Failed to deduct quantity for ${line.name}:`, err);
+                }
+            }
+
+            await Promise.allSettled(updates);
+        }
+
+
+        // =====================================================
+        // SAVE BILL
+        // =====================================================
+
+        async function saveBill() {
+            if (!selectedBusinessId) { showStatus("Please select a business."); return null; }
+            if (!hasBusinessAccess(selectedBusinessId)) {
+                showStatus("You do not have access to this business.");
+                return null;
+            }
+
+            if (selectedBusinessIsConstruction && !selectedProjectId) {
+                showStatus("Please select a project for this construction business.");
+                return null;
+            }
+
+            if (!gstSelect.value) { showStatus("Please select a GST setting."); return null; }
+            if (!billTypeSelect.value || !currentBillTypeData) {
+                showStatus("Please select a Bill Type.");
+                return null;
+            }
+
+            const invoiceNumber =
+                document.getElementById("invoiceNumber")?.value?.trim() || "";
+
+            if (!invoiceNumber) {
+                showStatus("Invoice number not generated. Please reselect Business or Bill Type.");
+                return null;
+            }
+
+            if (hasStockErrors()) {
+                showStatus(
+                    "You don't have this product in stock. Fix the highlighted rows before saving."
+                );
+                return null;
+            }
+
+            const items = collectItems();
+
+            if (!items.length) { showStatus("Please add at least one item."); return null; }
+
+            const profitTotal = Number(
+                items.reduce(
+                    (s, it) => s + (Number(it.profit) || 0),
+                    0
+                ).toFixed(2)
+            );
+
+            const dynamicFields = collectDynamicFields();
+            const bill = buildBillPayload(items, dynamicFields, profitTotal);
+
+            [saveBillBtn, saveGenerateBtnBottom].forEach(b => { if (b) b.disabled = true; });
+
+            const originalTopHtml = saveBillBtn.innerHTML;
+            saveBillBtn.innerHTML = `
+                <span class="spinner-border spinner-border-sm me-1"></span>
+                Saving...
+            `;
+
+            try {
+                const targetPath = billsPath(selectedBusinessId);
+
+                const billsRef = ref(db, targetPath);
+
+                const newRef = push(billsRef);
+                await set(newRef, bill);
+
+                showStatus(`Bill ${invoiceNumber} saved successfully.`, "success");
+
+                await deductProductQuantities(items);
+                await loadItemCatalog();
+                await loadPreviousBills();
+                await refreshAllAutoFields();
+
+                return {
+                    id: newRef.key,
+                    businessId: selectedBusinessId,
+                    projectId: selectedProjectId || null,
+                    invoiceNumber
+                };
+            }
+            catch (error) {
+                console.error("Save bill error:", error);
+                showStatus("Failed to save bill. Check your permissions.");
+                return null;
+            }
+            finally {
+                [saveBillBtn, saveGenerateBtnBottom].forEach(b => { if (b) b.disabled = false; });
+                saveBillBtn.innerHTML = originalTopHtml;
+            }
+        }
+
+
+        // =====================================================
+        // SAVE BILL + SAVE & GENERATE
+        // =====================================================
+
+        saveBillBtn.addEventListener("click", async () => { await saveBill(); });
+
+        saveGenerateBtnBottom.addEventListener("click", async () => {
+            const result = await saveBill();
+            if (!result) return;
+
+            const url =
+                `bill.html?id=${encodeURIComponent(result.id)}` +
+                `&business=${encodeURIComponent(result.businessId)}` +
+                (result.projectId
+                    ? `&project=${encodeURIComponent(result.projectId)}`
+                    : "");
+
+            window.open(url, "_blank");
+        });
+
+
+        // =====================================================
+        // RESET
+        // =====================================================
+
+        resetBtn.addEventListener("click", () => {
+            if (!confirm("Reset the form?")) return;
+
+            businessSelect.value = "";
+            selectedBusinessId = "";
+            selectedBusinessIsConstruction = false;
+            selectedProjectId = "";
+            selectedProjectLabel = "";
+            projectCol.classList.add("d-none");
+            projectSelect.innerHTML = `<option value="">-- Select Project --</option>`;
+            projectSelect.disabled = true;
+            resetGstDropdown();
+
+            itemCatalog = { products: [], services: [] };
+            previousBills = [];
+            productFieldMap = {};
+            serviceFieldMap = {};
+
+            availablePhases = [];
+            selectedPhase = "";
+            phaseResolvedItems = {};
+            boqFieldMap = {};
+            updateImportPhaseButton();
+
+            billTypeSelect.value = "";
+            currentBillTypeData = null;
+
+            renderDynamicSections(null);
+
+            supplyType.value = "in-state";
+            cgstRate.value = 9;
+            sgstRate.value = 9;
+            totalTaxRateIn.value = 18;
+            igstRate.value = 18;
+
+            discountType.value = "percent";
+            discountValue.value = 0;
+
+            itemsBody.innerHTML = "";
+            addItemRow();
+
+            updateTaxVisibility();
+            recalcTotals();
+        });
+
+    </script>
+
+</body>
+
+</html>

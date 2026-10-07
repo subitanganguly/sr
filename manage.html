@@ -1,0 +1,1444 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport"
+    content="width=device-width, initial-scale=1.0">
+
+<title>Manage - SR Group</title>
+
+<link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+    rel="stylesheet">
+
+<link
+    href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+    rel="stylesheet">
+
+<link
+    rel="stylesheet"
+    href="sidebar/sidebar.css">
+
+<style>
+
+    .setting-card {
+        cursor: pointer;
+        transition:
+            transform 0.15s ease,
+            box-shadow 0.15s ease;
+        border: 1px solid #e5e7eb;
+    }
+
+    .setting-card:hover {
+        transform: translateY(-3px);
+        box-shadow:
+            0 8px 20px rgba(0, 0, 0, 0.08);
+        border-color: #0d6efd;
+    }
+
+    .setting-card .icon-circle {
+        width: 46px;
+        height: 46px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #eef4ff;
+        color: #0d6efd;
+        font-size: 1.25rem;
+    }
+
+    .record-count {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #198754;
+    }
+
+    .record-count.zero {
+        color: #adb5bd;
+    }
+
+    .record-count .spinner-border {
+        width: 0.9rem;
+        height: 0.9rem;
+        border-width: 0.15em;
+    }
+
+    .project-badge-construction {
+        background: #fff3cd;
+        color: #856404;
+        border: 1px solid #ffe69c;
+    }
+
+</style>
+
+</head>
+
+<body>
+
+
+<div id="sidebar-container"></div>
+
+
+<main id="main-content">
+
+    <div class="container-fluid p-4">
+
+        <!-- HEADER -->
+
+        <div class="mb-4">
+
+            <h3 class="mb-1">
+
+                <i class="bi bi-grid-1x2 me-2"></i>
+
+                Manage
+
+            </h3>
+
+            <p class="text-muted mb-0">
+
+                Select a business, then click a setting to manage its records.
+
+            </p>
+
+        </div>
+
+
+        <!-- USER -->
+
+        <div class="alert alert-light border mb-4">
+
+            <i class="bi bi-person-circle me-2"></i>
+
+            <strong id="currentUserName">
+                Loading...
+            </strong>
+
+            <span
+                class="badge bg-primary ms-2"
+                id="currentUserRole">
+
+                Loading...
+
+            </span>
+
+        </div>
+
+
+        <!-- BUSINESS -->
+
+        <div class="card shadow-sm mb-4">
+
+            <div class="card-body">
+
+                <label
+                    class="form-label fw-semibold">
+
+                    <i class="bi bi-building me-1"></i>
+
+                    Select Business
+
+                </label>
+
+                <select
+                    id="businessSelect"
+                    class="form-select">
+
+                    <option value="">
+                        Select Business
+                    </option>
+
+                </select>
+
+            </div>
+
+        </div>
+
+
+        <!-- PROJECT (only for construction businesses) -->
+
+        <div
+            class="card shadow-sm mb-4 d-none"
+            id="projectCard">
+
+            <div class="card-body">
+
+                <label
+                    class="form-label fw-semibold">
+
+                    <i class="bi bi-cone-striped me-1 text-warning"></i>
+
+                    Select Project
+
+                    <span
+                        class="badge project-badge-construction ms-1"
+                        id="constructionBadge">
+
+                        <i class="bi bi-cone-striped me-1"></i>Construction
+
+                    </span>
+
+                </label>
+
+                <select
+                    id="projectSelect"
+                    class="form-select">
+
+                    <option value="">
+                        Select Project
+                    </option>
+
+                </select>
+
+            </div>
+
+        </div>
+
+
+        <!-- SETTINGS GRID -->
+
+        <div id="settingsWrapper">
+
+            <div
+                id="emptyState"
+                class="text-center text-muted py-5">
+
+                <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+
+                Select a business to view its settings.
+
+            </div>
+
+
+            <div
+                class="row g-3 d-none"
+                id="settingsGrid">
+
+            </div>
+
+        </div>
+
+    </div>
+
+</main>
+
+
+<script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js">
+</script>
+
+
+<script
+    type="module"
+    src="sidebar/sidebar.js">
+</script>
+
+
+<script type="module">
+
+    import {
+        auth,
+        db
+    } from "./firebase-config.js";
+
+
+    import {
+        onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+
+
+    import {
+        ref,
+        get
+    } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-database.js";
+
+
+    // =====================================================
+    // CONSTANTS
+    // =====================================================
+
+    const GLOBAL_ADMIN_ROLES = [
+        "main-admin",
+        "dev-admin",
+        "owner"
+    ];
+
+
+    // =====================================================
+    // STATE
+    // =====================================================
+
+    let currentUser       = null;
+
+    let currentRole       = "";
+
+    let currentUserData   = null;
+
+    let selectedBusinessId = "";
+
+    let selectedProjectId  = "";
+
+    let selectedBusiness   = null;
+
+    let businessesCache    = null;
+
+    let projectsCache      = {};   // businessId -> { pushId: {...} }
+
+
+    // =====================================================
+    // INSTANT PAINT FROM CACHE
+    // =====================================================
+
+    function paintUser(userData) {
+
+        if (!userData) return;
+
+        const name =
+            userData.name ||
+            userData.username ||
+            userData.email ||
+            "User";
+
+        const role =
+            userData.role ||
+            "No Role";
+
+        const nameEl =
+            document.getElementById("currentUserName");
+
+        const roleEl =
+            document.getElementById("currentUserRole");
+
+        if (nameEl) nameEl.textContent = name;
+
+        if (roleEl) roleEl.textContent = role;
+
+    }
+
+
+    (function paintFromSession() {
+
+        const cached =
+            sessionStorage.getItem("userProfile");
+
+        if (!cached) return;
+
+        try {
+
+            paintUser(
+                JSON.parse(cached)
+            );
+
+        }
+        catch (err) {
+
+            console.warn(
+                "Invalid cached profile:",
+                err
+            );
+
+            sessionStorage.removeItem(
+                "userProfile"
+            );
+
+        }
+
+    })();
+
+
+    // =====================================================
+    // EARLY ROUTE GUARD
+    // =====================================================
+
+    if (
+        !sessionStorage.getItem("userProfile")
+    ) {
+
+        location.replace("login.html");
+
+    }
+
+
+    // =====================================================
+    // AUTH
+    // =====================================================
+
+    onAuthStateChanged(
+        auth,
+        async user => {
+
+            if (!user) {
+
+                sessionStorage.removeItem(
+                    "userProfile"
+                );
+
+                location.replace("login.html");
+
+                return;
+
+            }
+
+
+            currentUser = user;
+
+
+            let snapshot;
+
+            try {
+
+                snapshot = await get(
+                    ref(
+                        db,
+                        `sr_group/users/${user.uid}`
+                    )
+                );
+
+            }
+            catch (err) {
+
+                console.error(
+                    "Failed to load user profile:",
+                    err
+                );
+
+                location.replace("login.html");
+
+                return;
+
+            }
+
+
+            if (!snapshot.exists()) {
+
+                sessionStorage.removeItem(
+                    "userProfile"
+                );
+
+                location.replace("login.html");
+
+                return;
+
+            }
+
+
+            currentUserData =
+                snapshot.val();
+
+
+            currentRole =
+                currentUserData.role || "";
+
+
+            const resolvedProfile = {
+
+                uid:  user.uid,
+
+                userId: currentUserData.id || "",
+
+                username: currentUserData.username || "",
+
+                name:
+                    currentUserData.name ||
+                    user.email,
+
+                email: user.email || "",
+
+                role: currentRole,
+
+                businessAccess:
+                    currentUserData.businessAccess || null,
+
+                projectAccess:
+                    currentUserData.projectAccess || null,
+
+                measurementSheetAccess:
+                    currentUserData.measurementSheetAccess === true
+
+            };
+
+
+            sessionStorage.setItem(
+                "userProfile",
+                JSON.stringify(resolvedProfile)
+            );
+
+
+            paintUser(resolvedProfile);
+
+
+            loadBusinesses();
+
+        }
+    );
+
+
+    // =====================================================
+    // HELPERS
+    // =====================================================
+
+    function isGlobalAdmin() {
+
+        return GLOBAL_ADMIN_ROLES.includes(
+            currentRole
+        );
+
+    }
+
+
+    function isConstructionBusiness(business) {
+
+        return business &&
+               business.construction === true;
+
+    }
+
+
+    // =====================================================
+    // LOAD BUSINESSES
+    // =====================================================
+
+    async function loadBusinesses() {
+
+        if (businessesCache) {
+
+            populateBusinessSelect(
+                businessesCache
+            );
+
+            return;
+
+        }
+
+
+        let businesses = {};
+
+
+        if (isGlobalAdmin()) {
+
+            let snapshot;
+
+            try {
+
+                snapshot = await get(
+                    ref(
+                        db,
+                        "sr_group/businesses"
+                    )
+                );
+
+            }
+            catch (err) {
+
+                console.error(
+                    "Failed to load businesses:",
+                    err
+                );
+
+                showEmptyState(
+                    "Unable to load businesses. Check permissions."
+                );
+
+                const select =
+                    document.getElementById(
+                        "businessSelect"
+                    );
+
+                if (select) select.disabled = true;
+
+                return;
+
+            }
+
+
+            if (snapshot.exists()) {
+
+                businesses =
+                    snapshot.val();
+
+            }
+
+        }
+        else {
+
+            const access =
+                currentUserData?.businessAccess;
+
+            if (
+                access &&
+                typeof access === "object"
+            ) {
+
+                businesses = access;
+
+            }
+
+        }
+
+
+        businessesCache = businesses;
+
+        populateBusinessSelect(
+            businesses
+        );
+
+    }
+
+
+    // =====================================================
+    // POPULATE BUSINESS SELECT
+    // =====================================================
+
+    function populateBusinessSelect(
+        businesses
+    ) {
+
+        const select =
+            document.getElementById(
+                "businessSelect"
+            );
+
+        if (!select) return;
+
+
+        select.innerHTML = `
+
+            <option value="">
+                Select Business
+            </option>
+
+        `;
+
+
+        const entries =
+            Object.entries(
+                businesses || {}
+            );
+
+
+        if (!entries.length) {
+
+            showEmptyState(
+                isGlobalAdmin()
+                    ? "No businesses found."
+                    : "You do not have access to any business."
+            );
+
+            select.disabled = true;
+
+            return;
+
+        }
+
+
+        entries.forEach(
+            ([id, business]) => {
+
+                const option =
+                    document.createElement(
+                        "option"
+                    );
+
+                option.value = id;
+
+                const isConstruction =
+                    isConstructionBusiness(business);
+
+                option.textContent =
+                    `${business?.name || id} (${id})` +
+                    (isConstruction ? " — Construction" : "");
+
+                option.dataset.construction =
+                    isConstruction ? "true" : "false";
+
+                select.appendChild(option);
+
+            }
+        );
+
+
+        select.disabled = false;
+
+    }
+
+
+    // =====================================================
+    // BUSINESS CHANGE
+    // =====================================================
+
+    document
+        .getElementById("businessSelect")
+        .addEventListener(
+            "change",
+            async event => {
+
+                selectedBusinessId =
+                    event.target.value;
+
+                selectedProjectId = "";
+
+                // Reset project card
+                hideProjectCard();
+
+
+                if (!selectedBusinessId) {
+
+                    selectedBusiness = null;
+
+                    showEmptyState(
+                        "Select a business to view its settings."
+                    );
+
+                    return;
+
+                }
+
+
+                // =====================================================
+                // FIX: Always fetch the full business record so we get
+                // the `construction` flag for EVERY role, not just
+                // global admins. Cache it in `selectedBusiness`.
+                // =====================================================
+
+                selectedBusiness =
+                    businessesCache?.[selectedBusinessId] || {};
+
+
+                // If the cached object doesn't already have a
+                // definitive `construction` boolean, fetch it
+                // from Firebase.
+                if (typeof selectedBusiness.construction !== "boolean") {
+
+                    try {
+
+                        const snap = await get(
+                            ref(
+                                db,
+                                `sr_group/businesses/${selectedBusinessId}`
+                            )
+                        );
+
+                        if (snap.exists()) {
+
+                            const full = snap.val() || {};
+
+                            // Merge — preserve cached name if present
+                            selectedBusiness = {
+                                ...selectedBusiness,
+                                ...full
+                            };
+
+                            // Update the cache so we don't refetch
+                            if (businessesCache) {
+                                businessesCache[selectedBusinessId] = {
+                                    ...(businessesCache[selectedBusinessId] || {}),
+                                    ...full
+                                };
+                            }
+
+                            // Update the option text so "Construction" suffix
+                            // appears for users who didn't have it before
+                            const opt =
+                                document.getElementById("businessSelect")
+                                    ?.querySelector(
+                                        `option[value="${CSS.escape(selectedBusinessId)}"]`
+                                    );
+
+                            if (opt) {
+
+                                opt.dataset.construction =
+                                    full.construction === true
+                                        ? "true"
+                                        : "false";
+
+                                opt.textContent =
+                                    `${full.name || selectedBusinessId} (${selectedBusinessId})` +
+                                    (full.construction === true ? " — Construction" : "");
+                            }
+
+                        }
+
+                    }
+                    catch (err) {
+
+                        console.warn(
+                            "[manage] Could not read business record:",
+                            err?.code || err?.message
+                        );
+
+                    }
+                }
+
+
+                // ---------------------------------------------
+                // Construction → require a project first
+                // ---------------------------------------------
+
+                if (isConstructionBusiness(selectedBusiness)) {
+
+                    await loadProjectsForBusiness(
+                        selectedBusinessId
+                    );
+
+                    return;
+
+                }
+
+
+                // ---------------------------------------------
+                // Non-construction → load settings directly
+                // ---------------------------------------------
+
+                await loadSettingsForBusiness();
+
+            }
+        );
+
+
+    // =====================================================
+    // LOAD PROJECTS
+    // =====================================================
+
+    async function loadProjectsForBusiness(businessId) {
+
+        const card =
+            document.getElementById("projectCard");
+
+        const select =
+            document.getElementById("projectSelect");
+
+        if (!card || !select) return;
+
+
+        // Cached?
+        if (projectsCache[businessId]) {
+
+            populateProjectSelect(
+                projectsCache[businessId]
+            );
+
+            return;
+        }
+
+
+        let projectsRaw = {};
+
+
+        // ---------------------------------------------
+        // 1. Try the business projects node
+        // ---------------------------------------------
+
+        try {
+
+            const snap = await get(
+                ref(
+                    db,
+                    `sr_group/businesses/${businessId}/projects`
+                )
+            );
+
+            if (snap.exists()) {
+
+                projectsRaw = snap.val() || {};
+
+            }
+
+        }
+        catch (err) {
+
+            console.warn(
+                "[manage] business/projects read failed:",
+                err?.code || err?.message
+            );
+
+        }
+
+
+        // ---------------------------------------------
+        // 2. Merge user's projectAccess
+        //    (crucial for project-admin)
+        // ---------------------------------------------
+
+        const access =
+            currentUserData?.projectAccess?.[businessId];
+
+        if (access && typeof access === "object") {
+
+            Object.entries(access).forEach(([pushId, p]) => {
+
+                if (pushId === "_placeholder") return;
+                if (!p || typeof p !== "object") return;
+
+                if (!projectsRaw[pushId]) {
+
+                    projectsRaw[pushId] = {
+                        projectId: p.projectId || "",
+                        projectName:
+                            p.name || p.projectName || pushId
+                    };
+                }
+            });
+        }
+
+
+        // ---------------------------------------------
+        // 3. Clean out placeholders
+        // ---------------------------------------------
+
+        const cleaned = {};
+
+        Object.entries(projectsRaw).forEach(([id, proj]) => {
+
+            if (id === "_placeholder") return;
+            if (!proj || typeof proj !== "object") return;
+
+            cleaned[id] = proj;
+        });
+
+
+        console.log(
+            `[manage] Projects for ${businessId}:`,
+            Object.keys(cleaned).length,
+            cleaned
+        );
+
+
+        // ---------------------------------------------
+        // 4. Populate (even if empty)
+        // ---------------------------------------------
+
+        projectsCache[businessId] = cleaned;
+
+        populateProjectSelect(cleaned);
+    }
+
+
+    // =====================================================
+    // POPULATE PROJECT SELECT
+    // =====================================================
+
+    function populateProjectSelect(projects) {
+
+        const card =
+            document.getElementById("projectCard");
+
+        const select =
+            document.getElementById("projectSelect");
+
+        if (!card || !select) return;
+
+
+        select.innerHTML = `
+
+            <option value="">
+                Select Project
+            </option>
+
+        `;
+
+
+        const entries =
+            Object.entries(projects || {});
+
+
+        // ---------------------------------------------
+        // Always reveal the card for construction businesses
+        // ---------------------------------------------
+
+        card.classList.remove("d-none");
+
+
+        if (!entries.length) {
+
+            const opt =
+                document.createElement("option");
+
+            opt.value = "";
+
+            opt.textContent =
+                "No projects available for this business.";
+
+            opt.disabled = true;
+
+            select.appendChild(opt);
+
+            select.disabled = true;
+
+            showEmptyState(
+                "No projects found. Add a project to this business first."
+            );
+
+            return;
+        }
+
+
+        entries.forEach(([pushId, proj]) => {
+
+            const opt =
+                document.createElement("option");
+
+            opt.value = pushId;
+
+            const projectId =
+                proj.projectId || "";
+
+            const projectName =
+                proj.projectName || proj.name || pushId;
+
+            opt.textContent =
+                `${projectId} — ${projectName}`;
+
+            select.appendChild(opt);
+
+        });
+
+
+        select.disabled = false;
+
+        select.value = "";
+
+        showEmptyState(
+            "Select a project to view its settings."
+        );
+
+    }
+
+
+    function hideProjectCard() {
+
+        const card =
+            document.getElementById("projectCard");
+
+        const select =
+            document.getElementById("projectSelect");
+
+        if (card) card.classList.add("d-none");
+
+        if (select) {
+
+            select.innerHTML = `
+                <option value="">Select Project</option>
+            `;
+
+            select.disabled = false;
+
+        }
+
+    }
+
+
+    // =====================================================
+    // PROJECT CHANGE
+    // =====================================================
+
+    document
+        .getElementById("projectSelect")
+        .addEventListener(
+            "change",
+            async event => {
+
+                selectedProjectId =
+                    event.target.value;
+
+
+                if (!selectedProjectId) {
+
+                    showEmptyState(
+                        "Select a project to view its settings."
+                    );
+
+                    return;
+
+                }
+
+
+                await loadSettingsForBusiness();
+
+            }
+        );
+
+
+    // =====================================================
+    // LOAD SETTINGS FOR BUSINESS (and optional project)
+    // =====================================================
+
+    async function loadSettingsForBusiness() {
+
+        const grid =
+            document.getElementById(
+                "settingsGrid"
+            );
+
+        if (!grid) return;
+
+        grid.innerHTML = "";
+
+
+        let settingsSnapshot;
+
+        try {
+
+            settingsSnapshot = await get(
+                ref(
+                    db,
+                    `sr_group/settings/${selectedBusinessId}`
+                )
+            );
+
+        }
+        catch (err) {
+
+            console.error(
+                "Failed to load settings:",
+                err
+            );
+
+            showEmptyState(
+                "Unable to load settings for this business."
+            );
+
+            return;
+
+        }
+
+
+        if (!settingsSnapshot.exists()) {
+
+            showEmptyState(
+                "No settings found for this business."
+            );
+
+            return;
+
+        }
+
+
+        const settings =
+            settingsSnapshot.val();
+
+
+        const entries =
+            Object.entries(settings).filter(
+                ([key]) =>
+                    key !== "gst-setting" &&
+                    key !== "meta"
+            );
+
+
+        if (!entries.length) {
+
+            showEmptyState(
+                "No settings found for this business."
+            );
+
+            return;
+
+        }
+
+
+        const cardsById = {};
+
+
+        entries.forEach(
+            ([key, value]) => {
+
+                const displayName =
+                    value?.meta?.name ||
+                    formatSettingName(key);
+
+
+                const col =
+                    document.createElement("div");
+
+                col.className =
+                    "col-12 col-sm-6 col-md-4 col-lg-3";
+
+
+                const countId =
+                    `rc_${sanitizeId(key)}_${Math.random().toString(36).slice(2, 7)}`;
+
+
+                col.innerHTML = `
+
+                    <div
+                        class="card setting-card h-100 shadow-sm">
+
+                        <div
+                            class="card-body d-flex align-items-center gap-3">
+
+                            <div class="icon-circle">
+
+                                <i class="bi bi-folder2-open"></i>
+
+                            </div>
+
+
+                            <div class="flex-grow-1">
+
+                                <div class="fw-semibold">
+
+                                    ${escapeHtml(displayName)}
+
+                                </div>
+
+                                <div class="record-count" id="${countId}">
+
+                                    <span class="spinner-border spinner-border-sm me-1"></span>
+
+                                    Loading...
+
+                                </div>
+
+                            </div>
+
+
+                            <i
+                                class="bi bi-chevron-right text-muted">
+                            </i>
+
+                        </div>
+
+                    </div>
+
+                `;
+
+
+                col
+                    .querySelector(".setting-card")
+                    .addEventListener(
+                        "click",
+                        () => openSetting(key)
+                    );
+
+
+                grid.appendChild(col);
+
+                cardsById[key] = {
+                    el: col.querySelector(`#${CSS.escape(countId)}`),
+                };
+
+            }
+        );
+
+
+        showGrid();
+
+
+        await loadRecordCounts(cardsById);
+
+    }
+
+
+    // =====================================================
+    // RECORDS BASE PATH
+    // =====================================================
+
+    function recordsBasePath() {
+
+        if (isConstructionBusiness(selectedBusiness) && selectedProjectId) {
+
+            return `sr_group/businesses/${selectedBusinessId}/projects/${selectedProjectId}/records`;
+
+        }
+
+        return `sr_group/businesses/${selectedBusinessId}/records`;
+
+    }
+
+
+    // =====================================================
+    // LOAD RECORD COUNTS
+    // =====================================================
+
+    async function loadRecordCounts(cardsById) {
+
+        const keys = Object.keys(cardsById);
+
+        const base = recordsBasePath();
+
+
+        await Promise.all(
+            keys.map(async key => {
+
+                const el = cardsById[key].el;
+
+                if (!el) return;
+
+                let count = 0;
+
+                try {
+
+                    const snap = await get(
+                        ref(
+                            db,
+                            `${base}/${key}`
+                        )
+                    );
+
+                    if (snap.exists()) {
+
+                        const raw = snap.val() || {};
+
+                        count = Object.values(raw)
+                            .filter(v => v && typeof v === "object")
+                            .length;
+
+                    }
+
+                }
+                catch (err) {
+
+                    console.warn(
+                        `Failed to load count for ${key}:`,
+                        err
+                    );
+
+                    el.innerHTML =
+                        `<span class="text-danger">Error</span>`;
+
+                    return;
+
+                }
+
+
+                el.textContent =
+                    `${count} record${count === 1 ? "" : "s"}`;
+
+                el.classList.toggle("zero", count === 0);
+
+            })
+        );
+
+    }
+
+
+    // =====================================================
+    // NAVIGATE TO DATA PAGE
+    // =====================================================
+
+    function openSetting(settingKey) {
+
+        const params =
+            new URLSearchParams({
+
+                business: selectedBusinessId,
+
+                setting:  settingKey
+
+            });
+
+
+        if (
+            isConstructionBusiness(selectedBusiness) &&
+            selectedProjectId
+        ) {
+
+            params.set("project", selectedProjectId);
+
+        }
+
+
+        location.href =
+            `data.html?${params.toString()}`;
+
+    }
+
+
+    // =====================================================
+    // UI HELPERS
+    // =====================================================
+
+    function showEmptyState(message) {
+
+        const empty =
+            document.getElementById("emptyState");
+
+        const grid =
+            document.getElementById("settingsGrid");
+
+        if (!empty || !grid) return;
+
+
+        empty.classList.remove("d-none");
+
+        empty.innerHTML = `
+
+            <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+
+            ${escapeHtml(message)}
+
+        `;
+
+
+        grid.classList.add("d-none");
+
+        grid.innerHTML = "";
+
+    }
+
+
+    function showGrid() {
+
+        const empty =
+            document.getElementById("emptyState");
+
+        const grid =
+            document.getElementById("settingsGrid");
+
+        if (!empty || !grid) return;
+
+
+        empty.classList.add("d-none");
+
+        grid.classList.remove("d-none");
+
+    }
+
+
+    function sanitizeId(value) {
+
+        return String(value || "")
+            .replace(/[^a-zA-Z0-9_-]/g, "_")
+            .slice(0, 40);
+
+    }
+
+
+    function formatSettingName(name) {
+
+        return name
+            .replace(/[-_]+/g, " ")
+            .replace(
+                /\b\w/g,
+                char => char.toUpperCase()
+            );
+
+    }
+
+
+    function escapeHtml(value) {
+
+        return String(value)
+
+            .replace(/&/g,  "&amp;")
+
+            .replace(/</g,  "&lt;")
+
+            .replace(/>/g,  "&gt;")
+
+            .replace(/"/g,  "&quot;")
+
+            .replace(/'/g,  "&#039;");
+
+    }
+
+</script>
+
+
+</body>
+
+</html>

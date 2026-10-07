@@ -1,0 +1,2168 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Salary - SR Group</title>
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet">
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+        rel="stylesheet">
+
+    <link rel="stylesheet" href="sidebar/sidebar.css">
+
+    <style>
+        body { background: #f5f6f8; }
+
+        #sidebar-container {
+            position: fixed;
+            top: 0; left: 0;
+            width: 250px; height: 100vh;
+            z-index: 1000;
+        }
+
+        .main-content {
+            margin-left: 250px;
+            padding: 25px;
+        }
+
+        @media (max-width: 767px) {
+            #sidebar-container { width: 0; }
+            .main-content { margin-left: 0; padding: 15px; }
+        }
+
+        .emp-card {
+            border: 1px solid #e5e7eb;
+            border-radius: 0.6rem;
+            overflow: hidden;
+            margin-bottom: 12px;
+            background: #fff;
+            transition: box-shadow 0.15s ease;
+        }
+
+        .emp-card:hover {
+            box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+        }
+
+        .emp-card .emp-header {
+            background: #f8fafc;
+            padding: 10px 14px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .emp-card .emp-header .emp-name {
+            font-weight: 700;
+            font-size: 1rem;
+            color: #212529;
+        }
+
+        .emp-card .emp-header .emp-meta {
+            font-size: 0.78rem;
+            color: #6c757d;
+        }
+
+        .emp-card .emp-body {
+            padding: 12px 14px;
+        }
+
+        .emp-card.collapsed .emp-body {
+            display: none;
+        }
+
+        .type-badge {
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 3px 9px;
+            border-radius: 999px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .type-badge.daily {
+            background: rgba(13, 110, 253, 0.12);
+            color: #0d6efd;
+        }
+
+        .type-badge.monthly {
+            background: rgba(25, 135, 84, 0.12);
+            color: #198754;
+        }
+
+        .type-badge.unknown {
+            background: rgba(108, 117, 125, 0.14);
+            color: #6c757d;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .stat-box {
+            background: #f8fafc;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.45rem;
+            padding: 8px 10px;
+            text-align: center;
+        }
+
+        .stat-box .stat-label {
+            font-size: 0.68rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: #6c757d;
+            font-weight: 600;
+        }
+
+        .stat-box .stat-value {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #212529;
+            line-height: 1.15;
+            margin-top: 2px;
+        }
+
+        .stat-box.stat-p .stat-value { color: #198754; }
+        .stat-box.stat-a .stat-value { color: #dc3545; }
+        .stat-box.stat-h .stat-value { color: #b8860b; }
+        .stat-box.stat-l .stat-value { color: #fd7e14; }
+        .stat-box.stat-ot .stat-value { color: #0d6efd; }
+        .stat-box.stat-hol .stat-value { color: #6c757d; }
+
+        .salary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            font-size: 0.9rem;
+        }
+
+        .salary-row.grand {
+            border-top: 2px solid #dee2e6;
+            margin-top: 6px;
+            padding-top: 8px;
+            font-weight: 700;
+            font-size: 1.05rem;
+            color: #0d6efd;
+        }
+
+        .salary-row .label { color: #6c757d; }
+        .salary-row .value { font-weight: 600; font-variant-numeric: tabular-nums; }
+        .salary-row.cut .value { color: #dc3545; }
+        .salary-row.bonus .value { color: #198754; }
+
+        .salary-panel {
+            background: #f1f5f9;
+            border-radius: 0.45rem;
+            padding: 10px 14px;
+            margin-top: 10px;
+        }
+
+        .holiday-check {
+            background: #f8fafc;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 10px 14px;
+            height: 100%;
+        }
+
+        .holiday-check .form-check-label {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .holiday-check .form-check-label small {
+            display: block;
+            font-weight: 400;
+            color: #6c757d;
+            font-size: 0.75rem;
+        }
+
+        .project-badge-construction {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffe69c;
+        }
+
+        @media print {
+            body { background: #fff !important; }
+            #sidebar-container,
+            .no-print { display: none !important; }
+            .main-content { margin: 0 !important; padding: 0 !important; }
+            .emp-card {
+                page-break-inside: avoid;
+                box-shadow: none !important;
+                border: 1px solid #ccc !important;
+            }
+            .emp-card.collapsed .emp-body { display: block !important; }
+            #printHeader {
+                display: block !important;
+                text-align: center;
+                border-bottom: 2px solid #0d6efd;
+                padding-bottom: 8px;
+                margin-bottom: 16px;
+            }
+            .stat-box,
+            .salary-panel,
+            .emp-card .emp-header {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+
+        #printHeader { display: none; }
+    </style>
+</head>
+
+<body>
+
+    <div id="sidebar-container"></div>
+
+
+    <main class="main-content">
+
+        <!-- HEADER -->
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2 no-print">
+
+            <div>
+                <h3 class="fw-bold mb-1">
+                    <i class="bi bi-cash-stack me-2"></i>
+                    Salary
+                </h3>
+
+                <p class="text-muted mb-0">
+                    Calculate employee salaries from attendance.
+                </p>
+            </div>
+
+            <div class="d-flex gap-2 flex-wrap">
+
+                <button
+                    type="button"
+                    class="btn btn-outline-secondary"
+                    id="expandAllBtn">
+
+                    <i class="bi bi-arrows-expand me-1"></i>
+                    Expand All
+
+                </button>
+
+                <button
+                    type="button"
+                    class="btn btn-outline-success"
+                    id="exportExcelBtn"
+                    disabled>
+
+                    <i class="bi bi-file-earmark-excel me-1"></i>
+                    Excel
+
+                </button>
+
+                <button
+                    type="button"
+                    class="btn btn-outline-danger"
+                    id="exportPdfBtn"
+                    disabled>
+
+                    <i class="bi bi-file-earmark-pdf me-1"></i>
+                    PDF
+
+                </button>
+
+                <button
+                    type="button"
+                    class="btn btn-primary"
+                    id="calculateBtn"
+                    disabled>
+
+                    <i class="bi bi-calculator me-1"></i>
+                    Calculate
+
+                </button>
+            </div>
+
+        </div>
+
+
+        <!-- STATUS -->
+        <div id="statusMessage" class="alert d-none no-print"></div>
+
+
+        <!-- PRINT HEADER -->
+        <div id="printHeader">
+            <h2 style="margin:0; color:#0d6efd;">Salary Report</h2>
+            <div id="printHeaderMeta" style="font-size:12px; color:#666; margin-top:4px;"></div>
+        </div>
+
+
+        <!-- CONTROLS -->
+        <div class="card border-0 shadow-sm mb-4 no-print">
+
+            <div class="card-body">
+
+                <div class="row g-3 mb-3">
+
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">
+                            Business
+                            <span class="text-danger">*</span>
+                        </label>
+
+                        <select id="businessSelect" class="form-select" disabled>
+                            <option value="">Loading...</option>
+                        </select>
+                    </div>
+
+                    <!-- PROJECT SELECT — only shown for construction businesses -->
+                    <div class="col-md-4 d-none" id="projectCol">
+                        <label class="form-label fw-semibold">
+                            <i class="bi bi-cone-striped me-1 text-warning"></i>
+                            Project
+                            <span class="text-danger">*</span>
+                            <span class="badge project-badge-construction ms-1">
+                                Construction
+                            </span>
+                        </label>
+
+                        <select id="projectSelect" class="form-select" disabled>
+                            <option value="">Select Project</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">
+                            Employee Type Filter
+                        </label>
+
+                        <select id="typeFilter" class="form-select" disabled>
+                            <option value="all" selected>All Types</option>
+                            <option value="Daily">Daily Only</option>
+                            <option value="Monthly">Monthly Only</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-4" id="periodModeCol">
+                        <label class="form-label fw-semibold">
+                            Period
+                        </label>
+
+                        <div class="btn-group w-100" role="group">
+                            <input type="radio" class="btn-check" name="periodMode"
+                                   id="periodDaily" value="daily" checked>
+                            <label class="btn btn-outline-primary" for="periodDaily">
+                                Daily (From → To)
+                            </label>
+
+                            <input type="radio" class="btn-check" name="periodMode"
+                                   id="periodMonthly" value="monthly">
+                            <label class="btn btn-outline-primary" for="periodMonthly">
+                                Monthly
+                            </label>
+                        </div>
+                    </div>
+
+                </div>
+
+
+                <div id="dailyRangeRow" class="row g-3 mb-3">
+
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">From Date</label>
+                        <input type="date" id="fromDate" class="form-select">
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">To Date</label>
+                        <input type="date" id="toDate" class="form-select">
+                    </div>
+
+                    <div class="col-md-6 d-flex align-items-end gap-2 flex-wrap">
+
+                        <button
+                            type="button"
+                            class="btn btn-outline-secondary"
+                            id="thisMonthBtn">
+
+                            <i class="bi bi-calendar-range me-1"></i>
+                            This Month
+
+                        </button>
+
+                        <button
+                            type="button"
+                            class="btn btn-outline-secondary"
+                            id="lastMonthBtn">
+
+                            <i class="bi bi-calendar-range me-1"></i>
+                            Last Month
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <div id="monthlyMonthRow" class="row g-3 mb-3 d-none">
+
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">Month</label>
+                        <input type="month" id="monthPick" class="form-select">
+                    </div>
+
+                </div>
+
+
+                <div class="row g-3">
+
+                    <div class="col-md-3">
+                        <div class="holiday-check">
+                            <div class="form-check">
+                                <input
+                                    class="form-check-input"
+                                    type="checkbox"
+                                    id="sundayCheck"
+                                    checked>
+                                <label class="form-check-label" for="sundayCheck">
+                                    Sunday — Paid Holiday
+                                    <small>Counted as paid, no salary cut.</small>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <div class="holiday-check">
+                            <div class="form-check">
+                                <input
+                                    class="form-check-input"
+                                    type="checkbox"
+                                    id="saturdayCheck"
+                                    checked>
+                                <label class="form-check-label" for="saturdayCheck">
+                                    Saturday — Paid Holiday
+                                    <small>Counted as paid, no salary cut.</small>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <div class="holiday-check">
+                            <div class="form-check">
+                                <input
+                                    class="form-check-input"
+                                    type="checkbox"
+                                    id="salaryCutCheck"
+                                    checked>
+                                <label class="form-check-label" for="salaryCutCheck">
+                                    Apply Salary Cut
+                                    <small>Absent / Half Day / Leave reduce salary.</small>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">
+                            <i class="bi bi-calendar-x me-1"></i>
+                            Custom Holiday Days
+                        </label>
+
+                        <input
+                            type="text"
+                            id="holidayInput"
+                            class="form-control"
+                            placeholder="e.g. 10, 15, 16">
+
+                        <div class="form-text">
+                            Day numbers of the month to treat as paid holidays.
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- SUMMARY -->
+        <div id="summaryBar" class="card border-0 shadow-sm mb-3 d-none">
+            <div class="card-body py-3">
+                <div id="summaryContent"></div>
+            </div>
+        </div>
+
+
+        <!-- EMPLOYEE CARDS -->
+        <div id="employeesWrapper">
+
+            <div id="emptyState" class="text-center text-muted py-5">
+                <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                Select a business to load employees.
+            </div>
+
+            <div id="employeesList"></div>
+
+        </div>
+
+    </main>
+
+
+    <script
+        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js">
+    </script>
+
+    <script
+        src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js">
+    </script>
+
+
+    <script
+        type="module"
+        src="sidebar/sidebar.js">
+    </script>
+
+
+<script type="module">
+
+    import {
+        auth,
+        db
+    } from "./firebase-config.js";
+
+    import {
+        onAuthStateChanged,
+        signOut
+    } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+
+    import {
+        ref,
+        get
+    } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-database.js";
+
+
+    // --------------------------------------------------
+    // Constants
+    // --------------------------------------------------
+
+    const SETTING_KEY = "employee";
+
+    const FALLBACK_ORDER = [
+        "ID",
+        "Employee Name",
+        "Designation",
+        "Mobile",
+        "Type",
+        "Amount"
+    ];
+
+
+    // --------------------------------------------------
+    // Elements
+    // --------------------------------------------------
+
+    const businessSelect   = document.getElementById("businessSelect");
+    const projectCol       = document.getElementById("projectCol");
+    const projectSelect    = document.getElementById("projectSelect");
+    const typeFilter       = document.getElementById("typeFilter");
+
+    const dailyRangeRow    = document.getElementById("dailyRangeRow");
+    const monthlyMonthRow  = document.getElementById("monthlyMonthRow");
+
+    const fromDate         = document.getElementById("fromDate");
+    const toDate           = document.getElementById("toDate");
+    const monthPick        = document.getElementById("monthPick");
+    const holidayInput     = document.getElementById("holidayInput");
+
+    const sundayCheck      = document.getElementById("sundayCheck");
+    const saturdayCheck    = document.getElementById("saturdayCheck");
+    const salaryCutCheck   = document.getElementById("salaryCutCheck");
+
+    const thisMonthBtn     = document.getElementById("thisMonthBtn");
+    const lastMonthBtn     = document.getElementById("lastMonthBtn");
+
+    const calculateBtn     = document.getElementById("calculateBtn");
+    const expandAllBtn     = document.getElementById("expandAllBtn");
+    const exportExcelBtn   = document.getElementById("exportExcelBtn");
+    const exportPdfBtn     = document.getElementById("exportPdfBtn");
+
+    const summaryBar       = document.getElementById("summaryBar");
+    const summaryContent   = document.getElementById("summaryContent");
+
+    const employeesList    = document.getElementById("employeesList");
+    const emptyState       = document.getElementById("emptyState");
+
+    const statusMessage    = document.getElementById("statusMessage");
+    const printHeaderMeta  = document.getElementById("printHeaderMeta");
+
+
+    // --------------------------------------------------
+    // State
+    // --------------------------------------------------
+
+    let currentAdminRole = "";
+    let businessAccess = {};
+    let currentUserData = null;
+
+    let currentBusinessId = "";
+    let currentBusinessName = "";
+    let currentBusinessIsConstruction = false;
+    let currentProjectId = "";
+    let currentProjectLabel = "";
+
+    let fields = [];
+    let employees = [];
+
+    let attendanceByDate = {};
+
+    let salaryResults = [];
+
+    let lastRange = { fromIso: "", toIso: "" };
+    let lastOptions = null;
+
+    const collapsed = new Set();
+
+
+    // --------------------------------------------------
+    // Helpers
+    // --------------------------------------------------
+
+    function isSuperAdmin() {
+        return (
+            currentAdminRole === "main-admin" ||
+            currentAdminRole === "dev-admin" ||
+            currentAdminRole === "owner"
+        );
+    }
+
+    function isBusinessAdmin() {
+        return currentAdminRole === "business-admin";
+    }
+
+    function isProjectAdmin() {
+        return currentAdminRole === "project-admin";
+    }
+
+    function hasBusinessAccess(businessId) {
+
+        if (!businessId) return false;
+
+        if (isSuperAdmin()) return true;
+
+        if (isProjectAdmin()) {
+
+            const access =
+                currentUserData?.projectAccess?.[businessId];
+
+            return !!(access && typeof access === "object");
+        }
+
+        if (!isBusinessAdmin()) return false;
+
+        if (!businessAccess || typeof businessAccess !== "object") {
+            return false;
+        }
+
+        const entry = businessAccess[businessId];
+
+        if (entry === undefined || entry === null || entry === false) {
+            return false;
+        }
+
+        return true;
+    }
+
+    function showStatus(message, type = "danger") {
+        statusMessage.className = `alert alert-${type}`;
+        statusMessage.textContent = message;
+        statusMessage.classList.remove("d-none");
+
+        clearTimeout(showStatus._timer);
+        showStatus._timer = setTimeout(() => {
+            statusMessage.classList.add("d-none");
+        }, 4000);
+    }
+
+    function escapeHtml(value) {
+        return String(value)
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#039;");
+    }
+
+    function formatMoney(n) {
+        const v = Number(n) || 0;
+        return v.toLocaleString("en-IN", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+    }
+
+    function pad2(n) { return String(n).padStart(2, "0"); }
+
+    function isoDate(d) {
+        return (
+            d.getFullYear() + "-" +
+            pad2(d.getMonth() + 1) + "-" +
+            pad2(d.getDate())
+        );
+    }
+
+    function parseIso(s) {
+        const parts = String(s).split("-").map(Number);
+        return new Date(parts[0], (parts[1] - 1), parts[2]);
+    }
+
+    function dateRange(fromIso, toIso) {
+        const out = [];
+        const start = parseIso(fromIso);
+        const end = parseIso(toIso);
+        if (!start || !end) return out;
+        for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+            out.push(isoDate(d));
+        }
+        return out;
+    }
+
+    function pickFieldValue(data, title) {
+        const f = fields.find(x => x.title === title);
+        if (!f) return "";
+        return data[f.id] || "";
+    }
+
+    function getPeriodMode() {
+        const el = document.querySelector('input[name="periodMode"]:checked');
+        return el ? el.value : "daily";
+    }
+
+    function timestampForFilename() {
+        const d = new Date();
+        return (
+            d.getFullYear() + pad2(d.getMonth() + 1) + pad2(d.getDate()) +
+            "_" + pad2(d.getHours()) + pad2(d.getMinutes()) + pad2(d.getSeconds())
+        );
+    }
+
+    function sanitizeFilename(name) {
+        return String(name || "salary")
+            .trim()
+            .replace(/[\\/:*?"<>|]+/g, "_")
+            .replace(/\s+/g, "_")
+            .slice(0, 60) || "salary";
+    }
+
+
+    // --------------------------------------------------
+    // Path builders — PROJECT AWARE
+    // --------------------------------------------------
+
+    function employeeRecordsPath(businessId) {
+        if (currentBusinessIsConstruction && currentProjectId) {
+            return `sr_group/businesses/${businessId}/projects/${currentProjectId}/records/${SETTING_KEY}`;
+        }
+        return `sr_group/businesses/${businessId}/records/${SETTING_KEY}`;
+    }
+
+    function attendancePath(businessId, dateIso) {
+        if (currentBusinessIsConstruction && currentProjectId) {
+            return `sr_group/businesses/${businessId}/projects/${currentProjectId}/attendance/${dateIso}`;
+        }
+        return `sr_group/businesses/${businessId}/attendance/${dateIso}`;
+    }
+
+
+    // --------------------------------------------------
+    // Business dropdown
+    // --------------------------------------------------
+
+    async function loadBusinessDropdown() {
+
+        businessSelect.innerHTML = `<option value="">Loading...</option>`;
+        businessSelect.disabled = true;
+
+        let businesses = {};
+
+        try {
+
+            if (isSuperAdmin()) {
+
+                const snap = await get(ref(db, "sr_group/businesses"));
+                if (snap.exists()) businesses = snap.val() || {};
+
+            } else if (isBusinessAdmin()) {
+
+                const ids = Object.keys(businessAccess || {});
+
+                for (const id of ids) {
+                    try {
+                        const snap = await get(ref(db, `sr_group/businesses/${id}`));
+                        businesses[id] = snap.exists() ? snap.val() : { name: id };
+                    } catch (err) {
+                        businesses[id] = { name: id };
+                    }
+                }
+
+            } else if (isProjectAdmin()) {
+
+                // project-admin: derive business list from projectAccess
+                const projectAccess =
+                    currentUserData?.projectAccess || {};
+
+                const ids = Object.keys(projectAccess);
+
+                for (const id of ids) {
+                    try {
+                        const snap = await get(ref(db, `sr_group/businesses/${id}`));
+                        businesses[id] = snap.exists() ? snap.val() : { name: id };
+                    } catch (err) {
+                        businesses[id] = { name: id };
+                    }
+                }
+
+            } else {
+                throw new Error("Unknown role: " + currentAdminRole);
+            }
+
+        } catch (error) {
+
+            businessSelect.innerHTML =
+                `<option value="">Error: ${escapeHtml(error.message)}</option>`;
+
+            showStatus("Unable to load businesses: " + error.message);
+            return;
+        }
+
+
+        const ids = Object.keys(businesses).sort();
+
+        businessSelect.innerHTML =
+            `<option value="">-- Select business --</option>`;
+
+        if (!ids.length) {
+            businessSelect.innerHTML =
+                `<option value="">No businesses available</option>`;
+            typeFilter.disabled = false;
+            return;
+        }
+
+        ids.forEach(id => {
+
+            const option = document.createElement("option");
+            option.value = id;
+
+            const isConstruction = businesses[id]?.construction === true;
+
+            option.textContent =
+                `${businesses[id]?.name || id} (${id})` +
+                (isConstruction ? " — Construction" : "");
+
+            option.dataset.construction =
+                isConstruction ? "true" : "false";
+
+            businessSelect.appendChild(option);
+        });
+
+        businessSelect.disabled = false;
+        businessSelect._businesses = businesses;
+
+
+        // Restore from URL
+        const params = new URLSearchParams(location.search);
+        const fromUrl = params.get("business");
+        const projectFromUrl = params.get("project") || "";
+
+        if (fromUrl && businesses[fromUrl]) {
+            businessSelect.value = fromUrl;
+            await onBusinessChange(projectFromUrl);
+        }
+    }
+
+
+    // --------------------------------------------------
+    // Projects loader — PROJECT ADMIN AWARE
+    // --------------------------------------------------
+
+    async function loadProjectsForBusiness(businessId) {
+
+        projectSelect.innerHTML =
+            `<option value="">Loading...</option>`;
+
+        projectSelect.disabled = true;
+
+
+        let projects = {};
+
+
+        // 1. Read from business node
+        try {
+
+            const snap = await get(
+                ref(db, `sr_group/businesses/${businessId}/projects`)
+            );
+
+            if (snap.exists()) {
+                projects = snap.val() || {};
+            }
+
+        } catch (error) {
+
+            console.warn(
+                "Could not load projects from business node:",
+                error
+            );
+        }
+
+
+        // 2. For project-admin, restrict to assigned projects
+        if (isProjectAdmin()) {
+
+            const assigned =
+                currentUserData?.projectAccess?.[businessId] || {};
+
+            const restricted = {};
+
+            Object.entries(projects).forEach(([pushId, p]) => {
+
+                if (pushId === "_placeholder") return;
+                if (!p || typeof p !== "object") return;
+
+                if (assigned[pushId]) {
+                    restricted[pushId] = p;
+                }
+            });
+
+            // Fallback: if nothing matched, use assigned map itself
+            if (!Object.keys(restricted).length) {
+
+                Object.entries(assigned).forEach(([pushId, p]) => {
+
+                    if (pushId === "_placeholder") return;
+                    if (!p || typeof p !== "object") return;
+
+                    restricted[pushId] = {
+                        projectId: p.projectId || "",
+                        projectName: p.name || p.projectName || pushId
+                    };
+                });
+            }
+
+            projects = restricted;
+        }
+
+
+        // 3. Clean placeholders
+        const cleaned = {};
+
+        Object.entries(projects).forEach(([id, p]) => {
+            if (id === "_placeholder") return;
+            if (!p || typeof p !== "object") return;
+            cleaned[id] = p;
+        });
+
+
+        projectSelect.innerHTML =
+            `<option value="">Select Project</option>`;
+
+
+        const entries = Object.entries(cleaned);
+
+
+        if (!entries.length) {
+
+            projectSelect.innerHTML =
+                `<option value="">No projects available</option>`;
+
+            projectSelect.disabled = true;
+            return;
+        }
+
+
+        entries.forEach(([pushId, p]) => {
+
+            const opt = document.createElement("option");
+
+            opt.value = pushId;
+
+            const pId = p.projectId || "";
+            const pName = p.projectName || p.name || pushId;
+
+            opt.textContent = `${pId} — ${pName}`;
+
+            projectSelect.appendChild(opt);
+        });
+
+
+        projectSelect.disabled = false;
+    }
+
+
+    // --------------------------------------------------
+    // Schema loader
+    // --------------------------------------------------
+
+    async function loadEmployeeFields(businessId) {
+
+        const snap = await get(
+            ref(db, `sr_group/settings/${businessId}/${SETTING_KEY}`)
+        );
+
+        if (!snap.exists()) {
+            throw new Error(
+                `No "${SETTING_KEY}" settings found for ${businessId}.`
+            );
+        }
+
+        const raw = snap.val();
+        const list = [];
+
+        Object.entries(raw).forEach(([key, value]) => {
+            if (key === "meta") return;
+            if (!value || typeof value !== "object") return;
+
+            list.push({
+                id: key,
+                title: value.title || "Untitled",
+                type: value.type || "text",
+                order: typeof value.order === "number" ? value.order : null
+            });
+        });
+
+        list.sort((a, b) => {
+            const ao = (a.order !== null)
+                ? a.order
+                : (FALLBACK_ORDER.indexOf(a.title) + 1);
+            const bo = (b.order !== null)
+                ? b.order
+                : (FALLBACK_ORDER.indexOf(b.title) + 1);
+            if (ao !== bo) return ao - bo;
+            return a.title.localeCompare(b.title);
+        });
+
+        return list;
+    }
+
+
+    // --------------------------------------------------
+    // Employee loader
+    // --------------------------------------------------
+
+    async function loadEmployees(businessId) {
+
+        const snap = await get(ref(db, employeeRecordsPath(businessId)));
+
+        if (!snap.exists()) return [];
+
+        const raw = snap.val();
+        const list = [];
+
+        Object.entries(raw).forEach(([rowId, rowData]) => {
+            if (!rowData || typeof rowData !== "object") return;
+            list.push({ rowId, data: rowData });
+        });
+
+        const idField = fields.find(f => f.title === "ID");
+
+        list.sort((a, b) => {
+            if (idField) {
+                const av = a.data[idField.id];
+                const bv = b.data[idField.id];
+                const an = parseFloat(av);
+                const bn = parseFloat(bv);
+                if (!isNaN(an) && !isNaN(bn)) return an - bn;
+                return String(av || "").localeCompare(String(bv || ""));
+            }
+            return a.rowId.localeCompare(b.rowId);
+        });
+
+        return list;
+    }
+
+
+    // --------------------------------------------------
+    // Attendance range loader
+    // --------------------------------------------------
+
+    async function loadAttendanceRange(businessId, fromIso, toIso) {
+
+        const dates = dateRange(fromIso, toIso);
+        const out = {};
+
+        const results = await Promise.all(
+            dates.map(async dateIso => {
+                try {
+                    const snap = await get(
+                        ref(db, attendancePath(businessId, dateIso))
+                    );
+                    return [dateIso, snap.exists() ? snap.val() : {}];
+                } catch (err) {
+                    return [dateIso, {}];
+                }
+            })
+        );
+
+        results.forEach(([dateIso, dayMap]) => {
+            out[dateIso] = dayMap || {};
+        });
+
+        return out;
+    }
+
+
+    // --------------------------------------------------
+    // Holiday set
+    // --------------------------------------------------
+
+    function parseHolidayDays(str) {
+        const out = new Set();
+        String(str || "")
+            .split(",")
+            .map(s => s.trim())
+            .filter(Boolean)
+            .forEach(tok => {
+                const n = parseInt(tok, 10);
+                if (Number.isFinite(n) && n >= 1 && n <= 31) out.add(n);
+            });
+        return out;
+    }
+
+
+    // --------------------------------------------------
+    // Salary engine
+    // --------------------------------------------------
+
+    function computeSalary(emp, fromIso, toIso, options) {
+
+        const { holidayDays, sundayOn, saturdayOn, applyCut } = options;
+
+        const typeText = String(pickFieldValue(emp.data, "Type") || "").trim();
+        const amount = Number(pickFieldValue(emp.data, "Amount")) || 0;
+        const nameText = pickFieldValue(emp.data, "Employee Name") || "(unnamed)";
+        const idText = pickFieldValue(emp.data, "ID") || "";
+        const desigText = pickFieldValue(emp.data, "Designation") || "";
+
+        const typeLower = typeText.toLowerCase();
+        const isDaily = typeLower === "daily";
+        const isMonthly = typeLower === "monthly";
+
+        const result = {
+            rowId: emp.rowId,
+            name: nameText,
+            id: idText,
+            designation: desigText,
+            type: typeText,
+            amount,
+
+            totalDays: 0,
+            workingDays: 0,
+            presentDays: 0,
+            absentDays: 0,
+            halfDays: 0,
+            leaveDays: 0,
+            overtimeDays: 0,
+            overtimeHours: 0,
+            holidayDays: 0,
+            unmarkedDays: 0,
+
+            baseEarned: 0,
+            overtimePay: 0,
+            cut: 0,
+            gross: 0,
+
+            dailyWage: 0,
+            otHourlyRate: 0
+        };
+
+
+        const dates = dateRange(fromIso, toIso);
+        result.totalDays = dates.length;
+
+        const dailyWage = isDaily
+            ? amount
+            : (isMonthly ? (amount / 30) : 0);
+
+        const otHourlyRate = dailyWage > 0 ? (dailyWage / 8) * 1.5 : 0;
+
+        let holidayCount = 0, workingCount = 0;
+        let presentCount = 0, absentCount = 0, halfCount = 0;
+        let leaveCount = 0, otDayCount = 0, otHoursTotal = 0;
+        let unmarkedCount = 0;
+
+        dates.forEach(dateIso => {
+
+            const dayNum = parseIso(dateIso).getDate();
+            const weekday = parseIso(dateIso).getDay();
+
+            const isSunday   = weekday === 0;
+            const isSaturday = weekday === 6;
+
+            const isCustomHoliday = holidayDays.has(dayNum);
+
+            const isWeekendHoliday =
+                (isSunday && sundayOn) ||
+                (isSaturday && saturdayOn);
+
+            const isHoliday = isWeekendHoliday || isCustomHoliday;
+
+            const dayAttendance =
+                (attendanceByDate[dateIso] || {})[emp.rowId] || {};
+
+            const status = dayAttendance.status || "";
+            const otHours = Number(dayAttendance.overtimeHours) || 0;
+
+            if (isHoliday) {
+                holidayCount++;
+                if (isDaily) presentCount++;
+                return;
+            }
+
+            workingCount++;
+
+            switch (status) {
+                case "P": presentCount++; break;
+                case "A": absentCount++; break;
+                case "H": halfCount++; break;
+                case "L": leaveCount++; break;
+                case "OT": otDayCount++; otHoursTotal += otHours; break;
+                default: unmarkedCount++; break;
+            }
+        });
+
+
+        let basePay = 0;
+
+        if (isMonthly) {
+
+            const perDay = amount / 30;
+
+            const absentCut   = applyCut ? absentCount   * perDay : 0;
+            const halfCut     = applyCut ? halfCount     * (perDay / 2) : 0;
+            const leaveCut    = applyCut ? leaveCount    * perDay : 0;
+            const unmarkedCut = applyCut ? unmarkedCount * perDay : 0;
+
+            const totalCut = absentCut + halfCut + leaveCut + unmarkedCut;
+
+            basePay = amount - totalCut;
+            result.cut = totalCut;
+
+        } else if (isDaily) {
+
+            basePay =
+                presentCount * dailyWage +
+                halfCount    * (dailyWage / 2) +
+                otDayCount   * dailyWage;
+
+            result.cut = 0;
+        }
+
+
+        const overtimePay = otHoursTotal * otHourlyRate;
+
+        result.workingDays   = workingCount;
+        result.presentDays   = presentCount + otDayCount;
+        result.absentDays    = absentCount;
+        result.halfDays      = halfCount;
+        result.leaveDays     = leaveCount;
+        result.overtimeDays  = otDayCount;
+        result.overtimeHours = otHoursTotal;
+        result.holidayDays   = holidayCount;
+        result.unmarkedDays  = unmarkedCount;
+
+        result.baseEarned    = Math.max(0, basePay);
+        result.overtimePay   = overtimePay;
+        result.gross         = result.baseEarned + result.overtimePay;
+
+        result.dailyWage     = dailyWage;
+        result.otHourlyRate  = otHourlyRate;
+
+        return result;
+    }
+
+
+    // --------------------------------------------------
+    // Calculate
+    // --------------------------------------------------
+
+    async function calculate() {
+
+        if (!currentBusinessId) {
+            showStatus("Please select a business.");
+            return;
+        }
+
+        if (currentBusinessIsConstruction && !currentProjectId) {
+            showStatus("Please select a project.");
+            return;
+        }
+
+        let fromIso = "";
+        let toIso = "";
+
+        const mode = getPeriodMode();
+
+        if (mode === "monthly") {
+
+            const m = monthPick.value;
+            if (!m) { showStatus("Please select a month."); return; }
+
+            const [y, mm] = m.split("-").map(Number);
+            const start = new Date(y, mm - 1, 1);
+            const end   = new Date(y, mm, 0);
+
+            fromIso = isoDate(start);
+            toIso   = isoDate(end);
+
+        } else {
+
+            fromIso = fromDate.value;
+            toIso   = toDate.value;
+
+            if (!fromIso || !toIso) {
+                showStatus("Please select From and To dates.");
+                return;
+            }
+
+            if (parseIso(fromIso) > parseIso(toIso)) {
+                showStatus("From date must be before To date.");
+                return;
+            }
+        }
+
+
+        const options = {
+            holidayDays: parseHolidayDays(holidayInput.value),
+            sundayOn:    sundayCheck.checked,
+            saturdayOn:  saturdayCheck.checked,
+            applyCut:    salaryCutCheck.checked
+        };
+
+        lastRange = { fromIso, toIso };
+        lastOptions = options;
+
+        calculateBtn.disabled = true;
+        const originalHtml = calculateBtn.innerHTML;
+
+        calculateBtn.innerHTML = `
+            <span class="spinner-border spinner-border-sm me-1"></span>
+            Loading...
+        `;
+
+        try {
+
+            attendanceByDate = await loadAttendanceRange(
+                currentBusinessId, fromIso, toIso
+            );
+
+            const tf = typeFilter.value;
+
+            const filtered = employees.filter(emp => {
+                if (tf === "all") return true;
+                const t = String(pickFieldValue(emp.data, "Type") || "")
+                    .trim()
+                    .toLowerCase();
+                return t === tf.toLowerCase();
+            });
+
+            salaryResults = filtered.map(emp =>
+                computeSalary(emp, fromIso, toIso, options)
+            );
+
+            renderResults(fromIso, toIso, options);
+
+            const has = salaryResults.length > 0;
+            exportExcelBtn.disabled = !has;
+            exportPdfBtn.disabled = !has;
+
+            showStatus(
+                `Calculated for ${salaryResults.length} employee(s).`,
+                "success"
+            );
+
+        } catch (error) {
+
+            console.error("Calculate error:", error);
+            showStatus("Failed to calculate salaries.");
+
+        } finally {
+
+            calculateBtn.disabled = false;
+            calculateBtn.innerHTML = originalHtml;
+        }
+    }
+
+
+    // --------------------------------------------------
+    // Render
+    // --------------------------------------------------
+
+    function renderResults(fromIso, toIso, options) {
+
+        employeesList.innerHTML = "";
+
+        if (!salaryResults.length) {
+
+            emptyState.classList.remove("d-none");
+            emptyState.innerHTML = `
+                <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                No employees match the current filters.
+            `;
+
+            summaryBar.classList.add("d-none");
+            return;
+        }
+
+        emptyState.classList.add("d-none");
+
+
+        const totalGross   = salaryResults.reduce((s, r) => s + r.gross, 0);
+        const totalOtHours = salaryResults.reduce((s, r) => s + r.overtimeHours, 0);
+        const totalPresent = salaryResults.reduce((s, r) => s + r.presentDays, 0);
+        const totalAbsent  = salaryResults.reduce((s, r) => s + r.absentDays, 0);
+
+        summaryBar.classList.remove("d-none");
+
+        summaryContent.innerHTML = `
+            <div class="d-flex flex-wrap align-items-center gap-3">
+                <div>
+                    <div class="small text-muted">Period</div>
+                    <div class="fw-semibold">${escapeHtml(fromIso)} → ${escapeHtml(toIso)}</div>
+                </div>
+                <div class="border-start ps-3">
+                    <div class="small text-muted">Employees</div>
+                    <div class="fw-semibold">${salaryResults.length}</div>
+                </div>
+                <div class="border-start ps-3">
+                    <div class="small text-muted">Present</div>
+                    <div class="fw-semibold text-success">${totalPresent}</div>
+                </div>
+                <div class="border-start ps-3">
+                    <div class="small text-muted">Absent</div>
+                    <div class="fw-semibold text-danger">${totalAbsent}</div>
+                </div>
+                <div class="border-start ps-3">
+                    <div class="small text-muted">OT Hours</div>
+                    <div class="fw-semibold text-primary">${totalOtHours}</div>
+                </div>
+                <div class="border-start ps-3 ms-auto">
+                    <div class="small text-muted">Total Payout</div>
+                    <div class="fw-bold text-primary fs-5">₹ ${formatMoney(totalGross)}</div>
+                </div>
+            </div>
+        `;
+
+        const projectPart = currentBusinessIsConstruction && currentProjectId
+            ? `  |  Project: ${currentProjectLabel || currentProjectId}`
+            : "";
+
+        printHeaderMeta.textContent =
+            `Business: ${currentBusinessName || currentBusinessId} (${currentBusinessId})${projectPart}  |  Period: ${fromIso} → ${toIso}  |  Generated: ${new Date().toLocaleString()}`;
+
+
+        salaryResults.forEach(result => {
+
+            const card = document.createElement("div");
+            card.className = "emp-card";
+
+            if (collapsed.has(result.rowId)) {
+                card.classList.add("collapsed");
+            }
+
+            const typeLower = result.type.toLowerCase();
+            const typeClass =
+                typeLower === "daily" ? "daily" :
+                typeLower === "monthly" ? "monthly" : "unknown";
+
+            card.innerHTML = `
+                <div class="emp-header">
+                    <div>
+                        <div class="emp-name">
+                            ${escapeHtml(result.name)}
+                            <span class="type-badge ${typeClass}">
+                                ${escapeHtml(result.type || "—")}
+                            </span>
+                        </div>
+                        <div class="emp-meta">
+                            ID: ${escapeHtml(result.id || "—")}
+                            ${result.designation ? ` • ${escapeHtml(result.designation)}` : ""}
+                        </div>
+                    </div>
+                    <div class="text-end">
+                        <div class="text-muted small">Gross Salary</div>
+                        <div class="fw-bold text-primary fs-5">
+                            ₹ ${formatMoney(result.gross)}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="emp-body">
+
+                    <div class="stat-grid">
+                        <div class="stat-box stat-p">
+                            <div class="stat-label">Present</div>
+                            <div class="stat-value">${result.presentDays}</div>
+                        </div>
+                        <div class="stat-box stat-a">
+                            <div class="stat-label">Absent</div>
+                            <div class="stat-value">${result.absentDays}</div>
+                        </div>
+                        <div class="stat-box stat-h">
+                            <div class="stat-label">Half Day</div>
+                            <div class="stat-value">${result.halfDays}</div>
+                        </div>
+                        <div class="stat-box stat-l">
+                            <div class="stat-label">Leave</div>
+                            <div class="stat-value">${result.leaveDays}</div>
+                        </div>
+                        <div class="stat-box stat-ot">
+                            <div class="stat-label">OT Hours</div>
+                            <div class="stat-value">${result.overtimeHours}</div>
+                        </div>
+                        <div class="stat-box stat-hol">
+                            <div class="stat-label">Holidays</div>
+                            <div class="stat-value">${result.holidayDays}</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">Unmarked</div>
+                            <div class="stat-value">${result.unmarkedDays}</div>
+                        </div>
+                    </div>
+
+                    <div class="salary-panel">
+                        <div class="salary-row">
+                            <span class="label">Total Days in Period</span>
+                            <span class="value">${result.totalDays}</span>
+                        </div>
+                        <div class="salary-row">
+                            <span class="label">Working Days (excl. holidays)</span>
+                            <span class="value">${result.workingDays}</span>
+                        </div>
+                        <div class="salary-row">
+                            <span class="label">Daily Wage</span>
+                            <span class="value">₹ ${formatMoney(result.dailyWage)}</span>
+                        </div>
+                        <div class="salary-row">
+                            <span class="label">Base Earned</span>
+                            <span class="value">₹ ${formatMoney(result.baseEarned)}</span>
+                        </div>
+                        ${result.cut > 0 ? `
+                            <div class="salary-row cut">
+                                <span class="label">Salary Cut</span>
+                                <span class="value">− ₹ ${formatMoney(result.cut)}</span>
+                            </div>
+                        ` : ""}
+                        ${result.overtimePay > 0 ? `
+                            <div class="salary-row bonus">
+                                <span class="label">
+                                    Overtime (${result.overtimeHours}h × ₹${formatMoney(result.otHourlyRate)}/h)
+                                </span>
+                                <span class="value">+ ₹ ${formatMoney(result.overtimePay)}</span>
+                            </div>
+                        ` : ""}
+                        <div class="salary-row grand">
+                            <span class="label">Gross Salary</span>
+                            <span class="value">₹ ${formatMoney(result.gross)}</span>
+                        </div>
+                    </div>
+
+                </div>
+            `;
+
+            card.querySelector(".emp-header").addEventListener("click", () => {
+
+                if (collapsed.has(result.rowId)) {
+                    collapsed.delete(result.rowId);
+                    card.classList.remove("collapsed");
+                } else {
+                    collapsed.add(result.rowId);
+                    card.classList.add("collapsed");
+                }
+            });
+
+            employeesList.appendChild(card);
+        });
+    }
+
+
+    // --------------------------------------------------
+    // Excel export
+    // --------------------------------------------------
+
+    function exportExcel() {
+
+        if (!salaryResults.length) {
+            showStatus("Calculate salaries first.", "warning");
+            return;
+        }
+
+        const { fromIso, toIso } = lastRange;
+
+        const projectLabel = currentBusinessIsConstruction && currentProjectId
+            ? `${currentProjectLabel || currentProjectId}`
+            : "—";
+
+        const summary = [
+            ["Salary Report"],
+            ["Business", `${currentBusinessName || currentBusinessId} (${currentBusinessId})`],
+            ["Project", projectLabel],
+            ["Period", `${fromIso} → ${toIso}`],
+            ["Generated", new Date().toLocaleString()],
+            [],
+            [
+                "#",
+                "ID",
+                "Employee Name",
+                "Designation",
+                "Type",
+                "Base Amount",
+                "Daily Wage",
+                "Present",
+                "Absent",
+                "Half Day",
+                "Leave",
+                "OT Hours",
+                "Holidays",
+                "Unmarked",
+                "Working Days",
+                "Base Earned",
+                "Salary Cut",
+                "OT Pay",
+                "Gross Salary"
+            ]
+        ];
+
+        salaryResults.forEach((r, i) => {
+            summary.push([
+                i + 1,
+                r.id,
+                r.name,
+                r.designation,
+                r.type,
+                r.amount,
+                r.dailyWage,
+                r.presentDays,
+                r.absentDays,
+                r.halfDays,
+                r.leaveDays,
+                r.overtimeHours,
+                r.holidayDays,
+                r.unmarkedDays,
+                r.workingDays,
+                r.baseEarned,
+                r.cut,
+                r.overtimePay,
+                r.gross
+            ]);
+        });
+
+        const totalsRow = [
+            "",
+            "",
+            "TOTAL",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            salaryResults.reduce((s, r) => s + r.overtimeHours, 0),
+            "",
+            "",
+            "",
+            salaryResults.reduce((s, r) => s + r.baseEarned, 0),
+            salaryResults.reduce((s, r) => s + r.cut, 0),
+            salaryResults.reduce((s, r) => s + r.overtimePay, 0),
+            salaryResults.reduce((s, r) => s + r.gross, 0)
+        ];
+        summary.push(totalsRow);
+
+        const wsSummary = XLSX.utils.aoa_to_sheet(summary);
+
+        wsSummary["!cols"] = [
+            { wch: 5 },  { wch: 10 }, { wch: 24 }, { wch: 18 }, { wch: 10 },
+            { wch: 12 }, { wch: 12 }, { wch: 9 },  { wch: 9 },  { wch: 10 },
+            { wch: 8 },  { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 13 },
+            { wch: 13 }, { wch: 12 }, { wch: 11 }, { wch: 14 }
+        ];
+
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, wsSummary, "Salary Summary");
+
+
+        const dates = dateRange(fromIso, toIso);
+
+        if (dates.length > 0 && dates.length <= 62) {
+
+            const header = ["ID", "Employee Name", "Type", "Base Amount"];
+
+            dates.forEach(d => header.push(d));
+            header.push("Total Present", "Total OT Hours", "Gross");
+
+            const rows = [header];
+
+            salaryResults.forEach(r => {
+                const row = [r.id, r.name, r.type, r.amount];
+
+                let totalPresent = 0;
+                let totalOT = 0;
+
+                dates.forEach(d => {
+                    const rec =
+                        (attendanceByDate[d] || {})[r.rowId] || {};
+
+                    const status = rec.status || "";
+                    const otH = Number(rec.overtimeHours) || 0;
+
+                    let cell = status || "—";
+
+                    if (status === "OT" && otH > 0) {
+                        cell = `OT (${otH}h)`;
+                        totalOT += otH;
+                    }
+
+                    if (status === "P" || status === "OT") totalPresent++;
+                    if (status === "H") totalPresent += 0.5;
+
+                    row.push(cell);
+                });
+
+                row.push(totalPresent, totalOT, r.gross);
+
+                rows.push(row);
+            });
+
+            const wsDetail = XLSX.utils.aoa_to_sheet(rows);
+
+            wsDetail["!cols"] = [
+                { wch: 8 }, { wch: 22 }, { wch: 10 }, { wch: 12 },
+                ...dates.map(() => ({ wch: 11 })),
+                { wch: 13 }, { wch: 12 }, { wch: 12 }
+            ];
+
+            XLSX.utils.book_append_sheet(wb, wsDetail, "Daily Detail");
+        }
+
+
+        const projectPart = currentBusinessIsConstruction && currentProjectId
+            ? `_${sanitizeFilename(currentProjectLabel || currentProjectId)}`
+            : "";
+
+        const filename =
+            `${sanitizeFilename("salary_" + (currentBusinessName || currentBusinessId) + projectPart)}_${fromIso}_to_${toIso}_${timestampForFilename()}.xlsx`;
+
+        XLSX.writeFile(wb, filename);
+
+        showStatus("Excel file downloaded.", "success");
+    }
+
+
+    // --------------------------------------------------
+    // PDF export (via browser print)
+    // --------------------------------------------------
+
+    function exportPdf() {
+
+        if (!salaryResults.length) {
+            showStatus("Calculate salaries first.", "warning");
+            return;
+        }
+
+        collapsed.clear();
+        employeesList.querySelectorAll(".emp-card")
+            .forEach(c => c.classList.remove("collapsed"));
+
+        setTimeout(() => {
+            window.print();
+        }, 150);
+    }
+
+
+    // --------------------------------------------------
+    // Business change
+    // --------------------------------------------------
+
+    async function onBusinessChange(preselectProjectId = "") {
+
+        currentBusinessId = businessSelect.value;
+
+        const businesses = businessSelect._businesses || {};
+        currentBusinessName =
+            businesses[currentBusinessId]?.name || currentBusinessId;
+
+        // Reset
+        currentProjectId = "";
+        currentProjectLabel = "";
+        projectCol.classList.add("d-none");
+
+        employees = [];
+        fields = [];
+        attendanceByDate = {};
+        salaryResults = [];
+        collapsed.clear();
+
+        summaryBar.classList.add("d-none");
+        employeesList.innerHTML = "";
+
+        exportExcelBtn.disabled = true;
+        exportPdfBtn.disabled = true;
+        calculateBtn.disabled = true;
+
+
+        if (!currentBusinessId) {
+
+            currentBusinessIsConstruction = false;
+
+            emptyState.classList.remove("d-none");
+            emptyState.innerHTML = `
+                <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                Select a business to load employees.
+            `;
+
+            typeFilter.disabled = true;
+            return;
+        }
+
+
+        if (!hasBusinessAccess(currentBusinessId)) {
+            showStatus("You do not have access to this business.");
+            businessSelect.value = "";
+            currentBusinessId = "";
+            return;
+        }
+
+
+        // Detect construction
+        const opt =
+            businessSelect.querySelector(
+                `option[value="${CSS.escape(currentBusinessId)}"]`
+            );
+
+        currentBusinessIsConstruction =
+            opt?.dataset.construction === "true";
+
+
+        // ---------------------------------------------
+        // Construction → require project first
+        // ---------------------------------------------
+
+        if (currentBusinessIsConstruction) {
+
+            projectCol.classList.remove("d-none");
+
+            await loadProjectsForBusiness(currentBusinessId);
+
+
+            if (preselectProjectId) {
+
+                const target =
+                    projectSelect.querySelector(
+                        `option[value="${CSS.escape(preselectProjectId)}"]`
+                    );
+
+                if (target) {
+                    projectSelect.value = preselectProjectId;
+                    await onProjectChange();
+                    return;
+                }
+            }
+
+
+            emptyState.classList.remove("d-none");
+            emptyState.innerHTML = `
+                <i class="bi bi-cone-striped fs-1 d-block mb-2 text-warning"></i>
+                Select a project to load employees.
+            `;
+
+            typeFilter.disabled = true;
+            return;
+        }
+
+
+        // ---------------------------------------------
+        // Non-construction → load directly
+        // ---------------------------------------------
+
+        await loadEmployeesForCurrentSelection();
+    }
+
+
+    async function onProjectChange() {
+
+        currentProjectId = projectSelect.value;
+
+        // Label from the selected option text
+        const opt =
+            projectSelect.options[projectSelect.selectedIndex];
+
+        currentProjectLabel = opt ? opt.textContent : "";
+
+        employees = [];
+        fields = [];
+        attendanceByDate = {};
+        salaryResults = [];
+        collapsed.clear();
+
+        summaryBar.classList.add("d-none");
+        employeesList.innerHTML = "";
+
+        exportExcelBtn.disabled = true;
+        exportPdfBtn.disabled = true;
+        calculateBtn.disabled = true;
+
+
+        if (!currentProjectId) {
+
+            emptyState.classList.remove("d-none");
+            emptyState.innerHTML = `
+                <i class="bi bi-cone-striped fs-1 d-block mb-2 text-warning"></i>
+                Select a project to load employees.
+            `;
+
+            typeFilter.disabled = true;
+            return;
+        }
+
+
+        await loadEmployeesForCurrentSelection();
+    }
+
+
+    async function loadEmployeesForCurrentSelection() {
+
+        emptyState.classList.remove("d-none");
+        emptyState.innerHTML = `
+            <span class="spinner-border spinner-border-sm me-2"></span>
+            Loading employees...
+        `;
+
+        try {
+
+            fields = await loadEmployeeFields(currentBusinessId);
+            employees = await loadEmployees(currentBusinessId);
+
+            syncUrlParams();
+
+            typeFilter.disabled = false;
+            calculateBtn.disabled = false;
+
+
+            if (!employees.length) {
+
+                emptyState.innerHTML = `
+                    <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                    No employee records for this business${currentBusinessIsConstruction ? " / project" : ""}.
+                `;
+
+            } else {
+
+                emptyState.innerHTML = `
+                    <i class="bi bi-check-circle fs-1 d-block mb-2 text-success"></i>
+                    Loaded ${employees.length} employee(s).
+                    Click <strong>Calculate</strong> to see salaries.
+                `;
+            }
+
+        } catch (error) {
+
+            console.error("Load error:", error);
+
+            showStatus(error.message || "Failed to load employees.");
+
+            emptyState.innerHTML = `
+                <i class="bi bi-exclamation-triangle fs-1 d-block mb-2 text-danger"></i>
+                ${escapeHtml(error.message || "Failed to load.")}
+            `;
+        }
+    }
+
+
+    // --------------------------------------------------
+    // Sync URL params
+    // --------------------------------------------------
+
+    function syncUrlParams() {
+
+        const params = new URLSearchParams(location.search);
+
+        let changed = false;
+
+        if (params.get("business") !== currentBusinessId) {
+            params.set("business", currentBusinessId);
+            changed = true;
+        }
+
+        if (currentBusinessIsConstruction && currentProjectId) {
+            if (params.get("project") !== currentProjectId) {
+                params.set("project", currentProjectId);
+                changed = true;
+            }
+        } else {
+            if (params.has("project")) {
+                params.delete("project");
+                changed = true;
+            }
+        }
+
+        if (changed) {
+            history.replaceState(null, "", "?" + params.toString());
+        }
+    }
+
+
+    // --------------------------------------------------
+    // Events
+    // --------------------------------------------------
+
+    businessSelect.addEventListener(
+        "change",
+        () => onBusinessChange()
+    );
+
+    projectSelect.addEventListener(
+        "change",
+        onProjectChange
+    );
+
+    document.querySelectorAll('input[name="periodMode"]').forEach(el => {
+
+        el.addEventListener("change", () => {
+
+            if (getPeriodMode() === "monthly") {
+                dailyRangeRow.classList.add("d-none");
+                monthlyMonthRow.classList.remove("d-none");
+            } else {
+                dailyRangeRow.classList.remove("d-none");
+                monthlyMonthRow.classList.add("d-none");
+            }
+        });
+    });
+
+    thisMonthBtn.addEventListener("click", () => {
+
+        const now = new Date();
+        const start = new Date(now.getFullYear(), now.getMonth(), 1);
+        const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+        fromDate.value = isoDate(start);
+        toDate.value = isoDate(end);
+    });
+
+    lastMonthBtn.addEventListener("click", () => {
+
+        const now = new Date();
+        const start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        const end = new Date(now.getFullYear(), now.getMonth(), 0);
+
+        fromDate.value = isoDate(start);
+        toDate.value = isoDate(end);
+    });
+
+    calculateBtn.addEventListener("click", calculate);
+
+    exportExcelBtn.addEventListener("click", exportExcel);
+    exportPdfBtn.addEventListener("click", exportPdf);
+
+    expandAllBtn.addEventListener("click", () => {
+
+        const cards = employeesList.querySelectorAll(".emp-card");
+
+        const allCollapsed =
+            cards.length > 0 &&
+            employeesList.querySelectorAll(".emp-card:not(.collapsed)").length === 0;
+
+        if (allCollapsed) {
+            collapsed.clear();
+            cards.forEach(c => c.classList.remove("collapsed"));
+            expandAllBtn.innerHTML =
+                `<i class="bi bi-arrows-collapse me-1"></i> Collapse All`;
+        } else {
+            salaryResults.forEach(r => collapsed.add(r.rowId));
+            cards.forEach(c => c.classList.add("collapsed"));
+            expandAllBtn.innerHTML =
+                `<i class="bi bi-arrows-expand me-1"></i> Expand All`;
+        }
+    });
+
+
+    // --------------------------------------------------
+    // Default dates
+    // --------------------------------------------------
+
+    (function initDates() {
+
+        const now = new Date();
+
+        const start = new Date(now.getFullYear(), now.getMonth(), 1);
+        const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+        fromDate.value = isoDate(start);
+        toDate.value = isoDate(end);
+
+        monthPick.value = now.getFullYear() + "-" + pad2(now.getMonth() + 1);
+    })();
+
+
+    // --------------------------------------------------
+    // Auth
+    // --------------------------------------------------
+
+    onAuthStateChanged(auth, async function (user) {
+
+        if (!user) {
+            window.location.href = "login.html";
+            return;
+        }
+
+        try {
+
+            const snap = await get(ref(db, `sr_group/users/${user.uid}`));
+
+            if (!snap.exists()) {
+                await signOut(auth);
+                window.location.href = "login.html";
+                return;
+            }
+
+            const userData = snap.val();
+
+            currentUserData  = userData;
+            currentAdminRole = userData.role || "";
+            businessAccess   = userData.businessAccess || {};
+
+            await loadBusinessDropdown();
+
+            typeFilter.disabled = false;
+
+        } catch (error) {
+
+            console.error("Auth error:", error);
+
+            businessSelect.innerHTML =
+                `<option value="">Auth error</option>`;
+
+            showStatus("Authentication error. Please reload the page.");
+        }
+    });
+
+</script>
+
+</body>
+
+</html>

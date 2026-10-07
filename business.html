@@ -1,0 +1,1526 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Business Management</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="sidebar/sidebar.css">
+
+    <style>
+        body { background: #f5f6f8; }
+
+        #sidebar-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 250px;
+            height: 100vh;
+            z-index: 1000;
+        }
+
+        .main-content {
+            margin-left: 250px;
+            padding: 25px;
+        }
+
+        @media (max-width: 767px) {
+            #sidebar-container { width: 0; }
+            .main-content { margin-left: 0; padding: 15px; }
+        }
+
+        .construction-switch {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 12px 15px;
+        }
+
+        .construction-switch .form-check-input {
+            width: 2.8em;
+            height: 1.4em;
+            cursor: pointer;
+        }
+
+        .construction-switch .form-check-input:checked {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+        }
+
+        .badge-construction {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffe69c;
+        }
+
+        #projectsModal .modal-dialog { max-width: 900px; }
+
+        .project-form-card {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 16px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="sidebar-container"></div>
+
+    <main class="main-content">
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h3 class="fw-bold mb-1">
+                    <i class="bi bi-building me-2"></i>
+                    Business
+                </h3>
+                <p class="text-muted mb-0">Manage businesses</p>
+            </div>
+
+            <button type="button" class="btn btn-primary" id="addBusinessBtn">
+                <i class="bi bi-plus-lg me-1"></i>
+                Add Business
+            </button>
+        </div>
+
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-person-circle fs-2 text-primary me-3"></i>
+                    <div>
+                        <div class="fw-semibold" id="currentUserName">Loading...</div>
+                        <small class="text-muted" id="currentUserRole">Loading...</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="statusMessage" class="alert d-none"></div>
+
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-semibold">Business List</h5>
+                    <span class="badge bg-secondary" id="businessCount">0</span>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>#</th>
+                            <th>Business ID</th>
+                            <th>Business Name</th>
+                            <th>Type</th>
+                            <th class="text-end">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="businessTableBody">
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-5">
+                                Loading...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Add / Edit Business Modal -->
+    <div class="modal fade" id="businessModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-building me-2"></i>
+                        Add Business
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <form id="businessForm">
+                    <div class="modal-body">
+
+                        <div class="mb-3">
+                            <label class="form-label">Business ID</label>
+                            <input type="text" class="form-control" id="businessId" readonly>
+                            <div class="form-text">Automatically generated.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="businessName" class="form-label">
+                                Business Name <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" class="form-control" id="businessName"
+                                placeholder="Enter business name" required autocomplete="off">
+                        </div>
+
+                        <div class="construction-switch">
+                            <div class="form-check form-switch d-flex align-items-center justify-content-between m-0 p-0">
+                                <div>
+                                    <label class="form-check-label fw-semibold mb-0" for="constructionToggle">
+                                        <i class="bi bi-cone-striped me-1 text-warning"></i>
+                                        Construction Business
+                                    </label>
+                                    <div class="form-text mb-0">
+                                        Enable to add Projects and Bill of Quantity under this business.
+                                    </div>
+                                </div>
+                                <input class="form-check-input ms-3" type="checkbox" role="switch"
+                                    id="constructionToggle">
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn btn-primary" id="saveBusinessBtn">
+                            <i class="bi bi-check-lg me-1"></i>
+                            Save Business
+                        </button>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Projects Modal -->
+    <div class="modal fade" id="projectsModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <div>
+                        <h5 class="modal-title mb-0">
+                            <i class="bi bi-cone-striped me-2 text-warning"></i>
+                            Projects
+                        </h5>
+                        <small class="text-muted" id="projectsBusinessLabel"></small>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+
+                    <div id="projectsStatus" class="alert d-none py-2"></div>
+
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <span class="fw-semibold">Project List</span>
+                            <span class="badge bg-secondary ms-1" id="projectsCount">0</span>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-primary" id="toggleProjectFormBtn">
+                            <i class="bi bi-plus-lg me-1"></i>
+                            Add Project
+                        </button>
+                    </div>
+
+                    <!-- Add Project Form -->
+                    <div id="projectFormWrapper" class="project-form-card mb-3 d-none">
+                        <form id="projectForm">
+                            <div class="row g-3">
+
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-semibold">
+                                        Project ID
+                                    </label>
+                                    <input type="text"
+                                        class="form-control"
+                                        id="projectIdInput"
+                                        readonly>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-semibold">
+                                        Project Name <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="text"
+                                        class="form-control"
+                                        id="projectNameInput"
+                                        placeholder="Enter project name"
+                                        autocomplete="off">
+                                </div>
+
+                            </div>
+
+                            <div class="d-flex justify-content-end gap-2 mt-3">
+                                <button type="button" class="btn btn-sm btn-secondary" id="cancelProjectBtn">
+                                    Cancel
+                                </button>
+                                <button type="submit" class="btn btn-sm btn-primary" id="saveProjectBtn">
+                                    <i class="bi bi-check-lg me-1"></i>
+                                    Save Project
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width:60px;">#</th>
+                                    <th>Project ID</th>
+                                    <th>Project Name</th>
+                                    <th class="text-end" style="width:90px;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="projectsTableBody">
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted py-4">
+                                        Loading...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        Close
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="module" src="sidebar/sidebar.js"></script>
+
+    <script type="module">
+
+        import { auth, db } from "./firebase-config.js";
+
+        import {
+            onAuthStateChanged,
+            signOut
+        } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+
+        import {
+            ref,
+            get,
+            set,
+            remove,
+            push
+        } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-database.js";
+
+
+        // --------------------------------------------------
+        // Elements
+        // --------------------------------------------------
+
+        const businessForm = document.getElementById("businessForm");
+        const businessIdInput = document.getElementById("businessId");
+        const businessNameInput = document.getElementById("businessName");
+        const constructionToggle = document.getElementById("constructionToggle");
+        const businessTableBody = document.getElementById("businessTableBody");
+        const businessCount = document.getElementById("businessCount");
+        const addBusinessBtn = document.getElementById("addBusinessBtn");
+        const saveBusinessBtn = document.getElementById("saveBusinessBtn");
+        const currentUserName = document.getElementById("currentUserName");
+        const currentUserRole = document.getElementById("currentUserRole");
+        const statusMessage = document.getElementById("statusMessage");
+
+        const businessModal = new bootstrap.Modal(
+            document.getElementById("businessModal")
+        );
+
+        // Projects modal elements
+        const projectsModalEl = document.getElementById("projectsModal");
+        const projectsModal = new bootstrap.Modal(projectsModalEl);
+        const projectsBusinessLabel = document.getElementById("projectsBusinessLabel");
+        const projectsStatus = document.getElementById("projectsStatus");
+        const projectsCount = document.getElementById("projectsCount");
+        const projectsTableBody = document.getElementById("projectsTableBody");
+        const toggleProjectFormBtn = document.getElementById("toggleProjectFormBtn");
+        const projectFormWrapper = document.getElementById("projectFormWrapper");
+        const projectForm = document.getElementById("projectForm");
+        const projectIdInput = document.getElementById("projectIdInput");
+        const projectNameInput = document.getElementById("projectNameInput");
+        const cancelProjectBtn = document.getElementById("cancelProjectBtn");
+        const saveProjectBtn = document.getElementById("saveProjectBtn");
+
+
+        // --------------------------------------------------
+        // State
+        // --------------------------------------------------
+
+        let currentUser = null;
+        let currentAdminRole = "";
+        let businessAccess = {};
+
+        let activeBusinessId = null;
+        let activeBusinessName = "";
+        let activeProjects = {};
+
+
+        // --------------------------------------------------
+        // Default Settings Template (for ALL businesses)
+        // --------------------------------------------------
+
+        const DEFAULT_SETTINGS = {
+
+            employee: {
+                name: "Employee",
+                fields: [
+                    { title: "ID", type: "auto-generate", filter: false, displaySum: false, autoPattern: "[Number]" },
+                    { title: "Employee Name", type: "text", filter: false, displaySum: false },
+                    {
+                        title: "Designation", type: "select", filter: true, displaySum: false,
+                        options: [
+                            { value: "Manager",           color: "none" },
+                            { value: "Assistant Manager", color: "none" },
+                            { value: "Labour",            color: "none" },
+                            { value: "DEO",               color: "none" }
+                        ]
+                    },
+                    { title: "Mobile", type: "number", filter: false, displaySum: false },
+                    {
+                        title: "Type", type: "select", filter: true, displaySum: false,
+                        options: [
+                            { value: "Daily",   color: "none" },
+                            { value: "Monthly", color: "secondary" }
+                        ]
+                    },
+                    { title: "Amount", type: "number", filter: true, displaySum: false, editable: false }
+                ]
+            },
+
+            products: {
+                name: "Products",
+                fields: [
+                    { title: "Product Name", type: "text", filter: true, displaySum: false },
+                    { title: "Total Quantity", type: "number", filter: true, displaySum: true, editable: false},
+                    {
+                        title: "Unit", type: "select", filter: true, displaySum: false,
+                        options: [
+                            { value: "Pcs",   color: "none" },
+                            { value: "Kg",    color: "none" },
+                            { value: "Ltr",   color: "none" },
+                            { value: "Mtr",   color: "none" },
+                            { value: "Box",   color: "none" },
+                            { value: "Dozen", color: "none" },
+                            { value: "Set",   color: "none" },
+                            { value: "Bag",   color: "none" },
+                            { value: "Nos",   color: "none" }
+                        ]
+                    },
+                    { title: "Purchase Price", type: "number", filter: true, displaySum: false, editable: false  },
+                    { title: "Selling Price", type: "text", filter: true, displaySum: false, editable: false  },
+                    { title: "Remarks", type: "textarea", filter: false, displaySum: false }
+                ]
+            },
+
+            services: {
+                name: "Services",
+                fields: [
+                    { title: "Title", type: "text", filter: true, displaySum: false, editable: false  },
+                    { title: "Costing", type: "number", filter: true, displaySum: false, editable: false  },
+                    { title: "Selling Price", type: "number", filter: true, displaySum: false, editable: false  },
+                    {
+                        title: "Unit", type: "select", filter: true, displaySum: false,
+                        options: [
+                            { value: "Pcs",   color: "none" },
+                            { value: "Kg",    color: "none" },
+                            { value: "Ltr",   color: "none" },
+                            { value: "Mtr",   color: "none" },
+                            { value: "Box",   color: "none" },
+                            { value: "Dozen", color: "none" },
+                            { value: "Set",   color: "none" },
+                            { value: "Bag",   color: "none" },
+                            { value: "Nos",   color: "none" }
+                        ]
+                    },
+                    { title: "Remarks", type: "textarea", filter: false, displaySum: false }
+                ]
+            },
+
+            records: {
+                name: "Records",
+                fields: [
+                    { title: "Title", type: "text", filter: true, displaySum: false },
+                    { title: "Date", type: "date", filter: true, displaySum: false },
+                    { title: "Amount", type: "number", filter: true, displaySum: true, editable: false },
+                    {
+                        title: "Content type", type: "select", filter: true, displaySum: false,
+                        options: [
+                            { value: "Expenses", color: "danger" },
+                            { value: "Earning",  color: "success" }
+                        ]
+                    }
+                ]
+            }
+
+        };
+
+
+        // --------------------------------------------------
+        // Construction-only Settings
+        // --------------------------------------------------
+
+        const CONSTRUCTION_SETTINGS = {
+
+            "bill-of-quantity": {
+                name: "Bill of Quantity",
+                fields: [
+                    { title: "Title",    type: "text",   filter: false, displaySum: false, editable: false },
+                    { title: "Quantity", type: "number", filter: false, displaySum: false, editable: false  },
+                    {
+                        title: "Unit", type: "select", filter: true, displaySum: false,
+                        options: [
+                            { value: "Cu.m",  color: "none" },
+                            { value: "C.ft",  color: "none" },
+                            { value: "Sq.m",  color: "none" },
+                            { value: "Sq.ft", color: "none" },
+                            { value: "rmt",   color: "none" }
+                        ]
+                    }
+                   
+                ]
+            }
+
+        };
+
+
+        // --------------------------------------------------
+        // Helpers
+        // --------------------------------------------------
+
+        function isSuperAdmin() {
+            return (
+                currentAdminRole === "main-admin" ||
+                currentAdminRole === "dev-admin"
+            );
+        }
+
+        function isBusinessAdmin() {
+            return currentAdminRole === "business-admin";
+        }
+
+        function hasBusinessAccess(businessId) {
+            if (isSuperAdmin()) return true;
+            if (!isBusinessAdmin()) return false;
+            return businessAccess && businessAccess[businessId] === true;
+        }
+
+        function showStatus(message, type = "danger") {
+            statusMessage.className = `alert alert-${type}`;
+            statusMessage.textContent = message;
+            statusMessage.classList.remove("d-none");
+
+            clearTimeout(showStatus._timer);
+            showStatus._timer = setTimeout(() => {
+                statusMessage.classList.add("d-none");
+            }, 4000);
+        }
+
+        function showProjectsStatus(message, type = "danger") {
+            projectsStatus.className = `alert alert-${type} py-2`;
+            projectsStatus.textContent = message;
+            projectsStatus.classList.remove("d-none");
+
+            clearTimeout(showProjectsStatus._timer);
+            showProjectsStatus._timer = setTimeout(() => {
+                projectsStatus.classList.add("d-none");
+            }, 3500);
+        }
+
+        function escapeHtml(value) {
+            return String(value)
+                .replaceAll("&", "&amp;")
+                .replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;")
+                .replaceAll('"', "&quot;")
+                .replaceAll("'", "&#039;");
+        }
+
+
+        // --------------------------------------------------
+        // Get Next Business ID
+        // --------------------------------------------------
+
+        async function getNextBusinessId() {
+            if (!isSuperAdmin()) {
+                throw new Error("Only main-admin or dev-admin can create businesses.");
+            }
+
+            const businessesRef = ref(db, "sr_group/businesses");
+            const snapshot = await get(businessesRef);
+
+            if (!snapshot.exists()) return "SR001";
+
+            const businesses = snapshot.val();
+            let highestNumber = 0;
+
+            Object.keys(businesses).forEach(id => {
+                const match = /^SR(\d+)$/i.exec(id);
+                if (match) {
+                    const number = parseInt(match[1], 10);
+                    if (number > highestNumber) highestNumber = number;
+                }
+            });
+
+            return "SR" + String(highestNumber + 1).padStart(3, "0");
+        }
+
+
+        // --------------------------------------------------
+        // Push ID (for settings fields only)
+        // --------------------------------------------------
+
+        function generatePushId() {
+            const PUSH_CHARS =
+                "-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_" +
+                "abcdefghijklmnopqrstuvwxyz";
+
+            let id = "";
+            let now = Date.now();
+
+            for (let i = 7; i >= 0; i--) {
+                id += PUSH_CHARS.charAt(now % 64);
+                now = Math.floor(now / 64);
+            }
+
+            for (let i = 0; i < 12; i++) {
+                id += PUSH_CHARS.charAt(Math.floor(Math.random() * 64));
+            }
+
+            return id;
+        }
+
+
+        // --------------------------------------------------
+        // Build Settings Payload
+        // --------------------------------------------------
+        // order = declaration index + 1 (strictly 1, 2, 3, 4, ...)
+
+        function buildSettingNode(settingDef) {
+            const now = Date.now();
+            const settingNode = {};
+
+            settingDef.fields.forEach((fieldDef, index) => {
+                const fieldId = generatePushId();
+
+                const fieldNode = {
+                    title: fieldDef.title,
+                    type: fieldDef.type,
+                    filter: fieldDef.filter ?? false,
+                    displaySum: fieldDef.displaySum ?? false,
+
+                    // ✅ Numeric order based on declaration position
+                    order: Number(index + 1)
+                };
+
+                // ✅ Persist the "editable" flag so the Settings page can lock fields.
+                //    When not provided, the field is treated as editable.
+                if (fieldDef.editable !== undefined) {
+                    fieldNode.editable = fieldDef.editable;
+                }
+
+                if (fieldDef.type === "auto-generate" && fieldDef.autoPattern) {
+                    fieldNode.autoPattern = fieldDef.autoPattern;
+                }
+
+                if (fieldDef.type === "select" && Array.isArray(fieldDef.options)) {
+                    const options = {};
+                    fieldDef.options.forEach((opt, i) => {
+                        options[`option${i + 1}`] = {
+                            value: opt.value,
+                            color: opt.color || "secondary"
+                        };
+                    });
+                    fieldNode.options = options;
+                }
+
+                settingNode[fieldId] = fieldNode;
+            });
+
+            settingNode.meta = {
+                name: settingDef.name,
+                createdAt: now
+            };
+
+            return settingNode;
+        }
+
+        function buildDefaultSettings() {
+            const payload = {};
+
+            Object.entries(DEFAULT_SETTINGS).forEach(([settingKey, settingDef]) => {
+                payload[settingKey] = buildSettingNode(settingDef);
+            });
+
+            return payload;
+        }
+
+
+        // --------------------------------------------------
+        // Load Businesses
+        // --------------------------------------------------
+
+        async function loadBusinesses() {
+
+            businessTableBody.innerHTML = `
+                <tr>
+                    <td colspan="5" class="text-center text-muted py-5">
+                        Loading...
+                    </td>
+                </tr>
+            `;
+
+            try {
+
+                let businesses = {};
+
+                if (isSuperAdmin()) {
+                    const businessesRef = ref(db, "sr_group/businesses");
+                    const snapshot = await get(businessesRef);
+                    if (snapshot.exists()) businesses = snapshot.val() || {};
+                }
+                else if (isBusinessAdmin()) {
+                    const assignedIds = Object.keys(businessAccess || {});
+                    for (const businessId of assignedIds) {
+                        try {
+                            const businessRef = ref(db, `sr_group/businesses/${businessId}`);
+                            const snapshot = await get(businessRef);
+                            if (snapshot.exists()) {
+                                businesses[businessId] = snapshot.val();
+                            }
+                        } catch (error) {
+                            console.warn(`Unable to read ${businessId}`, error);
+                        }
+                    }
+                }
+                else {
+                    throw new Error("You do not have permission to view businesses.");
+                }
+
+                const businessIds = Object.keys(businesses).sort();
+
+                businessTableBody.innerHTML = "";
+
+                if (businessIds.length === 0) {
+                    businessTableBody.innerHTML = `
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-5">
+                                <i class="bi bi-building fs-2 d-block mb-2"></i>
+                                No businesses assigned.
+                            </td>
+                        </tr>
+                    `;
+                    businessCount.textContent = "0";
+                    return;
+                }
+
+                businessCount.textContent = businessIds.length;
+
+                businessIds.forEach((id, index) => {
+
+                    const business = businesses[id] || {};
+                    const isConstruction = business.construction === true;
+
+                    const row = document.createElement("tr");
+
+                    let actionButtons = "";
+
+                    if (isSuperAdmin()) {
+                        actionButtons = `
+                            <button type="button"
+                                class="btn btn-sm btn-outline-primary me-1 edit-business"
+                                data-id="${escapeHtml(id)}">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button type="button"
+                                class="btn btn-sm btn-outline-danger delete-business"
+                                data-id="${escapeHtml(id)}">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        `;
+                    } else if (isBusinessAdmin() && hasBusinessAccess(id)) {
+                        actionButtons = `
+                            <button type="button"
+                                class="btn btn-sm btn-outline-primary edit-business"
+                                data-id="${escapeHtml(id)}">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                        `;
+                    }
+
+                    let projectsButton = "";
+                    if (isConstruction) {
+                        projectsButton = `
+                            <button type="button"
+                                class="btn btn-sm btn-outline-warning me-1 open-projects"
+                                data-id="${escapeHtml(id)}"
+                                data-name="${escapeHtml(business.name || "")}"
+                                title="Manage Projects">
+                                <i class="bi bi-cone-striped me-1"></i>
+                                Projects
+                            </button>
+                        `;
+                    }
+
+                    row.innerHTML = `
+                        <td>${index + 1}</td>
+                        <td><span class="badge bg-dark">${escapeHtml(id)}</span></td>
+                        <td class="fw-semibold">${escapeHtml(business.name || "")}</td>
+                        <td>
+                            ${
+                                isConstruction
+                                    ? `<span class="badge badge-construction">
+                                        <i class="bi bi-cone-striped me-1"></i>Construction
+                                       </span>`
+                                    : `<span class="badge bg-light text-muted">Standard</span>`
+                            }
+                        </td>
+                        <td class="text-end">
+                            ${projectsButton}
+                            ${actionButtons}
+                        </td>
+                    `;
+
+                    businessTableBody.appendChild(row);
+                });
+
+                document.querySelectorAll(".edit-business").forEach(button => {
+                    button.addEventListener("click", () => editBusiness(button.dataset.id));
+                });
+
+                document.querySelectorAll(".delete-business").forEach(button => {
+                    button.addEventListener("click", () => deleteBusiness(button.dataset.id));
+                });
+
+                document.querySelectorAll(".open-projects").forEach(button => {
+                    button.addEventListener("click", () => {
+                        openProjectsModal(
+                            button.dataset.id,
+                            button.dataset.name || ""
+                        );
+                    });
+                });
+
+            } catch (error) {
+                console.error("Load businesses error:", error);
+                businessTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="text-center text-danger py-5">
+                            Unable to load businesses.
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+
+        // ==================================================
+        // PROJECTS MODAL LOGIC
+        // ==================================================
+
+        async function openProjectsModal(businessId, businessName) {
+
+            activeBusinessId = businessId;
+            activeBusinessName = businessName;
+
+            projectsBusinessLabel.textContent =
+                `${businessId}${businessName ? " — " + businessName : ""}`;
+
+            closeProjectForm();
+            projectsTableBody.innerHTML = `
+                <tr>
+                    <td colspan="4" class="text-center text-muted py-4">
+                        Loading...
+                    </td>
+                </tr>
+            `;
+
+            projectsModal.show();
+
+            await loadProjects();
+        }
+
+
+        async function loadProjects() {
+
+            try {
+
+                const path = `sr_group/businesses/${activeBusinessId}/projects`;
+                console.log("[Projects] Reading from:", path);
+
+                const snap = await get(ref(db, path));
+
+                activeProjects = snap.exists() ? (snap.val() || {}) : {};
+
+                delete activeProjects._placeholder;
+
+                console.log("[Projects] Loaded:", activeProjects);
+
+                renderProjectsTable();
+
+            } catch (error) {
+                console.error("[Projects] Load error:", error);
+                console.error("[Projects] Code:", error.code);
+                console.error("[Projects] Message:", error.message);
+
+                projectsTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="4" class="text-center text-danger py-4">
+                            <div class="fw-semibold mb-1">Failed to load projects.</div>
+                            <small class="text-muted">${escapeHtml(error.message || "Unknown error")}</small>
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+
+        function renderProjectsTable() {
+
+            const projectIds = Object.keys(activeProjects).sort();
+
+            projectsCount.textContent = projectIds.length;
+
+            projectsTableBody.innerHTML = "";
+
+            if (projectIds.length === 0) {
+                projectsTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="4"
+                            class="text-center text-muted py-4">
+                            <i class="bi bi-inbox fs-3 d-block mb-2"></i>
+                            No projects yet. Click <strong>Add Project</strong> to create one.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            projectIds.forEach((pushId, index) => {
+
+                const project = activeProjects[pushId] || {};
+                const row = document.createElement("tr");
+
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>
+                        <span class="badge bg-dark">
+                            ${escapeHtml(project.projectId || "—")}
+                        </span>
+                    </td>
+                    <td class="fw-semibold">
+                        ${escapeHtml(project.projectName || "—")}
+                    </td>
+                    <td class="text-end">
+                        <button type="button"
+                            class="btn btn-sm btn-outline-danger delete-project"
+                            data-id="${escapeHtml(pushId)}"
+                            title="Delete">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                `;
+
+                projectsTableBody.appendChild(row);
+            });
+
+            projectsTableBody.querySelectorAll(".delete-project").forEach(btn => {
+                btn.addEventListener("click", () => deleteProject(btn.dataset.id));
+            });
+        }
+
+
+        // --------------------------------------------------
+        // Toggle Add Project Form
+        // --------------------------------------------------
+
+        toggleProjectFormBtn.addEventListener("click", async () => {
+
+            const isHidden = projectFormWrapper.classList.contains("d-none");
+
+            if (isHidden) {
+
+                const nextId = await getNextProjectNumber();
+                projectIdInput.value = nextId;
+                projectNameInput.value = "";
+
+                projectFormWrapper.classList.remove("d-none");
+                toggleProjectFormBtn.innerHTML = `
+                    <i class="bi bi-x-lg me-1"></i>
+                    Close
+                `;
+                projectNameInput.focus();
+            }
+            else {
+                closeProjectForm();
+            }
+        });
+
+
+        cancelProjectBtn.addEventListener("click", closeProjectForm);
+
+
+        function closeProjectForm() {
+            projectFormWrapper.classList.add("d-none");
+            projectForm.reset();
+            toggleProjectFormBtn.innerHTML = `
+                <i class="bi bi-plus-lg me-1"></i>
+                Add Project
+            `;
+        }
+
+
+        async function getNextProjectNumber() {
+
+            let highest = 0;
+
+            Object.values(activeProjects).forEach(project => {
+                const raw = project.projectId;
+                if (!raw) return;
+
+                const match = /(\d+)\s*$/.exec(String(raw));
+                if (match) {
+                    const n = parseInt(match[1], 10);
+                    if (n > highest) highest = n;
+                }
+            });
+
+            const next = highest + 1;
+            const padded = String(next).padStart(3, "0");
+
+            return `PRJ-${padded}`;
+        }
+
+
+        // --------------------------------------------------
+        // Save Project
+        // --------------------------------------------------
+
+        projectForm.addEventListener("submit", async (event) => {
+
+            event.preventDefault();
+
+            if (!activeBusinessId) return;
+
+            const projectId = projectIdInput.value.trim();
+            const projectName = projectNameInput.value.trim();
+
+            if (!projectName) {
+                showProjectsStatus("Please enter the project name.", "warning");
+                projectNameInput.focus();
+                return;
+            }
+
+            if (!projectId) {
+                showProjectsStatus("Project ID is missing.", "warning");
+                return;
+            }
+
+            saveProjectBtn.disabled = true;
+            saveProjectBtn.innerHTML = `
+                <span class="spinner-border spinner-border-sm me-1"></span>
+                Saving...
+            `;
+
+            try {
+
+                const newProjectRef = push(
+                    ref(db, `sr_group/businesses/${activeBusinessId}/projects`)
+                );
+
+                await set(newProjectRef, {
+                    projectId: projectId,
+                    projectName: projectName,
+                    createdAt: Date.now()
+                });
+
+                showProjectsStatus("Project added successfully.", "success");
+
+                closeProjectForm();
+
+                await loadProjects();
+
+            } catch (error) {
+                console.error("Save project error:", error);
+                showProjectsStatus(
+                    "Failed to save project: " + (error.message || "Unknown")
+                );
+            } finally {
+                saveProjectBtn.disabled = false;
+                saveProjectBtn.innerHTML = `
+                    <i class="bi bi-check-lg me-1"></i>
+                    Save Project
+                `;
+            }
+        });
+
+
+        // --------------------------------------------------
+        // Delete Project
+        // --------------------------------------------------
+
+        async function deleteProject(projectPushId) {
+
+            if (!activeBusinessId) return;
+
+            if (!confirm("Delete this project? This cannot be undone.")) return;
+
+            try {
+
+                await remove(
+                    ref(db, `sr_group/businesses/${activeBusinessId}/projects/${projectPushId}`)
+                );
+
+                showProjectsStatus("Project deleted.", "success");
+
+                await loadProjects();
+
+            } catch (error) {
+                console.error("Delete project error:", error);
+                showProjectsStatus("Failed to delete project.");
+            }
+        }
+
+
+        // --------------------------------------------------
+        // Reset projects modal state on close
+        // --------------------------------------------------
+
+        projectsModalEl.addEventListener("hidden.bs.modal", () => {
+            activeBusinessId = null;
+            activeBusinessName = "";
+            activeProjects = {};
+            closeProjectForm();
+        });
+
+
+        // ==================================================
+        // END PROJECTS MODAL LOGIC
+        // ==================================================
+
+
+        // --------------------------------------------------
+        // Add Business
+        // --------------------------------------------------
+
+        addBusinessBtn.addEventListener("click", async function () {
+
+            if (!isSuperAdmin()) {
+                showStatus("Only main-admin and dev-admin can add businesses.");
+                return;
+            }
+
+            try {
+                resetModal();
+                const nextId = await getNextBusinessId();
+                businessIdInput.value = nextId;
+                businessModal.show();
+            } catch (error) {
+                console.error(error);
+                showStatus("Unable to generate business ID.");
+            }
+        });
+
+
+        // --------------------------------------------------
+        // Save / Add / Update Business
+        // --------------------------------------------------
+
+        businessForm.addEventListener("submit", async function (event) {
+
+            event.preventDefault();
+
+            const constructionEnabled = constructionToggle.checked;
+
+
+            // ==========================================
+            // ADD MODE
+            // ==========================================
+
+            if (!businessForm.dataset.editing) {
+
+                if (!isSuperAdmin()) {
+                    showStatus("Only main-admin and dev-admin can add businesses.");
+                    return;
+                }
+
+                const businessId = businessIdInput.value.trim();
+                const businessName = businessNameInput.value.trim();
+
+                if (!businessName) {
+                    showStatus("Please enter the business name.");
+                    businessNameInput.focus();
+                    return;
+                }
+
+                saveBusinessBtn.disabled = true;
+                saveBusinessBtn.innerHTML = `
+                    <span class="spinner-border spinner-border-sm me-1"></span>
+                    Saving...
+                `;
+
+                try {
+
+                    const businessRef = ref(db, `sr_group/businesses/${businessId}`);
+                    const existing = await get(businessRef);
+
+                    if (existing.exists()) {
+                        showStatus(`${businessId} already exists.`);
+                        return;
+                    }
+
+                    // 1. Business node
+                    const businessNode = {
+                        name: businessName,
+                        construction: constructionEnabled,
+                        createdAt: Date.now()
+                    };
+
+                    if (constructionEnabled) {
+                        businessNode.projects = {
+                            _placeholder: true
+                        };
+                    }
+
+                    await set(businessRef, businessNode);
+
+                    // 2. Settings node
+                    const defaultSettings = buildDefaultSettings();
+
+                    // Add construction-only settings
+                    if (constructionEnabled) {
+                        Object.entries(CONSTRUCTION_SETTINGS).forEach(
+                            ([settingKey, settingDef]) => {
+                                defaultSettings[settingKey] =
+                                    buildSettingNode(settingDef);
+                            }
+                        );
+                    }
+
+                    await set(
+                        ref(db, `sr_group/settings/${businessId}`),
+                        defaultSettings
+                    );
+
+                    businessModal.hide();
+
+                    showStatus(
+                        `Business ${businessId} added` +
+                        (constructionEnabled
+                            ? " with Projects and Bill of Quantity."
+                            : "."),
+                        "success"
+                    );
+
+                    await loadBusinesses();
+
+                } catch (error) {
+                    console.error("Save business error:", error);
+                    showStatus("Failed to save business: " + (error.message || ""));
+                } finally {
+                    saveBusinessBtn.disabled = false;
+                    saveBusinessBtn.innerHTML = `
+                        <i class="bi bi-check-lg me-1"></i>
+                        Save Business
+                    `;
+                }
+
+                return;
+            }
+
+
+            // ==========================================
+            // EDIT MODE
+            // ==========================================
+
+            const businessId = businessForm.dataset.editing;
+
+            if (!hasBusinessAccess(businessId)) {
+                showStatus("You do not have access to this business.");
+                return;
+            }
+
+            const name = businessNameInput.value.trim();
+
+            if (!name) {
+                showStatus("Please enter the business name.");
+                return;
+            }
+
+            saveBusinessBtn.disabled = true;
+            saveBusinessBtn.innerHTML = `
+                <span class="spinner-border spinner-border-sm me-1"></span>
+                Updating...
+            `;
+
+            try {
+
+                const existingSnap = await get(
+                    ref(db, `sr_group/businesses/${businessId}`)
+                );
+
+                const existingData = existingSnap.exists()
+                    ? existingSnap.val()
+                    : {};
+
+                const wasConstruction = existingData.construction === true;
+
+                // Update name + construction flag
+                await set(
+                    ref(db, `sr_group/businesses/${businessId}/name`),
+                    name
+                );
+
+                await set(
+                    ref(db, `sr_group/businesses/${businessId}/construction`),
+                    constructionEnabled
+                );
+
+                const dataProjectsRef = ref(
+                    db,
+                    `sr_group/businesses/${businessId}/projects`
+                );
+
+                const boqSettingsRef = ref(
+                    db,
+                    `sr_group/settings/${businessId}/bill-of-quantity`
+                );
+
+                // Turned ON — add placeholder + Bill of Quantity schema
+                if (constructionEnabled && !wasConstruction) {
+
+                    const dataSnap = await get(dataProjectsRef);
+                    if (!dataSnap.exists()) {
+                        await set(dataProjectsRef, { _placeholder: true });
+                    }
+
+                    const boqSnap = await get(boqSettingsRef);
+                    if (!boqSnap.exists()) {
+                        await set(
+                            boqSettingsRef,
+                            buildSettingNode(
+                                CONSTRUCTION_SETTINGS["bill-of-quantity"]
+                            )
+                        );
+                    }
+                }
+
+                // Turned OFF — remove BOQ schema (projects data preserved)
+                if (!constructionEnabled && wasConstruction) {
+
+                    await remove(boqSettingsRef);
+                }
+
+                businessModal.hide();
+
+                showStatus(`${businessId} updated successfully.`, "success");
+
+                await loadBusinesses();
+
+            } catch (error) {
+                console.error("Update business error:", error);
+                showStatus("Failed to update business: " + (error.message || ""));
+            } finally {
+                saveBusinessBtn.disabled = false;
+                saveBusinessBtn.innerHTML = `
+                    <i class="bi bi-check-lg me-1"></i>
+                    Update Business
+                `;
+            }
+        });
+
+
+        // --------------------------------------------------
+        // Edit Business
+        // --------------------------------------------------
+
+        async function editBusiness(id) {
+
+            if (!hasBusinessAccess(id)) {
+                showStatus("You do not have access to this business.");
+                return;
+            }
+
+            try {
+
+                const businessRef = ref(db, `sr_group/businesses/${id}`);
+                const snapshot = await get(businessRef);
+
+                if (!snapshot.exists()) {
+                    showStatus("Business not found.");
+                    return;
+                }
+
+                const business = snapshot.val();
+
+                businessIdInput.value = id;
+                businessNameInput.value = business.name || "";
+                constructionToggle.checked = business.construction === true;
+
+                document.querySelector("#businessModal .modal-title").innerHTML = `
+                    <i class="bi bi-pencil me-2"></i>
+                    Edit Business
+                `;
+
+                saveBusinessBtn.innerHTML = `
+                    <i class="bi bi-check-lg me-1"></i>
+                    Update Business
+                `;
+
+                businessForm.dataset.editing = id;
+
+                businessModal.show();
+
+            } catch (error) {
+                console.error("Edit business error:", error);
+                showStatus("Unable to edit business.");
+            }
+        }
+
+
+        // --------------------------------------------------
+        // Delete Business
+        // --------------------------------------------------
+
+        async function deleteBusiness(id) {
+
+            if (!isSuperAdmin()) {
+                showStatus("Only main-admin and dev-admin can delete businesses.");
+                return;
+            }
+
+            let settingsCount = 0;
+            let projectCount = 0;
+
+            try {
+                const settingsSnap = await get(ref(db, `sr_group/settings/${id}`));
+                if (settingsSnap.exists()) {
+                    settingsCount = Object.keys(settingsSnap.val() || {}).length;
+                }
+
+                const projectsSnap = await get(ref(db, `sr_group/businesses/${id}/projects`));
+                if (projectsSnap.exists()) {
+                    const raw = projectsSnap.val() || {};
+                    projectCount = Object.keys(raw).filter(k => k !== "_placeholder").length;
+                }
+            } catch (err) {
+                console.warn("Could not check settings:", err);
+            }
+
+            const message =
+                `Delete business ${id}?\n\n` +
+                `• Business record will be removed\n` +
+                `• ${settingsCount} setting group(s) will be removed\n` +
+                `• ${projectCount} project(s) will be removed\n\n` +
+                `This cannot be undone.`;
+
+            if (!confirm(message)) return;
+
+            try {
+
+                await remove(ref(db, `sr_group/businesses/${id}`));
+                await remove(ref(db, `sr_group/settings/${id}`));
+
+                showStatus(`${id} deleted successfully.`, "success");
+
+                await loadBusinesses();
+
+            } catch (error) {
+                console.error("Delete business error:", error);
+                showStatus("Failed to delete business.");
+            }
+        }
+
+
+        // --------------------------------------------------
+        // Reset Business Modal
+        // --------------------------------------------------
+
+        function resetModal() {
+            businessForm.reset();
+            businessForm.removeAttribute("data-editing");
+            businessIdInput.value = "";
+            constructionToggle.checked = false;
+
+            document.querySelector("#businessModal .modal-title").innerHTML = `
+                <i class="bi bi-building me-2"></i>
+                Add Business
+            `;
+
+            saveBusinessBtn.innerHTML = `
+                <i class="bi bi-check-lg me-1"></i>
+                Save Business
+            `;
+        }
+
+        document
+            .getElementById("businessModal")
+            .addEventListener("hidden.bs.modal", resetModal);
+
+
+        // --------------------------------------------------
+        // Authentication
+        // --------------------------------------------------
+
+        onAuthStateChanged(auth, async function (user) {
+
+            if (!user) {
+                window.location.href = "login.html";
+                return;
+            }
+
+            currentUser = user;
+
+            try {
+
+                const userRef = ref(db, `sr_group/users/${user.uid}`);
+                const snapshot = await get(userRef);
+
+                if (!snapshot.exists()) {
+                    await signOut(auth);
+                    window.location.href = "login.html";
+                    return;
+                }
+
+                const userData = snapshot.val();
+
+                currentAdminRole = userData.role || "";
+                businessAccess = userData.businessAccess || {};
+
+                currentUserName.textContent =
+                    userData.name || user.email || "User";
+
+                currentUserRole.textContent = currentAdminRole;
+
+                if (!isSuperAdmin()) {
+                    addBusinessBtn.classList.add("d-none");
+                }
+
+                await loadBusinesses();
+
+            } catch (error) {
+                console.error("Authentication error:", error);
+                window.location.href = "login.html";
+            }
+        });
+
+    </script>
+
+</body>
+
+</html>

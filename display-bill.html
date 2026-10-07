@@ -1,0 +1,2309 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+    <title>Bills - SR Group</title>
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet">
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+        rel="stylesheet">
+
+    <link
+        rel="stylesheet"
+        href="sidebar/sidebar.css">
+
+    <style>
+        body { background: #f5f6f8; }
+
+        #sidebar-container {
+            position: fixed;
+            top: 0; left: 0;
+            width: 250px; height: 100vh;
+            z-index: 1000;
+        }
+
+        #main-content {
+            margin-left: 250px;
+            padding: 25px;
+        }
+
+        @media (max-width: 767px) {
+            #sidebar-container { width: 0; }
+            #main-content { margin-left: 0; padding: 15px; }
+        }
+
+        .section-title {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #6c757d;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .summary-card {
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 0.6rem 0.85rem;
+            background: #fff;
+            height: 100%;
+        }
+
+        .summary-card .summary-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            color: #6c757d;
+            font-weight: 600;
+        }
+
+        .summary-card .summary-value {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #0d6efd;
+            line-height: 1.1;
+        }
+
+        .summary-card .summary-value.text-success { color: #198754; }
+        .summary-card .summary-value.text-warning { color: #e0a800; }
+
+        .bills-table th {
+            white-space: nowrap;
+            font-size: 0.82rem;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .bills-table td {
+            font-size: 0.9rem;
+            vertical-align: middle;
+        }
+
+        .bills-table th.sortable {
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .bills-table th.sortable:hover { background: #f1f3f5; }
+
+        .bills-table th .sort-icon {
+            opacity: 0.4;
+            font-size: 0.75rem;
+            margin-left: 0.25rem;
+        }
+
+        .bills-table th.sorted-asc .sort-icon,
+        .bills-table th.sorted-desc .sort-icon {
+            opacity: 1;
+            color: #0d6efd;
+        }
+
+        .bill-type-badge {
+            font-size: 0.72rem;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 999px;
+            background: rgba(13, 110, 253, 0.1);
+            color: #0d6efd;
+            white-space: nowrap;
+        }
+
+        .business-badge {
+            font-size: 0.72rem;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 4px;
+            background: rgba(108, 117, 125, 0.12);
+            color: #495057;
+            white-space: nowrap;
+        }
+
+        .project-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 4px;
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffe69c;
+            white-space: nowrap;
+        }
+
+        .project-badge .id {
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        }
+
+        .profit-value {
+            color: #198754;
+            font-weight: 600;
+        }
+
+        .profit-value.zero { color: #adb5bd; font-weight: 500; }
+        .profit-value.negative { color: #dc3545; }
+
+        .filter-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #f1f5f9;
+            border: 1px solid #d7dde5;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            margin: 2px 4px 2px 0;
+        }
+
+        .filter-chip .remove-chip {
+            cursor: pointer;
+            color: #6c757d;
+            font-size: 0.85rem;
+            line-height: 1;
+        }
+
+        .filter-chip .remove-chip:hover { color: #dc3545; }
+
+        .filter-scroll {
+            max-height: 180px;
+            overflow-y: auto;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.375rem;
+            padding: 0.5rem;
+            background: #fff;
+        }
+
+        .filter-scroll .form-check { margin-bottom: 0.25rem; }
+        .filter-scroll .form-check-label { font-size: 0.85rem; }
+
+        .row-clickable { cursor: pointer; }
+
+        .row-clickable:hover > td {
+            background-color: rgba(13, 110, 253, 0.06) !important;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #6c757d;
+            padding: 40px 16px;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            opacity: 0.4;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .payment-card {
+            border-radius: 0.6rem;
+            padding: 0.85rem 1rem;
+            color: #fff;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .payment-card .payment-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 600;
+            opacity: 0.9;
+        }
+
+        .payment-card .payment-amount {
+            font-size: 1.3rem;
+            font-weight: 700;
+            line-height: 1.15;
+            margin-top: 0.15rem;
+        }
+
+        .payment-card .payment-sub {
+            font-size: 0.72rem;
+            opacity: 0.85;
+            margin-top: 0.2rem;
+        }
+
+        .payment-card .payment-icon {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            font-size: 1.4rem;
+            opacity: 0.35;
+        }
+
+        .payment-in  { background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%); }
+        .payment-out { background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); }
+        .payment-net { background: linear-gradient(135deg, #0f172a 0%, #334155 100%); }
+
+        .payment-type-pill {
+            font-size: 0.68rem;
+            font-weight: 600;
+            padding: 2px 7px;
+            border-radius: 999px;
+            margin-left: 6px;
+        }
+
+        .payment-type-pill.in {
+            background: rgba(25, 135, 84, 0.12);
+            color: #198754;
+        }
+
+        .payment-type-pill.out {
+            background: rgba(220, 53, 69, 0.12);
+            color: #dc3545;
+        }
+
+        /* Filter behaviour info */
+        .filter-hint {
+            font-size: 0.75rem;
+            color: #6c757d;
+            padding: 3px 6px;
+            background: #f1f5f9;
+            border-radius: 4px;
+            display: inline-block;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <div id="sidebar-container"></div>
+
+
+    <main id="main-content">
+
+        <div class="container-fluid p-0">
+
+            <!-- HEADER -->
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+                <div>
+                    <h3 class="fw-bold mb-1">
+                        <i class="bi bi-journal-text me-2"></i>
+                        All Bills
+                    </h3>
+                    <p class="text-muted mb-0">
+                        View and open saved bills across businesses and projects.
+                    </p>
+                </div>
+
+                <div class="d-flex gap-2 flex-wrap">
+                    <a href="generate-bill.html" class="btn btn-primary">
+                        <i class="bi bi-plus-lg me-1"></i>
+                        New Bill
+                    </a>
+                </div>
+            </div>
+
+
+            <!-- STATUS -->
+            <div id="statusMessage" class="alert d-none"></div>
+
+
+            <!-- SUMMARY ROW 1 -->
+            <div class="row g-3 mb-3">
+                <div class="col-6 col-md-4 col-lg">
+                    <div class="summary-card">
+                        <div class="summary-label">Bills shown</div>
+                        <div class="summary-value" id="summaryCount">0</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-4 col-lg">
+                    <div class="summary-card">
+                        <div class="summary-label">Total sales</div>
+                        <div class="summary-value text-success" id="summaryTotal">Rs 0.00</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-4 col-lg">
+                    <div class="summary-card">
+                        <div class="summary-label">Total profit</div>
+                        <div class="summary-value text-warning" id="summaryProfit">Rs 0.00</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-4 col-lg">
+                    <div class="summary-card">
+                        <div class="summary-label">Businesses</div>
+                        <div class="summary-value" id="summaryBusinesses">0</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-4 col-lg">
+                    <div class="summary-card">
+                        <div class="summary-label">Bill types</div>
+                        <div class="summary-value" id="summaryBillTypes">0</div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- SUMMARY ROW 2 -->
+            <div class="mb-4">
+                <div class="section-title">
+                    <i class="bi bi-wallet2 me-1"></i>
+                    Bill Type wise Payment — In vs Out
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div class="payment-card payment-in">
+                            <i class="bi bi-arrow-down-left-circle payment-icon"></i>
+                            <div class="payment-label">Payment In</div>
+                            <div class="payment-amount" id="paymentInAmount">Rs 0.00</div>
+                            <div class="payment-sub"><span id="paymentInCount">0</span> bill(s)</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="payment-card payment-out">
+                            <i class="bi bi-arrow-up-right-circle payment-icon"></i>
+                            <div class="payment-label">Payment Out</div>
+                            <div class="payment-amount" id="paymentOutAmount">Rs 0.00</div>
+                            <div class="payment-sub"><span id="paymentOutCount">0</span> bill(s)</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="payment-card payment-net">
+                            <i class="bi bi-cash-stack payment-icon"></i>
+                            <div class="payment-label">Net (In − Out)</div>
+                            <div class="payment-amount" id="paymentNetAmount">Rs 0.00</div>
+                            <div class="payment-sub">Based on selected filters</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- FILTERS -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body">
+
+                    <div class="row g-3">
+
+                        <!-- 1. Business filter -->
+                        <div class="col-md-6 col-lg-3">
+                            <div class="section-title">
+                                <i class="bi bi-building me-1"></i>
+                                Businesses
+                            </div>
+
+                            <div class="d-flex gap-2 mb-2">
+                                <button type="button"
+                                    class="btn btn-sm btn-outline-primary"
+                                    id="selectAllBusinessesBtn">
+                                    Select all
+                                </button>
+                                <button type="button"
+                                    class="btn btn-sm btn-outline-secondary"
+                                    id="clearBusinessesBtn">
+                                    Clear
+                                </button>
+                            </div>
+
+                            <div class="filter-scroll" id="businessFilterBox">
+                                <div class="text-muted small">Loading...</div>
+                            </div>
+                        </div>
+
+
+                        <!-- 2. Project filter -->
+                        <div class="col-md-6 col-lg-3">
+                            <div class="section-title">
+                                <i class="bi bi-cone-striped me-1"></i>
+                                Projects
+                            </div>
+
+                            <div class="d-flex gap-2 mb-2">
+                                <button type="button"
+                                    class="btn btn-sm btn-outline-primary"
+                                    id="selectAllProjectsBtn">
+                                    Select all
+                                </button>
+                                <button type="button"
+                                    class="btn btn-sm btn-outline-secondary"
+                                    id="clearProjectsBtn">
+                                    Clear
+                                </button>
+                            </div>
+
+                            <div class="filter-scroll" id="projectFilterBox">
+                                <div class="text-muted small">Loading...</div>
+                            </div>
+                        </div>
+
+
+                        <!-- 3. Bill Type filter -->
+                        <div class="col-md-6 col-lg-3">
+                            <div class="section-title">
+                                <i class="bi bi-tags me-1"></i>
+                                Bill Types
+                            </div>
+
+                            <div class="d-flex gap-2 mb-2">
+                                <button type="button"
+                                    class="btn btn-sm btn-outline-primary"
+                                    id="selectAllBillTypesBtn">
+                                    Select all
+                                </button>
+                                <button type="button"
+                                    class="btn btn-sm btn-outline-secondary"
+                                    id="clearBillTypesBtn">
+                                    Clear
+                                </button>
+                            </div>
+
+                            <div class="filter-scroll" id="billTypeFilterBox">
+                                <div class="text-muted small">Loading...</div>
+                            </div>
+                        </div>
+
+
+                        <!-- 4. Search + Date -->
+                        <div class="col-md-6 col-lg-3">
+                            <div class="section-title">
+                                <i class="bi bi-search me-1"></i>
+                                Search &amp; Date
+                            </div>
+
+                            <div class="input-group input-group-sm mb-2">
+                                <span class="input-group-text">
+                                    <i class="bi bi-search"></i>
+                                </span>
+                                <input type="text"
+                                    class="form-control"
+                                    id="searchInput"
+                                    placeholder="Invoice no, client name...">
+                                <button class="btn btn-outline-secondary"
+                                    type="button"
+                                    id="clearSearchBtn">
+                                    <i class="bi bi-x-lg"></i>
+                                </button>
+                            </div>
+
+                            <select id="dateRangeSelect"
+                                class="form-select form-select-sm mb-2">
+                                <option value="all">All time</option>
+                                <option value="today">Today</option>
+                                <option value="7d">Last 7 days</option>
+                                <option value="30d">Last 30 days</option>
+                                <option value="this-month">This month</option>
+                                <option value="this-year">This year</option>
+                            </select>
+
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <label class="form-label small text-muted mb-1"
+                                        for="dateFromInput">
+                                        From
+                                    </label>
+                                    <input type="date"
+                                        class="form-control form-control-sm"
+                                        id="dateFromInput">
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label small text-muted mb-1"
+                                        for="dateToInput">
+                                        To
+                                    </label>
+                                    <input type="date"
+                                        class="form-control form-control-sm"
+                                        id="dateToInput">
+                                </div>
+                                <div class="col-12 d-flex gap-2 mt-1">
+                                    <button type="button"
+                                        class="btn btn-sm btn-outline-primary"
+                                        id="applyDateRangeBtn">
+                                        Apply
+                                    </button>
+                                    <button type="button"
+                                        class="btn btn-sm btn-outline-secondary"
+                                        id="clearDateRangeBtn">
+                                        Clear
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+
+                    <!-- Active chips -->
+                    <div class="mt-3 d-none" id="chipsWrap">
+                        <div class="small text-muted mb-1">Active filters:</div>
+                        <div id="chipsContainer"></div>
+                    </div>
+
+                </div>
+            </div>
+
+
+            <!-- BILLS TABLE -->
+            <div class="card border-0 shadow-sm">
+
+                <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <div>
+                        <strong>
+                            <i class="bi bi-list-ul me-2"></i>
+                            Bills
+                        </strong>
+                        <div class="small text-muted">
+                            <span id="recordCount">0</span> of
+                            <span id="recordTotal">0</span> bill(s)
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-2">
+                        <button type="button"
+                            class="btn btn-sm btn-outline-secondary"
+                            id="refreshBtn">
+                            <i class="bi bi-arrow-clockwise me-1"></i>
+                            Refresh
+                        </button>
+
+                        <div class="d-flex align-items-center gap-1">
+                            <label class="small text-muted mb-0"
+                                for="pageSizeSelect">
+                                Show
+                            </label>
+                            <select id="pageSizeSelect"
+                                class="form-select form-select-sm"
+                                style="width: auto;">
+                                <option value="20" selected>20</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                            </select>
+                            <span class="small text-muted">/ page</span>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="table-responsive">
+                    <table class="table bills-table mb-0" id="billsTable">
+                        <thead class="table-light">
+                            <tr id="billsHead">
+                                <th>Loading...</th>
+                            </tr>
+                        </thead>
+                        <tbody id="billsBody">
+                            <tr>
+                                <td colspan="12"
+                                    class="text-center text-muted py-4">
+                                    Loading...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+
+                <div id="emptyState" class="empty-state d-none">
+                    <i class="bi bi-inbox"></i>
+                    <div>No bills found.</div>
+                </div>
+
+
+                <div class="card-footer bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <div class="small text-muted">
+                        Page <span id="pageLabel">1</span>
+                        of <span id="pageTotalLabel">1</span>
+                    </div>
+                    <nav>
+                        <ul class="pagination pagination-sm mb-0" id="pagination"></ul>
+                    </nav>
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script type="module" src="sidebar/sidebar.js"></script>
+
+
+    <script type="module">
+
+        import { auth, db } from "./firebase-config.js";
+
+        import {
+            onAuthStateChanged
+        } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+
+        import {
+            ref, get, remove
+        } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-database.js";
+
+
+        // =====================================================
+        // STATE
+        // =====================================================
+
+        let currentUser = null;
+        let currentUserData = null;
+        let currentRole = "";
+        let businessAccess = {};
+
+        let allBills = [];
+        let availableBusinesses = [];
+        let availableProjects = [];   // flat list of projects + "no project" entries
+        let availableBillTypes = [];
+
+        let billTypePaymentMap = {};
+
+        let selectedBusinessIds = new Set();
+        let selectedProjectKeys = new Set();
+        let selectedBillTypes = new Set();
+
+        let searchQuery = "";
+        let dateRange = "all";
+        let dateFrom = "";
+        let dateTo = "";
+
+        let sortState = { key: "createdAt", direction: "desc" };
+
+        let currentPage = 1;
+        let pageSize = 20;
+
+
+        // =====================================================
+        // ELEMENTS
+        // =====================================================
+
+        const statusMessage = document.getElementById("statusMessage");
+
+        const businessFilterBox = document.getElementById("businessFilterBox");
+        const projectFilterBox = document.getElementById("projectFilterBox");
+        const billTypeFilterBox = document.getElementById("billTypeFilterBox");
+        const searchInput = document.getElementById("searchInput");
+        const dateRangeSelect = document.getElementById("dateRangeSelect");
+
+        const dateFromInput = document.getElementById("dateFromInput");
+        const dateToInput = document.getElementById("dateToInput");
+
+        const chipsWrap = document.getElementById("chipsWrap");
+        const chipsContainer = document.getElementById("chipsContainer");
+
+        const billsHead = document.getElementById("billsHead");
+        const billsBody = document.getElementById("billsBody");
+        const billsTable = document.getElementById("billsTable");
+        const emptyState = document.getElementById("emptyState");
+
+        const paymentInAmount = document.getElementById("paymentInAmount");
+        const paymentOutAmount = document.getElementById("paymentOutAmount");
+        const paymentNetAmount = document.getElementById("paymentNetAmount");
+        const paymentInCount = document.getElementById("paymentInCount");
+        const paymentOutCount = document.getElementById("paymentOutCount");
+
+
+        // =====================================================
+        // HELPERS
+        // =====================================================
+
+        function showStatus(message, type = "danger") {
+            statusMessage.className = `alert alert-${type}`;
+            statusMessage.textContent = message;
+            statusMessage.classList.remove("d-none");
+
+            clearTimeout(showStatus._timer);
+            showStatus._timer = setTimeout(() => {
+                statusMessage.classList.add("d-none");
+            }, 4000);
+        }
+
+        function formatMoney(n) {
+            const v = Number(n) || 0;
+            return v.toFixed(2);
+        }
+
+        function formatMoneyLabel(n) {
+            const v = Number(n) || 0;
+
+            try {
+                return "Rs " + v.toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+            }
+            catch {
+                return "Rs " + v.toFixed(2);
+            }
+        }
+
+        function escapeHtml(value) {
+            return String(value ?? "")
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        function isSuperAdmin() {
+            return currentRole === "main-admin" ||
+                   currentRole === "dev-admin" ||
+                   currentRole === "owner";
+        }
+
+        function isBusinessAdmin() {
+            return currentRole === "business-admin";
+        }
+
+        function isProjectAdmin() {
+            return currentRole === "project-admin";
+        }
+
+        function getAssignedBusinessIds() {
+            const raw = businessAccess;
+            if (!raw) return [];
+
+            if (Array.isArray(raw)) return raw.map(v => String(v).trim()).filter(Boolean);
+
+            if (typeof raw === "object") {
+                return Object.entries(raw)
+                    .filter(([, value]) => {
+                        if (value === true) return true;
+                        if (value && typeof value === "object") return true;
+                        if (typeof value === "string" && value) return true;
+                        return false;
+                    })
+                    .map(([key]) => String(key).trim())
+                    .filter(Boolean);
+            }
+
+            if (typeof raw === "string") {
+                return raw.split(",").map(v => v.trim()).filter(Boolean);
+            }
+
+            return [];
+        }
+
+        function getAssignedProjectBusinessIds(userData) {
+            const raw = userData?.projectAccess;
+            if (!raw || typeof raw !== "object") return [];
+            return Object.keys(raw).filter(k => raw[k] && typeof raw[k] === "object");
+        }
+
+
+        // =====================================================
+        // PROJECT KEY HELPERS
+        // =====================================================
+
+        // Project key format: "SR001::-NxyzABC123"  (real project)
+        //                     "SR001::__none__"       (no project)
+        function projectKey(businessId, projectPushId) {
+            return `${businessId}::${projectPushId || "__none__"}`;
+        }
+
+
+        // =====================================================
+        // AUTH
+        // =====================================================
+
+        onAuthStateChanged(auth, async user => {
+            if (!user) { location.href = "login.html"; return; }
+
+            currentUser = user;
+
+            const snapshot = await get(ref(db, `sr_group/users/${user.uid}`));
+
+            if (!snapshot.exists()) { location.href = "login.html"; return; }
+
+            const userData = snapshot.val();
+            currentUserData = userData;
+            currentRole = userData.role || "";
+            businessAccess = userData.businessAccess || {};
+
+            await bootstrap();
+        });
+
+
+        async function bootstrap() {
+            renderTableHeader();
+
+            await loadBillTypePaymentMap();
+            await loadAvailableBusinesses();
+
+            // IMPORTANT: load bills first, then projects — so we can
+            // include "no project" keys and any projects that only have
+            // bills but no project record.
+            await loadAllBills();
+            await loadAvailableProjects();
+
+            buildFilters();
+            applyFiltersAndRender();
+        }
+
+
+        // =====================================================
+        // BILL TYPE → PAYMENT TYPE MAP
+        // =====================================================
+
+        async function loadBillTypePaymentMap() {
+            billTypePaymentMap = {};
+
+            try {
+                const snap = await get(ref(db, "sr_group/settings/bill-setting"));
+                if (!snap.exists()) return;
+
+                const data = snap.val() || {};
+
+                Object.values(data).forEach(item => {
+                    const name = String(item?.name || "").trim();
+                    const pay = String(item?.paymentType || "").trim().toLowerCase();
+
+                    if (!name) return;
+                    if (pay === "in" || pay === "out") {
+                        billTypePaymentMap[name] = pay;
+                    }
+                });
+            }
+            catch (err) {
+                console.warn("Could not load bill type payment map:", err);
+            }
+        }
+
+
+        // =====================================================
+        // BUSINESSES
+        // =====================================================
+
+        async function loadAvailableBusinesses() {
+            availableBusinesses = [];
+
+            try {
+                if (isSuperAdmin()) {
+
+                    const snap = await get(ref(db, "sr_group/businesses"));
+
+                    if (snap.exists()) {
+                        const all = snap.val() || {};
+                        availableBusinesses = Object.entries(all)
+                            .map(([id, data]) => ({
+                                id,
+                                name: data.name || id,
+                                construction: data.construction === true
+                            }))
+                            .sort((a, b) => a.id.localeCompare(b.id));
+                    }
+
+                }
+                else if (isBusinessAdmin()) {
+
+                    const assignedIds = getAssignedBusinessIds();
+
+                    for (const id of assignedIds) {
+                        try {
+                            const snap = await get(ref(db, `sr_group/businesses/${id}`));
+
+                            if (snap.exists()) {
+                                const d = snap.val() || {};
+                                availableBusinesses.push({
+                                    id,
+                                    name: d.name || id,
+                                    construction: d.construction === true
+                                });
+                            }
+                            else {
+                                availableBusinesses.push({ id, name: id, construction: false });
+                            }
+                        }
+                        catch {
+                            availableBusinesses.push({ id, name: id, construction: false });
+                        }
+                    }
+
+                    availableBusinesses.sort((a, b) => a.id.localeCompare(b.id));
+
+                }
+                else if (isProjectAdmin()) {
+
+                    const assignedIds = getAssignedProjectBusinessIds(currentUserData);
+
+                    for (const id of assignedIds) {
+                        try {
+                            const snap = await get(ref(db, `sr_group/businesses/${id}`));
+
+                            if (snap.exists()) {
+                                const d = snap.val() || {};
+                                availableBusinesses.push({
+                                    id,
+                                    name: d.name || id,
+                                    construction: d.construction === true
+                                });
+                            }
+                            else {
+                                availableBusinesses.push({ id, name: id, construction: false });
+                            }
+                        }
+                        catch {
+                            availableBusinesses.push({ id, name: id, construction: false });
+                        }
+                    }
+
+                    availableBusinesses.sort((a, b) => a.id.localeCompare(b.id));
+
+                }
+                else {
+                    showStatus("You do not have permission to view bills.");
+                }
+            }
+            catch (err) {
+                console.error("Load businesses error:", err);
+                showStatus("Failed to load businesses.");
+            }
+        }
+
+
+        // =====================================================
+        // ALL BILLS  (top-level + project-level)
+        // =====================================================
+
+        async function loadAllBills() {
+            allBills = [];
+
+            const perBusiness = await Promise.all(
+                availableBusinesses.map(async biz => {
+                    const bizId = biz.id;
+                    const bizName = biz.name;
+                    const local = [];
+
+                    // ---- 1. Top-level bills ----
+                    try {
+                        const snap = await get(
+                            ref(db, `sr_group/businesses/${bizId}/bills`)
+                        );
+
+                        if (snap.exists()) {
+                            const bills = snap.val() || {};
+
+                            Object.entries(bills).forEach(([billId, b]) => {
+                                local.push(makeBillRecord(
+                                    billId, bizId, bizName, b, null
+                                ));
+                            });
+                        }
+                    }
+                    catch (err) {
+                        console.warn(`Failed to load top-level bills for ${bizId}:`, err);
+                    }
+
+                    // ---- 2. Project-level bills (construction only) ----
+                    if (biz.construction) {
+
+                        let projectPushIds = [];
+
+                        if (isProjectAdmin()) {
+                            const assigned =
+                                currentUserData?.projectAccess?.[bizId] || {};
+                            projectPushIds = Object.keys(assigned);
+                        }
+                        else {
+                            try {
+                                const pSnap = await get(
+                                    ref(db, `sr_group/businesses/${bizId}/projects`)
+                                );
+
+                                if (pSnap.exists()) {
+                                    const projects = pSnap.val() || {};
+                                    projectPushIds = Object.keys(projects)
+                                        .filter(id => id !== "_placeholder");
+                                }
+                            }
+                            catch (err) {
+                                console.warn(`Failed to load projects for ${bizId}:`, err);
+                            }
+                        }
+
+                        await Promise.all(
+                            projectPushIds.map(async projectPushId => {
+
+                                let projectMeta = { projectId: "", projectName: "" };
+
+                                try {
+                                    const ps = await get(
+                                        ref(db, `sr_group/businesses/${bizId}/projects/${projectPushId}`)
+                                    );
+
+                                    if (ps.exists()) {
+                                        const pd = ps.val() || {};
+                                        projectMeta = {
+                                            projectId: pd.projectId || "",
+                                            projectName: pd.projectName || pd.name || ""
+                                        };
+                                    }
+                                }
+                                catch (err) {
+                                    console.warn(`Project meta read failed ${bizId}/${projectPushId}:`, err);
+                                }
+
+                                try {
+                                    const bSnap = await get(
+                                        ref(db, `sr_group/businesses/${bizId}/projects/${projectPushId}/bills`)
+                                    );
+
+                                    if (!bSnap.exists()) return;
+
+                                    const bills = bSnap.val() || {};
+
+                                    Object.entries(bills).forEach(([billId, b]) => {
+                                        local.push(makeBillRecord(
+                                            billId, bizId, bizName, b,
+                                            {
+                                                pushId: projectPushId,
+                                                projectId: projectMeta.projectId,
+                                                projectName: projectMeta.projectName
+                                            }
+                                        ));
+                                    });
+                                }
+                                catch (err) {
+                                    console.warn(`Bills read failed ${bizId}/${projectPushId}:`, err);
+                                }
+                            })
+                        );
+                    }
+
+                    return local;
+                })
+            );
+
+            allBills = perBusiness.flat();
+        }
+
+
+        function makeBillRecord(billId, bizId, bizName, b, projectRef) {
+
+            const projectFromBill =
+                b?.project && typeof b.project === "object" ? b.project : null;
+
+            const effectiveProjectPushId =
+                (projectRef && projectRef.pushId) ||
+                (projectFromBill && projectFromBill.id) ||
+                "";
+
+            const effectiveProjectId =
+                (projectRef && projectRef.projectId) ||
+                (projectFromBill && projectFromBill.projectId) ||
+                "";
+
+            const effectiveProjectName =
+                (projectRef && projectRef.projectName) ||
+                (projectFromBill && projectFromBill.name) ||
+                "";
+
+            return {
+                id: billId,
+                businessId: bizId,
+                businessName: bizName,
+
+                projectPushId: effectiveProjectPushId,
+                projectId: effectiveProjectId,
+                projectName: effectiveProjectName,
+
+                // Always compute a projectKey so filtering works whether
+                // or not the bill has a project reference.
+                projectKey: projectKey(bizId, effectiveProjectPushId),
+
+                billType: b.billType || "",
+                invoicenumber: b.invoicenumber || "",
+                invoicedate: b.invoicedate || "",
+                createdAt: Number(b.createdAt) || 0,
+                grandTotal: Number(b?.totals?.grandTotal) || 0,
+                subtotal: Number(b?.totals?.subtotal) || 0,
+                discount: Number(b?.totals?.discount) || 0,
+                taxable: Number(b?.totals?.taxable) || 0,
+                profit: Number(b?.totals?.profit) || 0,
+
+                clientName:
+                    b?.dynamicFields?.["Bill to Information"]?.["Client Name"] || "",
+                itemCount: Array.isArray(b.items) ? b.items.length : 0,
+                gstId: b.gstId || ""
+            };
+        }
+
+
+        // =====================================================
+        // AVAILABLE PROJECTS
+        //
+        // We build this from the bills we already loaded, so it
+        // always matches what the user can actually see. This
+        // avoids gaps when a project has bills but no project record.
+        // =====================================================
+
+        async function loadAvailableProjects() {
+
+            const byKey = new Map();
+
+            // A) From the bills we already loaded
+            allBills.forEach(b => {
+                if (byKey.has(b.projectKey)) return;
+
+                const bizName = b.businessName || b.businessId;
+
+                let label;
+                let type;
+
+                if (b.projectPushId) {
+                    type = "project";
+                    const pid = b.projectId || "—";
+                    const pname = b.projectName || "";
+                    label = `${bizName} • ${pid}${pname ? " — " + pname : ""}`;
+                }
+                else {
+                    type = "none";
+                    label = `${bizName} • (No project)`;
+                }
+
+                byKey.set(b.projectKey, {
+                    key: b.projectKey,
+                    businessId: b.businessId,
+                    projectPushId: b.projectPushId,
+                    projectId: b.projectId,
+                    projectName: b.projectName,
+                    label,
+                    type
+                });
+            });
+
+            // B) Also add projects that exist but have no bills yet
+            //    so the filter doesn't miss them if the user is filtering.
+            //    For project-admin, only include their assigned projects.
+
+            const constructionBiz = availableBusinesses.filter(b => b.construction);
+
+            await Promise.all(
+                constructionBiz.map(async biz => {
+
+                    let raw = {};
+
+                    try {
+                        const snap = await get(
+                            ref(db, `sr_group/businesses/${biz.id}/projects`)
+                        );
+
+                        if (snap.exists()) raw = snap.val() || {};
+                    }
+                    catch {
+                        return;
+                    }
+
+                    Object.entries(raw).forEach(([pushId, p]) => {
+                        if (pushId === "_placeholder") return;
+                        if (!p || typeof p !== "object") return;
+
+                        if (isProjectAdmin()) {
+                            const assigned =
+                                currentUserData?.projectAccess?.[biz.id] || {};
+                            if (!assigned[pushId]) return;
+                        }
+
+                        const key = projectKey(biz.id, pushId);
+
+                        if (byKey.has(key)) return;
+
+                        const pid = p.projectId || "—";
+                        const pname = p.projectName || p.name || "";
+
+                        byKey.set(key, {
+                            key,
+                            businessId: biz.id,
+                            projectPushId: pushId,
+                            projectId: pid,
+                            projectName: pname,
+                            label: `${biz.name || biz.id} • ${pid}${pname ? " — " + pname : ""}`,
+                            type: "project"
+                        });
+                    });
+                })
+            );
+
+            availableProjects = Array.from(byKey.values())
+                .sort((a, b) => {
+                    // Sort: business, then project id
+                    if (a.businessId !== b.businessId) {
+                        return a.businessId.localeCompare(b.businessId);
+                    }
+                    if (a.type !== b.type) {
+                        // "none" entries last within a business
+                        return a.type === "none" ? 1 : -1;
+                    }
+                    return a.label.localeCompare(b.label);
+                });
+        }
+
+
+        // =====================================================
+        // BUILD FILTERS
+        // =====================================================
+
+        function buildFilters() {
+
+            // Bill types
+            const typesSet = new Set();
+            allBills.forEach(b => {
+                const t = String(b.billType || "").trim();
+                if (t) typesSet.add(t);
+            });
+            availableBillTypes = Array.from(typesSet).sort();
+
+            // Default: all businesses selected
+            selectedBusinessIds = new Set(
+                availableBusinesses.map(b => b.id)
+            );
+
+            // Default: all projects selected (checked)
+            selectedProjectKeys = new Set(
+                availableProjects.map(p => p.key)
+            );
+
+            // Default: no bill type filter
+            selectedBillTypes = new Set();
+
+            renderBusinessFilterBox();
+            renderProjectFilterBox();
+            renderBillTypeFilterBox();
+        }
+
+
+        // =====================================================
+        // BUSINESS FILTER BOX
+        // =====================================================
+
+        function renderBusinessFilterBox() {
+            businessFilterBox.innerHTML = "";
+
+            if (!availableBusinesses.length) {
+                businessFilterBox.innerHTML = `
+                    <div class="text-muted small">No businesses available.</div>
+                `;
+                return;
+            }
+
+            availableBusinesses.forEach(biz => {
+                const id = `bf_${biz.id}`;
+
+                const wrap = document.createElement("div");
+                wrap.className = "form-check";
+
+                const badge = biz.construction
+                    ? ` <span class="badge" style="background:#fff3cd;color:#856404;border:1px solid #ffe69c;">
+                            <i class="bi bi-cone-striped"></i>
+                        </span>`
+                    : "";
+
+                wrap.innerHTML = `
+                    <input class="form-check-input" type="checkbox" id="${id}"
+                        ${selectedBusinessIds.has(biz.id) ? "checked" : ""}>
+                    <label class="form-check-label" for="${id}">
+                        ${escapeHtml(biz.name)}
+                        <span class="text-muted small">(${escapeHtml(biz.id)})</span>
+                        ${badge}
+                    </label>
+                `;
+
+                const input = wrap.querySelector("input");
+
+                input.addEventListener("change", () => {
+                    if (input.checked) selectedBusinessIds.add(biz.id);
+                    else selectedBusinessIds.delete(biz.id);
+
+                    // Whenever businesses change, ensure project list
+                    // stays consistent — reselect all projects for
+                    // currently-selected businesses, deselect others.
+                    rebuildProjectSelectionAfterBusinessChange();
+
+                    renderProjectFilterBox();
+                    updateChips();
+                    currentPage = 1;
+                    applyFiltersAndRender();
+                });
+
+                businessFilterBox.appendChild(wrap);
+            });
+        }
+
+
+        function rebuildProjectSelectionAfterBusinessChange() {
+
+            // Reset the project filter to only include projects whose
+            // business is still selected.
+            const newKeys = new Set();
+
+            availableProjects.forEach(p => {
+                if (selectedBusinessIds.has(p.businessId)) {
+                    newKeys.add(p.key);
+                }
+            });
+
+            selectedProjectKeys = newKeys;
+        }
+
+
+        // =====================================================
+        // PROJECT FILTER BOX
+        // =====================================================
+
+        function renderProjectFilterBox() {
+            projectFilterBox.innerHTML = "";
+
+            // Only show projects whose business is currently selected
+            const visible = availableProjects.filter(p =>
+                selectedBusinessIds.has(p.businessId)
+            );
+
+            if (!visible.length) {
+                projectFilterBox.innerHTML = `
+                    <div class="text-muted small">No projects for selected businesses.</div>
+                `;
+                return;
+            }
+
+            visible.forEach((item, idx) => {
+                const id = `pf_${idx}`;
+
+                const wrap = document.createElement("div");
+                wrap.className = "form-check";
+
+                const icon = item.type === "project"
+                    ? `<i class="bi bi-cone-striped ms-1 text-warning"></i>`
+                    : "";
+
+                wrap.innerHTML = `
+                    <input class="form-check-input" type="checkbox" id="${id}"
+                        ${selectedProjectKeys.has(item.key) ? "checked" : ""}>
+                    <label class="form-check-label" for="${id}">
+                        ${escapeHtml(item.label)}
+                        ${icon}
+                    </label>
+                `;
+
+                const input = wrap.querySelector("input");
+
+                input.addEventListener("change", () => {
+                    if (input.checked) selectedProjectKeys.add(item.key);
+                    else selectedProjectKeys.delete(item.key);
+
+                    updateChips();
+                    currentPage = 1;
+                    applyFiltersAndRender();
+                });
+
+                projectFilterBox.appendChild(wrap);
+            });
+        }
+
+
+        // =====================================================
+        // BILL TYPE FILTER BOX
+        // =====================================================
+
+        function renderBillTypeFilterBox() {
+            billTypeFilterBox.innerHTML = "";
+
+            if (!availableBillTypes.length) {
+                billTypeFilterBox.innerHTML = `
+                    <div class="text-muted small">No bill types found.</div>
+                `;
+                return;
+            }
+
+            availableBillTypes.forEach((type, idx) => {
+                const id = `btf_${idx}`;
+
+                const pay = billTypePaymentMap[type] || "";
+
+                const payPill = pay
+                    ? `<span class="payment-type-pill ${pay}">
+                            ${pay === "in" ? "IN" : "OUT"}
+                       </span>`
+                    : "";
+
+                const wrap = document.createElement("div");
+                wrap.className = "form-check";
+
+                wrap.innerHTML = `
+                    <input class="form-check-input" type="checkbox" id="${id}"
+                        ${selectedBillTypes.has(type) ? "checked" : ""}>
+                    <label class="form-check-label" for="${id}">
+                        ${escapeHtml(type)}
+                        ${payPill}
+                    </label>
+                `;
+
+                const input = wrap.querySelector("input");
+
+                input.addEventListener("change", () => {
+                    if (input.checked) selectedBillTypes.add(type);
+                    else selectedBillTypes.delete(type);
+
+                    updateChips();
+                    currentPage = 1;
+                    applyFiltersAndRender();
+                });
+
+                billTypeFilterBox.appendChild(wrap);
+            });
+        }
+
+
+        // =====================================================
+        // FILTER BUTTONS
+        // =====================================================
+
+        document.getElementById("selectAllBusinessesBtn").addEventListener("click", () => {
+            selectedBusinessIds = new Set(availableBusinesses.map(b => b.id));
+            selectedProjectKeys = new Set(availableProjects.map(p => p.key));
+            renderBusinessFilterBox();
+            renderProjectFilterBox();
+            updateChips();
+            currentPage = 1;
+            applyFiltersAndRender();
+        });
+
+        document.getElementById("clearBusinessesBtn").addEventListener("click", () => {
+            selectedBusinessIds = new Set();
+            selectedProjectKeys = new Set();
+            renderBusinessFilterBox();
+            renderProjectFilterBox();
+            updateChips();
+            currentPage = 1;
+            applyFiltersAndRender();
+        });
+
+        document.getElementById("selectAllProjectsBtn").addEventListener("click", () => {
+            const visible = availableProjects.filter(p =>
+                selectedBusinessIds.has(p.businessId)
+            );
+            selectedProjectKeys = new Set(visible.map(p => p.key));
+            renderProjectFilterBox();
+            updateChips();
+            currentPage = 1;
+            applyFiltersAndRender();
+        });
+
+        document.getElementById("clearProjectsBtn").addEventListener("click", () => {
+            selectedProjectKeys = new Set();
+            renderProjectFilterBox();
+            updateChips();
+            currentPage = 1;
+            applyFiltersAndRender();
+        });
+
+        document.getElementById("selectAllBillTypesBtn").addEventListener("click", () => {
+            selectedBillTypes = new Set(availableBillTypes);
+            renderBillTypeFilterBox();
+            updateChips();
+            currentPage = 1;
+            applyFiltersAndRender();
+        });
+
+        document.getElementById("clearBillTypesBtn").addEventListener("click", () => {
+            selectedBillTypes = new Set();
+            renderBillTypeFilterBox();
+            updateChips();
+            currentPage = 1;
+            applyFiltersAndRender();
+        });
+
+
+        // =====================================================
+        // SEARCH + DATE
+        // =====================================================
+
+        searchInput.addEventListener("input", () => {
+            searchQuery = searchInput.value;
+            currentPage = 1;
+            applyFiltersAndRender();
+        });
+
+        document.getElementById("clearSearchBtn").addEventListener("click", () => {
+            searchInput.value = "";
+            searchQuery = "";
+            currentPage = 1;
+            applyFiltersAndRender();
+            updateChips();
+        });
+
+        dateRangeSelect.addEventListener("change", () => {
+            dateRange = dateRangeSelect.value;
+
+            if (dateRange !== "custom") {
+                dateFrom = "";
+                dateTo = "";
+                dateFromInput.value = "";
+                dateToInput.value = "";
+            }
+
+            currentPage = 1;
+            applyFiltersAndRender();
+            updateChips();
+        });
+
+        document.getElementById("applyDateRangeBtn").addEventListener("click", () => {
+            dateFrom = dateFromInput.value || "";
+            dateTo = dateToInput.value || "";
+
+            if (!dateFrom && !dateTo) {
+                showStatus("Please pick at least one date.", "warning");
+                return;
+            }
+
+            dateRange = "custom";
+            dateRangeSelect.value = "custom";
+
+            currentPage = 1;
+            applyFiltersAndRender();
+            updateChips();
+        });
+
+        document.getElementById("clearDateRangeBtn").addEventListener("click", () => {
+            dateFrom = "";
+            dateTo = "";
+            dateFromInput.value = "";
+            dateToInput.value = "";
+
+            dateRange = "all";
+            dateRangeSelect.value = "all";
+
+            currentPage = 1;
+            applyFiltersAndRender();
+            updateChips();
+        });
+
+
+        // =====================================================
+        // CHIPS
+        // =====================================================
+
+        function updateChips() {
+            chipsContainer.innerHTML = "";
+
+            const hasBusinessesFilter =
+                selectedBusinessIds.size !== availableBusinesses.length;
+
+            const totalVisibleProjects = availableProjects.filter(p =>
+                selectedBusinessIds.has(p.businessId)
+            ).length;
+
+            const hasProjectsFilter =
+                selectedProjectKeys.size !== totalVisibleProjects;
+
+            const hasTypesFilter = selectedBillTypes.size > 0;
+            const hasSearch = searchQuery.trim() !== "";
+            const hasDatePreset = dateRange !== "all" && dateRange !== "custom";
+            const hasCustomDate = dateFrom !== "" || dateTo !== "";
+
+            if (
+                !hasBusinessesFilter &&
+                !hasProjectsFilter &&
+                !hasTypesFilter &&
+                !hasSearch &&
+                !hasDatePreset &&
+                !hasCustomDate
+            ) {
+                chipsWrap.classList.add("d-none");
+                return;
+            }
+
+            chipsWrap.classList.remove("d-none");
+
+            if (hasBusinessesFilter) {
+                const names = Array.from(selectedBusinessIds)
+                    .map(id => availableBusinesses.find(b => b.id === id)?.name || id);
+
+                const text = names.length === 0 ? "None" : names.join(", ");
+
+                chipsContainer.appendChild(
+                    makeChip(`Businesses: ${text}`, () => {
+                        selectedBusinessIds = new Set(availableBusinesses.map(b => b.id));
+                        selectedProjectKeys = new Set(availableProjects.map(p => p.key));
+                        renderBusinessFilterBox();
+                        renderProjectFilterBox();
+                        updateChips();
+                        currentPage = 1;
+                        applyFiltersAndRender();
+                    })
+                );
+            }
+
+            if (hasProjectsFilter) {
+                const count = selectedProjectKeys.size;
+                const total = totalVisibleProjects;
+
+                chipsContainer.appendChild(
+                    makeChip(`Projects: ${count} of ${total}`, () => {
+                        const visible = availableProjects.filter(p =>
+                            selectedBusinessIds.has(p.businessId)
+                        );
+                        selectedProjectKeys = new Set(visible.map(p => p.key));
+                        renderProjectFilterBox();
+                        updateChips();
+                        currentPage = 1;
+                        applyFiltersAndRender();
+                    })
+                );
+            }
+
+            if (hasTypesFilter) {
+                chipsContainer.appendChild(
+                    makeChip(
+                        `Types: ${Array.from(selectedBillTypes).join(", ")}`,
+                        () => {
+                            selectedBillTypes = new Set();
+                            renderBillTypeFilterBox();
+                            updateChips();
+                            currentPage = 1;
+                            applyFiltersAndRender();
+                        }
+                    )
+                );
+            }
+
+            if (hasSearch) {
+                chipsContainer.appendChild(
+                    makeChip(`Search: "${searchQuery}"`, () => {
+                        searchInput.value = "";
+                        searchQuery = "";
+                        currentPage = 1;
+                        applyFiltersAndRender();
+                        updateChips();
+                    })
+                );
+            }
+
+            if (hasDatePreset) {
+                chipsContainer.appendChild(
+                    makeChip(`Date: ${dateRangeSelect.selectedOptions[0].text}`, () => {
+                        dateRangeSelect.value = "all";
+                        dateRange = "all";
+                        currentPage = 1;
+                        applyFiltersAndRender();
+                        updateChips();
+                    })
+                );
+            }
+
+            if (hasCustomDate) {
+                const fromTxt = dateFrom || "…";
+                const toTxt = dateTo || "…";
+
+                chipsContainer.appendChild(
+                    makeChip(`Date: ${fromTxt} → ${toTxt}`, () => {
+                        dateFrom = "";
+                        dateTo = "";
+                        dateFromInput.value = "";
+                        dateToInput.value = "";
+
+                        dateRange = "all";
+                        dateRangeSelect.value = "all";
+
+                        currentPage = 1;
+                        applyFiltersAndRender();
+                        updateChips();
+                    })
+                );
+            }
+        }
+
+        function makeChip(text, onRemove) {
+            const el = document.createElement("span");
+            el.className = "filter-chip";
+
+            el.innerHTML = `
+                <span>${escapeHtml(text)}</span>
+                <span class="remove-chip" title="Remove">
+                    <i class="bi bi-x-circle-fill"></i>
+                </span>
+            `;
+
+            el.querySelector(".remove-chip").addEventListener("click", onRemove);
+
+            return el;
+        }
+
+
+        // =====================================================
+        // FILTER
+        // =====================================================
+
+        function getFilteredBills() {
+
+            const q = searchQuery.trim().toLowerCase();
+            const now = new Date();
+
+            return allBills.filter(b => {
+
+                // Business
+                if (!selectedBusinessIds.has(b.businessId)) return false;
+
+                // Project — must be explicitly in the set
+                if (!selectedProjectKeys.has(b.projectKey)) return false;
+
+                // Bill type
+                if (
+                    selectedBillTypes.size > 0 &&
+                    !selectedBillTypes.has(b.billType)
+                ) return false;
+
+                // Search
+                if (q) {
+                    const hay = [
+                        b.invoicenumber,
+                        b.billType,
+                        b.businessName,
+                        b.businessId,
+                        b.clientName,
+                        b.projectId,
+                        b.projectName
+                    ]
+                        .map(v => String(v || "").toLowerCase())
+                        .join(" ");
+
+                    if (!hay.includes(q)) return false;
+                }
+
+                // Date
+                if (dateFrom || dateTo) {
+                    const iso = String(b.invoicedate || "");
+                    if (!iso) return false;
+                    if (dateFrom && iso < dateFrom) return false;
+                    if (dateTo && iso > dateTo) return false;
+                }
+                else if (dateRange !== "all") {
+                    const iso = String(b.invoicedate || "");
+                    const bDate = iso ? new Date(iso + "T00:00:00") : null;
+
+                    if (!bDate || isNaN(bDate.getTime())) return false;
+
+                    const diffDays =
+                        (now.getTime() - bDate.getTime()) / (1000 * 60 * 60 * 24);
+
+                    if (dateRange === "today") {
+                        const today = new Date();
+                        if (
+                            bDate.getFullYear() !== today.getFullYear() ||
+                            bDate.getMonth() !== today.getMonth() ||
+                            bDate.getDate() !== today.getDate()
+                        ) return false;
+                    }
+                    else if (dateRange === "7d" && diffDays > 7) return false;
+                    else if (dateRange === "30d" && diffDays > 30) return false;
+                    else if (dateRange === "this-month") {
+                        if (
+                            bDate.getFullYear() !== now.getFullYear() ||
+                            bDate.getMonth() !== now.getMonth()
+                        ) return false;
+                    }
+                    else if (dateRange === "this-year") {
+                        if (bDate.getFullYear() !== now.getFullYear()) return false;
+                    }
+                }
+
+                return true;
+            });
+        }
+
+
+        // =====================================================
+        // SORT
+        // =====================================================
+
+        function sortBills(arr) {
+            if (!sortState.key || !sortState.direction) return arr;
+
+            const dir = sortState.direction === "asc" ? 1 : -1;
+
+            return [...arr].sort((a, b) => {
+                const k = sortState.key;
+
+                if (
+                    k === "createdAt" ||
+                    k === "grandTotal" ||
+                    k === "itemCount" ||
+                    k === "profit"
+                ) {
+                    const va = Number(a[k]) || 0;
+                    const vb = Number(b[k]) || 0;
+                    return (va - vb) * dir;
+                }
+
+                if (k === "invoicedate") {
+                    const va = String(a.invoicedate || "");
+                    const vb = String(b.invoicedate || "");
+
+                    if (va === vb) return 0;
+                    if (va === "") return 1;
+                    if (vb === "") return -1;
+
+                    return va < vb ? -1 * dir : 1 * dir;
+                }
+
+                const va = String(a[k] || "").toLowerCase();
+                const vb = String(b[k] || "").toLowerCase();
+
+                if (va === vb) return 0;
+                if (va === "") return 1;
+                if (vb === "") return -1;
+
+                return va < vb ? -1 * dir : 1 * dir;
+            });
+        }
+
+
+        // =====================================================
+        // TABLE HEADER
+        // =====================================================
+
+        function renderTableHeader() {
+            billsHead.innerHTML = `
+                <th style="width: 40px;" class="text-center">#</th>
+                <th class="sortable" data-sort-key="invoicenumber">
+                    Invoice #
+                    <i class="bi bi-arrow-down-up sort-icon"></i>
+                </th>
+                <th class="sortable" data-sort-key="invoicedate">
+                    Date
+                    <i class="bi bi-arrow-down-up sort-icon"></i>
+                </th>
+                <th class="sortable" data-sort-key="businessName">
+                    Business
+                    <i class="bi bi-arrow-down-up sort-icon"></i>
+                </th>
+                <th class="sortable" data-sort-key="projectId">
+                    Project
+                    <i class="bi bi-arrow-down-up sort-icon"></i>
+                </th>
+                <th class="sortable" data-sort-key="billType">
+                    Bill Type
+                    <i class="bi bi-arrow-down-up sort-icon"></i>
+                </th>
+                <th class="sortable" data-sort-key="clientName">
+                    Client
+                    <i class="bi bi-arrow-down-up sort-icon"></i>
+                </th>
+                <th class="sortable text-center" data-sort-key="itemCount">
+                    Items
+                    <i class="bi bi-arrow-down-up sort-icon"></i>
+                </th>
+                <th class="sortable text-end" data-sort-key="grandTotal">
+                    Amount
+                    <i class="bi bi-arrow-down-up sort-icon"></i>
+                </th>
+                <th class="sortable text-end" data-sort-key="profit">
+                    Profit
+                    <i class="bi bi-arrow-down-up sort-icon"></i>
+                </th>
+                <th class="text-end" style="width: 120px;">Action</th>
+            `;
+
+            billsHead.querySelectorAll("th.sortable").forEach(th => {
+                th.addEventListener("click", () => {
+                    const key = th.dataset.sortKey;
+
+                    if (sortState.key !== key) {
+                        sortState.key = key;
+                        sortState.direction = "asc";
+                    }
+                    else if (sortState.direction === "asc") {
+                        sortState.direction = "desc";
+                    }
+                    else {
+                        sortState.key = null;
+                        sortState.direction = null;
+                    }
+
+                    updateSortIndicators();
+                    applyFiltersAndRender();
+                });
+            });
+
+            updateSortIndicators();
+        }
+
+
+        function updateSortIndicators() {
+            billsHead.querySelectorAll("th.sortable").forEach(th => {
+                th.classList.remove("sorted-asc", "sorted-desc");
+
+                const icon = th.querySelector(".sort-icon");
+                if (!icon) return;
+
+                if (th.dataset.sortKey === sortState.key) {
+                    if (sortState.direction === "asc") {
+                        th.classList.add("sorted-asc");
+                        icon.className = "bi bi-sort-down sort-icon";
+                    }
+                    else if (sortState.direction === "desc") {
+                        th.classList.add("sorted-desc");
+                        icon.className = "bi bi-sort-up sort-icon";
+                    }
+                }
+                else {
+                    icon.className = "bi bi-arrow-down-up sort-icon";
+                }
+            });
+        }
+
+
+        // =====================================================
+        // RENDER
+        // =====================================================
+
+        function applyFiltersAndRender() {
+            const filtered = getFilteredBills();
+            const sorted = sortBills(filtered);
+
+            renderSummary(filtered);
+            renderPaymentSummary(filtered);
+
+            document.getElementById("recordTotal").textContent = allBills.length;
+            document.getElementById("recordCount").textContent = filtered.length;
+
+            const totalPages = Math.max(1, Math.ceil(sorted.length / pageSize));
+
+            if (currentPage > totalPages) currentPage = totalPages;
+
+            const startIndex = (currentPage - 1) * pageSize;
+            const pageEntries = sorted.slice(startIndex, startIndex + pageSize);
+
+            renderRows(pageEntries, startIndex);
+
+            renderPagination(currentPage, totalPages);
+        }
+
+
+        function renderSummary(list) {
+            document.getElementById("summaryCount").textContent = list.length;
+
+            const total = list.reduce((s, b) => s + (Number(b.grandTotal) || 0), 0);
+            document.getElementById("summaryTotal").textContent = formatMoneyLabel(total);
+
+            const profit = list.reduce((s, b) => s + (Number(b.profit) || 0), 0);
+            document.getElementById("summaryProfit").textContent = formatMoneyLabel(profit);
+
+            document.getElementById("summaryBusinesses").textContent =
+                new Set(list.map(b => b.businessId)).size;
+
+            document.getElementById("summaryBillTypes").textContent =
+                new Set(list.map(b => b.billType).filter(Boolean)).size;
+        }
+
+
+        function renderPaymentSummary(list) {
+            let inTotal = 0, outTotal = 0, inCount = 0, outCount = 0;
+
+            list.forEach(b => {
+                const type = String(b.billType || "").trim();
+                if (!type) return;
+
+                const pay = billTypePaymentMap[type] || "";
+
+                if (pay === "in") {
+                    inTotal += Number(b.grandTotal) || 0;
+                    inCount++;
+                }
+                else if (pay === "out") {
+                    outTotal += Number(b.grandTotal) || 0;
+                    outCount++;
+                }
+            });
+
+            paymentInAmount.textContent = formatMoneyLabel(inTotal);
+            paymentOutAmount.textContent = formatMoneyLabel(outTotal);
+            paymentNetAmount.textContent = formatMoneyLabel(inTotal - outTotal);
+
+            paymentInCount.textContent = inCount;
+            paymentOutCount.textContent = outCount;
+        }
+
+
+        function renderRows(entries, startIndex) {
+            billsBody.innerHTML = "";
+
+            if (!entries.length) {
+                billsTable.classList.add("d-none");
+                emptyState.classList.remove("d-none");
+
+                emptyState.querySelector("div").textContent =
+                    allBills.length === 0
+                        ? "No bills yet. Create your first bill from Generate Bill."
+                        : "No bills match the current filters.";
+
+                return;
+            }
+
+            billsTable.classList.remove("d-none");
+            emptyState.classList.add("d-none");
+
+            entries.forEach((bill, idx) => {
+                const tr = document.createElement("tr");
+                tr.className = "row-clickable";
+
+                let profitClass = "profit-value";
+                if (bill.profit === 0) profitClass += " zero";
+                else if (bill.profit < 0) profitClass += " negative";
+
+                const pay = billTypePaymentMap[bill.billType] || "";
+
+                const payPill = pay
+                    ? `<span class="payment-type-pill ${pay}">
+                            ${pay === "in" ? "IN" : "OUT"}
+                       </span>`
+                    : "";
+
+                let projectCell = `<span class="text-muted small">—</span>`;
+
+                if (bill.projectPushId) {
+                    const pid = bill.projectId || "—";
+                    const pname = bill.projectName || "";
+
+                    projectCell = `
+                        <span class="project-badge" title="${escapeHtml(pname)}">
+                            <i class="bi bi-cone-striped"></i>
+                            <span class="id">${escapeHtml(pid)}</span>
+                        </span>
+                    `;
+                }
+
+                tr.innerHTML = `
+                    <td class="text-center text-muted">${startIndex + idx + 1}</td>
+                    <td><strong>${escapeHtml(bill.invoicenumber || "—")}</strong></td>
+                    <td>${escapeHtml(bill.invoicedate || "—")}</td>
+                    <td>
+                        <span class="business-badge">
+                            ${escapeHtml(bill.businessName || bill.businessId)}
+                        </span>
+                    </td>
+                    <td>${projectCell}</td>
+                    <td>
+                        <span class="bill-type-badge">
+                            ${escapeHtml(bill.billType || "—")}
+                        </span>
+                        ${payPill}
+                    </td>
+                    <td>${escapeHtml(bill.clientName || "—")}</td>
+                    <td class="text-center">
+                        ${bill.itemCount > 0
+                            ? `<span class="badge bg-secondary">${bill.itemCount}</span>`
+                            : `<span class="text-muted small">—</span>`}
+                    </td>
+                    <td class="text-end"><strong>${formatMoney(bill.grandTotal)}</strong></td>
+                    <td class="text-end">
+                        <span class="${profitClass}">${formatMoney(bill.profit)}</span>
+                    </td>
+                    <td class="text-end">
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-outline-primary open-bill" title="Open bill">
+                                <i class="bi bi-box-arrow-up-right"></i>
+                            </button>
+                            <button class="btn btn-outline-danger delete-bill" title="Delete bill">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+
+                const openBill = () => {
+                    let url =
+                        `bill.html?id=${encodeURIComponent(bill.id)}` +
+                        `&business=${encodeURIComponent(bill.businessId)}`;
+
+                    if (bill.projectPushId) {
+                        url += `&project=${encodeURIComponent(bill.projectPushId)}`;
+                    }
+
+                    window.open(url, "_blank");
+                };
+
+                tr.addEventListener("click", openBill);
+
+                tr.querySelector(".open-bill").addEventListener("click", ev => {
+                    ev.stopPropagation();
+                    openBill();
+                });
+
+                tr.querySelector(".delete-bill").addEventListener("click", async ev => {
+                    ev.stopPropagation();
+
+                    const label = bill.invoicenumber
+                        ? `Invoice #${bill.invoicenumber}`
+                        : `Bill ${bill.id}`;
+
+                    if (!confirm(`Delete ${label}? This cannot be undone.`)) return;
+
+                    try {
+                        const path = bill.projectPushId
+                            ? `sr_group/businesses/${bill.businessId}/projects/${bill.projectPushId}/bills/${bill.id}`
+                            : `sr_group/businesses/${bill.businessId}/bills/${bill.id}`;
+
+                        await remove(ref(db, path));
+
+                        // Remove from local state
+                        allBills = allBills.filter(b => !(
+                            b.id === bill.id &&
+                            b.businessId === bill.businessId &&
+                            b.projectPushId === bill.projectPushId
+                        ));
+
+                        showStatus(`Deleted ${label}.`, "success");
+
+                        // Rebuild project list (in case that was the last bill for a project)
+                        await loadAvailableProjects();
+
+                        // Prune project selections that no longer exist
+                        const validProjectKeys = new Set(availableProjects.map(p => p.key));
+                        selectedProjectKeys = new Set(
+                            Array.from(selectedProjectKeys).filter(k => validProjectKeys.has(k))
+                        );
+
+                        renderProjectFilterBox();
+                        updateChips();
+                        applyFiltersAndRender();
+                    }
+                    catch (err) {
+                        console.error("Delete bill error:", err);
+                        showStatus("Failed to delete bill. Check permissions.", "danger");
+                    }
+                });
+
+                billsBody.appendChild(tr);
+            });
+        }
+
+
+        // =====================================================
+        // PAGINATION
+        // =====================================================
+
+        function renderPagination(page, totalPages) {
+            const ul = document.getElementById("pagination");
+            ul.innerHTML = "";
+
+            document.getElementById("pageLabel").textContent =
+                totalPages === 0 ? 0 : page;
+            document.getElementById("pageTotalLabel").textContent =
+                totalPages === 0 ? 0 : totalPages;
+
+            if (totalPages <= 1) return;
+
+            const addItem = (label, targetPage, disabled, active) => {
+                const li = document.createElement("li");
+                li.className = "page-item" +
+                    (disabled ? " disabled" : "") +
+                    (active ? " active" : "");
+
+                const a = document.createElement("a");
+                a.className = "page-link";
+                a.href = "javascript:void(0)";
+                a.innerHTML = label;
+
+                if (!disabled && !active) {
+                    a.addEventListener("click", () => {
+                        currentPage = targetPage;
+                        applyFiltersAndRender();
+                    });
+                }
+
+                li.appendChild(a);
+                ul.appendChild(li);
+            };
+
+            addItem('<i class="bi bi-chevron-double-left"></i>', 1, page === 1, false);
+            addItem('<i class="bi bi-chevron-left"></i>', page - 1, page === 1, false);
+
+            const windowSize = 2;
+            let from = Math.max(1, page - windowSize);
+            let to = Math.min(totalPages, page + windowSize);
+
+            if (from > 1) {
+                addItem("1", 1, false, page === 1);
+                if (from > 2) addItem("…", 0, true, false);
+            }
+
+            for (let p = from; p <= to; p++) {
+                addItem(String(p), p, false, p === page);
+            }
+
+            if (to < totalPages) {
+                if (to < totalPages - 1) addItem("…", 0, true, false);
+                addItem(String(totalPages), totalPages, false, page === totalPages);
+            }
+
+            addItem('<i class="bi bi-chevron-right"></i>', page + 1, page === totalPages, false);
+            addItem('<i class="bi bi-chevron-double-right"></i>', totalPages, page === totalPages, false);
+        }
+
+
+        // =====================================================
+        // MISC
+        // =====================================================
+
+        document.getElementById("pageSizeSelect").addEventListener("change", e => {
+            pageSize = Number(e.target.value) || 20;
+            currentPage = 1;
+            applyFiltersAndRender();
+        });
+
+        document.getElementById("refreshBtn").addEventListener("click", async () => {
+            showStatus("Refreshing...", "info");
+
+            await loadBillTypePaymentMap();
+            await loadAvailableBusinesses();
+            await loadAllBills();
+            await loadAvailableProjects();
+
+            // Prune selections
+            const validBizIds = new Set(availableBusinesses.map(b => b.id));
+            selectedBusinessIds = new Set(
+                Array.from(selectedBusinessIds).filter(id => validBizIds.has(id))
+            );
+            if (selectedBusinessIds.size === 0) {
+                selectedBusinessIds = new Set(validBizIds);
+            }
+
+            const validProjectKeys = new Set(availableProjects.map(p => p.key));
+            selectedProjectKeys = new Set(
+                Array.from(selectedProjectKeys).filter(k => validProjectKeys.has(k))
+            );
+
+            const typesSet = new Set();
+            allBills.forEach(b => {
+                const t = String(b.billType || "").trim();
+                if (t) typesSet.add(t);
+            });
+            availableBillTypes = Array.from(typesSet).sort();
+
+            const validTypes = new Set(availableBillTypes);
+            selectedBillTypes = new Set(
+                Array.from(selectedBillTypes).filter(t => validTypes.has(t))
+            );
+
+            renderBusinessFilterBox();
+            renderProjectFilterBox();
+            renderBillTypeFilterBox();
+
+            updateChips();
+            applyFiltersAndRender();
+
+            showStatus("Bills reloaded.", "success");
+        });
+
+    </script>
+
+</body>
+
+</html>

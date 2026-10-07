@@ -1,0 +1,1423 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>SR Group Dashboard</title>
+    
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0d6efd">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="sidebar/sidebar.css">
+
+    <style>
+        body { background: #f5f6f8; }
+
+        #sidebar-container {
+            position: fixed;
+            top: 0; left: 0;
+            width: 250px; height: 100vh;
+            z-index: 1000;
+        }
+
+        #main-content {
+            margin-left: 250px;
+            padding: 25px;
+        }
+
+        @media (max-width: 767px) {
+            #sidebar-container { width: 0; }
+            #main-content { margin-left: 0; padding: 15px; }
+        }
+
+        .welcome-banner {
+            background: linear-gradient(135deg, #0d6efd 0%, #6610f2 100%);
+            color: #fff;
+            border-radius: 0.75rem;
+            padding: 1.5rem 1.75rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .welcome-banner h3,
+        .welcome-banner p { color: #fff; }
+
+        .welcome-banner .welcome-icon {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 6rem;
+            opacity: 0.15;
+        }
+
+        .welcome-banner.role-main-admin {
+            background: linear-gradient(135deg, #b91c1c 0%, #ef4444 100%);
+        }
+        .welcome-banner.role-dev-admin {
+            background: linear-gradient(135deg, #0f172a 0%, #334155 100%);
+        }
+        .welcome-banner.role-owner {
+            background: linear-gradient(135deg, #92400e 0%, #d97706 100%);
+        }
+        .welcome-banner.role-business-admin {
+            background: linear-gradient(135deg, #0d6efd 0%, #6610f2 100%);
+        }
+        .welcome-banner.role-project-admin {
+            background: linear-gradient(135deg, #6f42c1 0%, #a855f7 100%);
+        }
+
+        .kpi-card {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.75rem;
+            padding: 1rem 1.1rem;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+            transition: box-shadow 0.15s ease, transform 0.15s ease;
+        }
+
+        .kpi-card:hover {
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+            transform: translateY(-2px);
+        }
+
+        .kpi-card .kpi-label {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #6c757d;
+            font-weight: 600;
+        }
+
+        .kpi-card .kpi-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            line-height: 1.15;
+            margin-top: 0.2rem;
+        }
+
+        .kpi-card .kpi-sub {
+            font-size: 0.75rem;
+            color: #6c757d;
+            margin-top: 0.25rem;
+        }
+
+        .kpi-card .kpi-icon {
+            position: absolute;
+            right: 12px;
+            top: 12px;
+            font-size: 1.75rem;
+            opacity: 0.15;
+        }
+
+        .kpi-card.kpi-blue  .kpi-value { color: #0d6efd; }
+        .kpi-card.kpi-green .kpi-value { color: #198754; }
+        .kpi-card.kpi-red   .kpi-value { color: #dc3545; }
+        .kpi-card.kpi-amber .kpi-value { color: #b45309; }
+        .kpi-card.kpi-purple .kpi-value { color: #6f42c1; }
+        .kpi-card.kpi-dark  .kpi-value { color: #0f172a; }
+
+        .kpi-card.kpi-blue  .kpi-icon { color: #0d6efd; }
+        .kpi-card.kpi-green .kpi-icon { color: #198754; }
+        .kpi-card.kpi-red   .kpi-icon { color: #dc3545; }
+        .kpi-card.kpi-amber .kpi-icon { color: #b45309; }
+        .kpi-card.kpi-purple .kpi-icon { color: #6f42c1; }
+        .kpi-card.kpi-dark  .kpi-icon { color: #0f172a; }
+
+        .quick-action-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.6rem;
+            padding: 0.85rem 1rem;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.15s ease;
+            height: 100%;
+        }
+
+        .quick-action-card:hover {
+            border-color: #0d6efd;
+            box-shadow: 0 6px 14px rgba(13, 110, 253, 0.12);
+            transform: translateY(-2px);
+            color: inherit;
+        }
+
+        .quick-action-card .qa-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 0.5rem;
+            background: rgba(13, 110, 253, 0.1);
+            color: #0d6efd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.15rem;
+            flex-shrink: 0;
+        }
+
+        .quick-action-card .qa-title {
+            font-weight: 600;
+            font-size: 0.92rem;
+            margin: 0;
+        }
+
+        .quick-action-card .qa-sub {
+            font-size: 0.75rem;
+            color: #6c757d;
+            margin: 0;
+        }
+
+        .quick-action-card.qa-green  .qa-icon { background: rgba(25, 135, 84, 0.1);  color: #198754; }
+        .quick-action-card.qa-amber  .qa-icon { background: rgba(180, 83, 9, 0.1);   color: #b45309; }
+        .quick-action-card.qa-purple .qa-icon { background: rgba(111, 66, 193, 0.1); color: #6f42c1; }
+        .quick-action-card.qa-dark   .qa-icon { background: rgba(15, 23, 42, 0.1);   color: #0f172a; }
+        .quick-action-card.qa-red    .qa-icon { background: rgba(220, 53, 69, 0.1);  color: #dc3545; }
+
+        .panel-card {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.75rem;
+            height: 100%;
+        }
+
+        .panel-card .panel-header {
+            padding: 0.9rem 1.1rem;
+            border-bottom: 1px solid #eef0f3;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-card .panel-header h6 {
+            margin: 0;
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+
+        .panel-card .panel-body {
+            padding: 1rem 1.1rem;
+        }
+
+        .list-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.55rem 0;
+            border-bottom: 1px dashed #eef0f3;
+            font-size: 0.88rem;
+        }
+
+        .list-row:last-child { border-bottom: 0; }
+
+        .list-row .lr-title {
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .list-row .lr-sub {
+            font-size: 0.75rem;
+            color: #6c757d;
+        }
+
+        .list-row .lr-value {
+            font-weight: 700;
+        }
+
+        .empty-panel {
+            text-align: center;
+            color: #6c757d;
+            padding: 1.25rem 0.5rem;
+            font-size: 0.85rem;
+        }
+
+        .empty-panel i {
+            display: block;
+            font-size: 1.6rem;
+            opacity: 0.35;
+            margin-bottom: 6px;
+        }
+
+        .section-title {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #6c757d;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .role-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.22);
+            color: #fff;
+            text-transform: capitalize;
+        }
+
+        .biz-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            border-radius: 999px;
+            padding: 3px 10px;
+            font-size: 0.75rem;
+            margin: 2px 4px 2px 0;
+            color: #334155;
+        }
+
+        .loading-block {
+            text-align: center;
+            color: #6c757d;
+            padding: 2rem 0.5rem;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <!-- Sidebar -->
+    <div id="sidebar-container"></div>
+
+    <!-- Main -->
+    <main id="main-content">
+
+        <div class="container-fluid p-0">
+
+            <!-- WELCOME BANNER -->
+            <div class="welcome-banner mb-4 role-main-admin" id="welcomeBanner">
+                <i class="bi bi-speedometer2 welcome-icon"></i>
+
+                <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                    <div>
+                        <h3 class="mb-1">
+                            Welcome, <span id="welcomeName">User</span>
+                        </h3>
+                        <p class="mb-2" id="welcomeSubtitle">
+                            Loading your dashboard...
+                        </p>
+                        <span class="role-pill" id="welcomeRolePill">
+                            <i class="bi bi-person-badge"></i>
+                            <span id="welcomeRoleText">—</span>
+                        </span>
+                    </div>
+
+                    <div class="text-end small" id="welcomeDate">
+                        <!-- date injected -->
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- STATUS -->
+            <div id="statusMessage" class="alert d-none"></div>
+
+
+            <!-- LOADING -->
+            <div id="loadingBlock" class="loading-block">
+                <div class="spinner-border text-primary mb-2" role="status"></div>
+                <div>Loading dashboard data...</div>
+            </div>
+
+
+            <!-- DASHBOARD CONTENT -->
+            <div id="dashboardContent" class="d-none">
+
+                <!-- SCOPE INFO (business / project admin) -->
+                <div id="scopeInfo" class="alert alert-light border d-none mb-3">
+                    <div class="d-flex align-items-start gap-2">
+                        <i class="bi bi-info-circle text-primary mt-1"></i>
+                        <div>
+                            <div class="fw-semibold" id="scopeTitle">
+                                Your Access Scope
+                            </div>
+                            <div class="small text-muted mb-1" id="scopeHint">
+                                Data shown here is limited to the businesses and projects you have access to.
+                            </div>
+                            <div id="scopeChips"></div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- KPI ROW -->
+                <div class="section-title">
+                    <i class="bi bi-bar-chart-line me-1"></i>
+                    Overview
+                </div>
+                <div class="row g-3 mb-4" id="kpiRow">
+                    <!-- filled by JS -->
+                </div>
+
+
+                <!-- QUICK ACTIONS -->
+                <div class="section-title">
+                    <i class="bi bi-lightning-charge me-1"></i>
+                    Quick Actions
+                </div>
+                <div class="row g-3 mb-4" id="quickActionsRow">
+                    <!-- filled by JS -->
+                </div>
+
+
+                <!-- CONTENT PANELS -->
+                <div class="row g-3 mb-4">
+
+                    <div class="col-lg-6">
+                        <div class="panel-card">
+                            <div class="panel-header">
+                                <h6>
+                                    <i class="bi bi-building me-2"></i>
+                                    <span id="businessPanelTitle">Businesses</span>
+                                </h6>
+                                <span class="badge bg-light text-dark border" id="businessPanelCount">0</span>
+                            </div>
+                            <div class="panel-body" id="businessPanelBody">
+                                <div class="empty-panel">
+                                    <i class="bi bi-inbox"></i>
+                                    Loading...
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-6">
+                        <div class="panel-card">
+                            <div class="panel-header">
+                                <h6>
+                                    <i class="bi bi-cone-striped me-2"></i>
+                                    <span id="projectPanelTitle">Projects</span>
+                                </h6>
+                                <span class="badge bg-light text-dark border" id="projectPanelCount">0</span>
+                            </div>
+                            <div class="panel-body" id="projectPanelBody">
+                                <div class="empty-panel">
+                                    <i class="bi bi-inbox"></i>
+                                    Loading...
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+
+                <div class="row g-3 mb-4">
+
+                    <div class="col-lg-6">
+                        <div class="panel-card">
+                            <div class="panel-header">
+                                <h6>
+                                    <i class="bi bi-receipt me-2"></i>
+                                    Recent Bills
+                                </h6>
+                                <a href="bills.html" class="btn btn-sm btn-outline-primary">
+                                    View all
+                                </a>
+                            </div>
+                            <div class="panel-body" id="billsPanelBody">
+                                <div class="empty-panel">
+                                    <i class="bi bi-inbox"></i>
+                                    Loading...
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-6">
+                        <div class="panel-card">
+                            <div class="panel-header">
+                                <h6>
+                                    <i class="bi bi-people me-2"></i>
+                                    <span id="usersPanelTitle">Team Members</span>
+                                </h6>
+                                <a href="users.html" class="btn btn-sm btn-outline-primary d-none" id="usersPanelLink">
+                                    Manage
+                                </a>
+                            </div>
+                            <div class="panel-body" id="usersPanelBody">
+                                <div class="empty-panel">
+                                    <i class="bi bi-inbox"></i>
+                                    Loading...
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script type="module" src="sidebar/sidebar.js"></script>
+
+    <script type="module">
+
+        import { auth, db } from "./firebase-config.js";
+
+        import {
+            onAuthStateChanged
+        } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+
+        import {
+            ref, get
+        } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-database.js";
+
+
+        // =====================================================
+        // STATE
+        // =====================================================
+
+        let currentUser = null;
+        let currentUserData = null;
+        let currentRole = "";
+
+        let businessAccess = {};
+        let projectAccess = {};
+
+
+        // =====================================================
+        // HELPERS
+        // =====================================================
+
+        const $ = (id) => document.getElementById(id);
+
+        function showStatus(msg, type = "danger") {
+            const el = $("statusMessage");
+            el.className = `alert alert-${type}`;
+            el.textContent = msg;
+            el.classList.remove("d-none");
+            clearTimeout(showStatus._t);
+            showStatus._t = setTimeout(() => el.classList.add("d-none"), 4000);
+        }
+
+        function escapeHtml(v) {
+            return String(v ?? "")
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        function money(n) {
+            const v = Number(n) || 0;
+            try {
+                return "Rs " + v.toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+            } catch {
+                return "Rs " + v.toFixed(2);
+            }
+        }
+
+        function plainNumber(n) {
+            return (Number(n) || 0).toLocaleString();
+        }
+
+        function todayISO() {
+            const d = new Date();
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, "0");
+            const day = String(d.getDate()).padStart(2, "0");
+            return `${y}-${m}-${day}`;
+        }
+
+        function roleLabel(role) {
+            switch (role) {
+                case "main-admin":    return "Main Admin";
+                case "dev-admin":     return "Dev Admin";
+                case "owner":         return "Owner";
+                case "business-admin":return "Business Admin";
+                case "project-admin": return "Project Admin";
+                default:              return role || "User";
+            }
+        }
+
+        function roleBannerClass(role) {
+            switch (role) {
+                case "main-admin":    return "role-main-admin";
+                case "dev-admin":     return "role-dev-admin";
+                case "owner":         return "role-owner";
+                case "business-admin":return "role-business-admin";
+                case "project-admin": return "role-project-admin";
+                default:              return "role-business-admin";
+            }
+        }
+
+        function isSuperRole(r) {
+            return r === "main-admin" || r === "dev-admin" || r === "owner";
+        }
+
+        function isBusinessAdmin(r) { return r === "business-admin"; }
+        function isProjectAdmin(r)  { return r === "project-admin"; }
+
+        function canManageUsers(r) {
+            return r === "main-admin" || r === "dev-admin";
+        }
+
+
+        // Extract assigned business IDs from userData (handles array / object / string)
+        function extractBusinessIds(raw) {
+            if (!raw) return [];
+
+            if (Array.isArray(raw)) {
+                return raw.map(v => String(v).trim()).filter(Boolean);
+            }
+
+            if (typeof raw === "object") {
+                return Object.entries(raw)
+                    .filter(([, value]) => {
+                        if (value === true) return true;
+                        if (value && typeof value === "object") return true;
+                        if (typeof value === "string" && value) return true;
+                        return false;
+                    })
+                    .map(([key]) => String(key).trim())
+                    .filter(Boolean);
+            }
+
+            if (typeof raw === "string") {
+                return raw.split(",").map(v => v.trim()).filter(Boolean);
+            }
+
+            return [];
+        }
+
+
+        // =====================================================
+        // AUTH
+        // =====================================================
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                window.location.href = "login.html";
+                return;
+            }
+
+            currentUser = user;
+
+            try {
+                const snap = await get(ref(db, `sr_group/users/${user.uid}`));
+
+                if (!snap.exists()) {
+                    window.location.href = "login.html";
+                    return;
+                }
+
+                currentUserData = snap.val() || {};
+                currentRole = currentUserData.role || "";
+
+                // Blocked users
+                if (currentUserData["user-status"] === false) {
+                    showStatus("Your account is disabled. Contact an administrator.", "danger");
+                    setTimeout(() => {
+                        window.location.href = "login.html";
+                    }, 2500);
+                    return;
+                }
+
+                businessAccess = currentUserData.businessAccess || {};
+                projectAccess  = currentUserData.projectAccess  || {};
+
+                await renderDashboard();
+
+            } catch (err) {
+                console.error("Dashboard auth error:", err);
+                showStatus("Failed to load your profile.");
+                $("loadingBlock").classList.add("d-none");
+            }
+        });
+
+
+        // =====================================================
+        // RENDER DASHBOARD
+        // =====================================================
+
+        async function renderDashboard() {
+
+            // Welcome banner
+            $("welcomeName").textContent = currentUserData.name || "User";
+            $("welcomeRoleText").textContent = roleLabel(currentRole);
+
+            const banner = $("welcomeBanner");
+            banner.classList.remove(
+                "role-main-admin",
+                "role-dev-admin",
+                "role-owner",
+                "role-business-admin",
+                "role-project-admin"
+            );
+            banner.classList.add(roleBannerClass(currentRole));
+
+            const today = new Date();
+            $("welcomeDate").innerHTML =
+                `<div class="fw-semibold">${today.toLocaleDateString(undefined, { weekday: "long" })}</div>
+                 <div>${today.toLocaleDateString(undefined, { day: "2-digit", month: "short", year: "numeric" })}</div>`;
+
+            // Role-specific welcome subtitle
+            let subtitle = "";
+            switch (currentRole) {
+                case "main-admin":
+                    subtitle = "Full system overview across all businesses and users.";
+                    break;
+                case "dev-admin":
+                    subtitle = "System & user management overview.";
+                    break;
+                case "owner":
+                    subtitle = "Read-only overview of your businesses.";
+                    break;
+                case "business-admin":
+                    subtitle = "Overview of the businesses you manage.";
+                    break;
+                case "project-admin":
+                    subtitle = "Overview of the projects assigned to you.";
+                    break;
+                default:
+                    subtitle = "Welcome to SR Group.";
+            }
+            $("welcomeSubtitle").textContent = subtitle;
+
+            // Fetch all data we need, in parallel
+            const [businesses, allUsers, billSettings] = await Promise.all([
+                loadBusinesses(),
+                loadUsers(),
+                loadBillSettings()
+            ]);
+
+            // Restrict businesses for scoped roles
+            const visibleBusinesses = filterVisibleBusinesses(businesses);
+
+            // Load projects + bills + attendance in parallel
+            const [projectsByBiz, billsData, attendanceStats] = await Promise.all([
+                loadProjectsFor(visibleBusinesses),
+                loadBillsFor(visibleBusinesses),
+                loadAttendanceStats(visibleBusinesses)
+            ]);
+
+            // Scope info chip
+            renderScopeChips(visibleBusinesses);
+
+            // Panels & KPIs
+            renderKpis(billsData, attendanceStats, visibleBusinesses, projectsByBiz, allUsers);
+            renderQuickActions();
+            renderBusinessPanel(visibleBusinesses);
+            renderProjectPanel(visibleBusinesses, projectsByBiz);
+            renderBillsPanel(billsData);
+            renderUsersPanel(allUsers);
+
+            // Show content
+            $("loadingBlock").classList.add("d-none");
+            $("dashboardContent").classList.remove("d-none");
+        }
+
+
+        // =====================================================
+        // DATA LOADERS
+        // =====================================================
+
+        async function loadBusinesses() {
+            try {
+                const snap = await get(ref(db, "sr_group/businesses"));
+                return snap.exists() ? (snap.val() || {}) : {};
+            } catch (err) {
+                console.error("loadBusinesses:", err);
+                return {};
+            }
+        }
+
+        async function loadUsers() {
+            try {
+                const snap = await get(ref(db, "sr_group/users"));
+                return snap.exists() ? (snap.val() || {}) : {};
+            } catch (err) {
+                console.error("loadUsers:", err);
+                return {};
+            }
+        }
+
+        async function loadBillSettings() {
+            try {
+                const snap = await get(ref(db, "sr_group/settings/bill-setting"));
+                return snap.exists() ? (snap.val() || {}) : {};
+            } catch (err) {
+                console.error("loadBillSettings:", err);
+                return {};
+            }
+        }
+
+
+        function filterVisibleBusinesses(businesses) {
+            const entries = Object.entries(businesses);
+
+            if (isSuperRole(currentRole)) {
+                return entries.map(([id, b]) => ({ id, ...(b || {}) }));
+            }
+
+            if (isBusinessAdmin(currentRole)) {
+                const ids = extractBusinessIds(businessAccess);
+                return entries
+                    .filter(([id]) => ids.includes(id))
+                    .map(([id, b]) => ({ id, ...(b || {}) }));
+            }
+
+            if (isProjectAdmin(currentRole)) {
+                const ids = Object.keys(projectAccess || {});
+                return entries
+                    .filter(([id]) => ids.includes(id))
+                    .map(([id, b]) => ({ id, ...(b || {}) }));
+            }
+
+            return [];
+        }
+
+
+        async function loadProjectsFor(visibleBusinesses) {
+            const result = {};
+
+            await Promise.all(visibleBusinesses.map(async (biz) => {
+                result[biz.id] = [];
+
+                if (biz.construction !== true) return;
+
+                // For project-admin, only load assigned projects
+                let allowedPushIds = null;
+                if (isProjectAdmin(currentRole)) {
+                    allowedPushIds = Object.keys(projectAccess[biz.id] || {});
+                    if (!allowedPushIds.length) return;
+                }
+
+                try {
+                    const snap = await get(ref(db, `sr_group/businesses/${biz.id}/projects`));
+                    if (!snap.exists()) return;
+
+                    const raw = snap.val() || {};
+                    Object.entries(raw).forEach(([pushId, proj]) => {
+                        if (pushId === "_placeholder") return;
+                        if (!proj || typeof proj !== "object") return;
+
+                        if (allowedPushIds && !allowedPushIds.includes(pushId)) return;
+
+                        result[biz.id].push({
+                            pushId,
+                            projectId: proj.projectId || "",
+                            projectName: proj.projectName || proj.name || "",
+                            createdAt: Number(proj.createdAt) || 0
+                        });
+                    });
+
+                } catch (err) {
+                    console.warn(`loadProjectsFor ${biz.id}:`, err);
+                }
+            }));
+
+            return result;
+        }
+
+
+        async function loadBillsFor(visibleBusinesses) {
+            const bills = [];
+
+            await Promise.all(visibleBusinesses.map(async (biz) => {
+                // 1. Top-level bills
+                try {
+                    const snap = await get(ref(db, `sr_group/businesses/${biz.id}/bills`));
+                    if (snap.exists()) {
+                        const raw = snap.val() || {};
+                        Object.entries(raw).forEach(([billId, b]) => {
+                            if (!b || typeof b !== "object") return;
+                            bills.push(normalizeBill(billId, biz, b, null));
+                        });
+                    }
+                } catch (err) {
+                    console.warn(`top-level bills ${biz.id}:`, err);
+                }
+
+                // 2. Project-level bills
+                if (biz.construction === true) {
+                    let projectPushIds = [];
+
+                    if (isProjectAdmin(currentRole)) {
+                        projectPushIds = Object.keys(projectAccess[biz.id] || {});
+                    } else {
+                        try {
+                            const pSnap = await get(ref(db, `sr_group/businesses/${biz.id}/projects`));
+                            if (pSnap.exists()) {
+                                projectPushIds = Object.keys(pSnap.val() || {})
+                                    .filter(id => id !== "_placeholder");
+                            }
+                        } catch (err) {
+                            console.warn(`projects ${biz.id}:`, err);
+                        }
+                    }
+
+                    await Promise.all(projectPushIds.map(async (pushId) => {
+                        try {
+                            const bSnap = await get(
+                                ref(db, `sr_group/businesses/${biz.id}/projects/${pushId}/bills`)
+                            );
+                            if (!bSnap.exists()) return;
+
+                            const raw = bSnap.val() || {};
+                            Object.entries(raw).forEach(([billId, b]) => {
+                                if (!b || typeof b !== "object") return;
+                                bills.push(normalizeBill(billId, biz, b, pushId));
+                            });
+                        } catch (err) {
+                            console.warn(`project bills ${biz.id}/${pushId}:`, err);
+                        }
+                    }));
+                }
+            }));
+
+            bills.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+            return bills;
+        }
+
+
+        function normalizeBill(billId, biz, b, projectPushId) {
+            const projectObj = b?.project && typeof b.project === "object" ? b.project : null;
+
+            return {
+                id: billId,
+                businessId: biz.id,
+                businessName: biz.name || biz.id,
+                projectPushId: projectPushId || (projectObj && projectObj.id) || "",
+                projectId: (projectObj && projectObj.projectId) || "",
+                projectName: (projectObj && projectObj.name) || "",
+                billType: b.billType || "",
+                invoicenumber: b.invoicenumber || "",
+                invoicedate: b.invoicedate || "",
+                createdAt: Number(b.createdAt) || 0,
+                grandTotal: Number(b?.totals?.grandTotal) || 0,
+                profit: Number(b?.totals?.profit) || 0
+            };
+        }
+
+
+        async function loadAttendanceStats(visibleBusinesses) {
+            const today = todayISO();
+            const stats = {
+                totalToday: 0,
+                presentToday: 0
+            };
+
+            await Promise.all(visibleBusinesses.map(async (biz) => {
+                // Top-level attendance
+                try {
+                    const snap = await get(
+                        ref(db, `sr_group/businesses/${biz.id}/attendance/${today}`)
+                    );
+                    if (snap.exists()) {
+                        const raw = snap.val() || {};
+                        Object.values(raw).forEach(rec => {
+                            stats.totalToday++;
+                            if (rec && rec.status === "P") stats.presentToday++;
+                        });
+                    }
+                } catch (err) { /* ignore */ }
+
+                // Project-level attendance (construction)
+                if (biz.construction === true) {
+                    let projectPushIds = [];
+                    if (isProjectAdmin(currentRole)) {
+                        projectPushIds = Object.keys(projectAccess[biz.id] || {});
+                    } else {
+                        try {
+                            const pSnap = await get(ref(db, `sr_group/businesses/${biz.id}/projects`));
+                            if (pSnap.exists()) {
+                                projectPushIds = Object.keys(pSnap.val() || {})
+                                    .filter(id => id !== "_placeholder");
+                            }
+                        } catch (err) { /* ignore */ }
+                    }
+
+                    await Promise.all(projectPushIds.map(async (pushId) => {
+                        try {
+                            const snap = await get(
+                                ref(db, `sr_group/businesses/${biz.id}/projects/${pushId}/attendance/${today}`)
+                            );
+                            if (snap.exists()) {
+                                const raw = snap.val() || {};
+                                Object.values(raw).forEach(rec => {
+                                    stats.totalToday++;
+                                    if (rec && rec.status === "P") stats.presentToday++;
+                                });
+                            }
+                        } catch (err) { /* ignore */ }
+                    }));
+                }
+            }));
+
+            return stats;
+        }
+
+
+        // =====================================================
+        // KPIs
+        // =====================================================
+
+        function renderKpis(bills, attendance, visibleBusinesses, projectsByBiz, allUsers) {
+
+            const now = new Date();
+            const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+            const thisYear = String(now.getFullYear());
+
+            const monthBills = bills.filter(b =>
+                String(b.invoicedate || "").startsWith(thisMonth)
+            );
+            const yearBills = bills.filter(b =>
+                String(b.invoicedate || "").startsWith(thisYear)
+            );
+
+            const monthSales = monthBills.reduce((s, b) => s + b.grandTotal, 0);
+            const monthProfit = monthBills.reduce((s, b) => s + b.profit, 0);
+            const yearSales = yearBills.reduce((s, b) => s + b.grandTotal, 0);
+
+            const totalProjects = Object.values(projectsByBiz)
+                .reduce((sum, arr) => sum + arr.length, 0);
+
+            const userCount = Object.keys(allUsers || {}).length;
+
+            const cards = [];
+
+            // ---------------------------------------------------
+            // MAIN-ADMIN / DEV-ADMIN / OWNER
+            // ---------------------------------------------------
+            if (isSuperRole(currentRole)) {
+                cards.push(kpiCard("kpi-blue",   "bi-building",       "Total Businesses",  plainNumber(visibleBusinesses.length), "Registered in system"));
+                cards.push(kpiCard("kpi-purple", "bi-cone-striped",   "Total Projects",    plainNumber(totalProjects),            "Across all businesses"));
+                cards.push(kpiCard("kpi-green",  "bi-receipt-cutoff", "Bills This Month",  plainNumber(monthBills.length),        money(monthSales) + " sales"));
+                cards.push(kpiCard("kpi-amber",  "bi-cash-coin",      "Profit (This Month)", money(monthProfit),                  "Gross profit"));
+                cards.push(kpiCard("kpi-dark",   "bi-graph-up-arrow", "Sales (This Year)", money(yearSales),                       plainNumber(yearBills.length) + " bills"));
+                cards.push(kpiCard("kpi-red",    "bi-people",         "Total Users",       plainNumber(userCount),                 "System users"));
+                cards.push(kpiCard("kpi-green",  "bi-person-check",   "Present Today",     plainNumber(attendance.presentToday),   attendance.totalToday + " marked"));
+            }
+
+            // ---------------------------------------------------
+            // BUSINESS-ADMIN
+            // ---------------------------------------------------
+            else if (isBusinessAdmin(currentRole)) {
+                cards.push(kpiCard("kpi-blue",   "bi-building",       "My Businesses",     plainNumber(visibleBusinesses.length), "Assigned to you"));
+                cards.push(kpiCard("kpi-purple", "bi-cone-striped",   "Total Projects",    plainNumber(totalProjects),            "Across your businesses"));
+                cards.push(kpiCard("kpi-green",  "bi-receipt-cutoff", "Bills This Month",  plainNumber(monthBills.length),        money(monthSales) + " sales"));
+                cards.push(kpiCard("kpi-amber",  "bi-cash-coin",      "Profit (This Month)", money(monthProfit),                  "Gross profit"));
+                cards.push(kpiCard("kpi-dark",   "bi-graph-up-arrow", "Sales (This Year)", money(yearSales),                       plainNumber(yearBills.length) + " bills"));
+                cards.push(kpiCard("kpi-green",  "bi-person-check",   "Present Today",     plainNumber(attendance.presentToday),   attendance.totalToday + " marked"));
+            }
+
+            // ---------------------------------------------------
+            // PROJECT-ADMIN
+            // ---------------------------------------------------
+            else if (isProjectAdmin(currentRole)) {
+                cards.push(kpiCard("kpi-purple", "bi-cone-striped",   "My Projects",       plainNumber(totalProjects),            "Assigned to you"));
+                cards.push(kpiCard("kpi-blue",   "bi-building",       "Businesses",        plainNumber(visibleBusinesses.length), "You have access to"));
+                cards.push(kpiCard("kpi-green",  "bi-receipt-cutoff", "Bills This Month",  plainNumber(monthBills.length),        money(monthSales) + " sales"));
+                cards.push(kpiCard("kpi-amber",  "bi-cash-coin",      "Profit (This Month)", money(monthProfit),                  "Gross profit"));
+                cards.push(kpiCard("kpi-dark",   "bi-graph-up-arrow", "Sales (This Year)", money(yearSales),                       plainNumber(yearBills.length) + " bills"));
+                cards.push(kpiCard("kpi-green",  "bi-person-check",   "Present Today",     plainNumber(attendance.presentToday),   attendance.totalToday + " marked"));
+            }
+
+            // ---------------------------------------------------
+            // UNKNOWN ROLE
+            // ---------------------------------------------------
+            else {
+                cards.push(kpiCard("kpi-dark", "bi-person-badge", "Account Role", currentRole || "N/A", "Contact administrator"));
+            }
+
+            $("kpiRow").innerHTML = cards.join("");
+        }
+
+
+        function kpiCard(colorClass, icon, label, value, sub) {
+            return `
+                <div class="col-6 col-md-4 col-xl-3">
+                    <div class="kpi-card ${colorClass}">
+                        <i class="bi ${icon} kpi-icon"></i>
+                        <div class="kpi-label">${escapeHtml(label)}</div>
+                        <div class="kpi-value">${escapeHtml(value)}</div>
+                        <div class="kpi-sub">${escapeHtml(sub)}</div>
+                    </div>
+                </div>
+            `;
+        }
+
+
+        // =====================================================
+        // QUICK ACTIONS
+        // =====================================================
+
+        function renderQuickActions() {
+            const actions = [];
+
+            if (isSuperRole(currentRole) || isBusinessAdmin(currentRole)) {
+                actions.push(quickAction("generate-bill.html", "bi-receipt",             "New Bill",         "Create a new bill",                    ""));
+            }
+
+            if (isProjectAdmin(currentRole)) {
+                actions.push(quickAction("generate-bill.html", "bi-receipt",             "New Bill",         "Create a bill for your project",       ""));
+            }
+
+            if (isSuperRole(currentRole) || isBusinessAdmin(currentRole) || isProjectAdmin(currentRole)) {
+                actions.push(quickAction("bills.html",     "bi-journal-text",   "All Bills",         "View, filter and manage bills",        "qa-green"));
+            }
+
+            if (isSuperRole(currentRole) || isBusinessAdmin(currentRole)) {
+                actions.push(quickAction("records.html",   "bi-collection",     "Records",           "Manage records",                       "qa-amber"));
+                actions.push(quickAction("attendance.html","bi-person-check",   "Attendance",        "Mark today's attendance",              "qa-purple"));
+            }
+
+            if (isSuperRole(currentRole) || isBusinessAdmin(currentRole) || isProjectAdmin(currentRole)) {
+                actions.push(quickAction("#",  "bi-cone-striped",   "Projects",          "View and manage projects",             "qa-dark"));
+            }
+
+            if (canManageUsers(currentRole)) {
+                actions.push(quickAction("users.html",     "bi-people",         "Users",             "Create and manage users",              "qa-red"));
+            }
+
+            actions.push(quickAction("settings.html",      "bi-gear",           "Settings",          "Configure system",                     ""));
+
+            $("quickActionsRow").innerHTML = actions.join("");
+        }
+
+
+        function quickAction(href, icon, title, sub, extraClass) {
+            return `
+                <div class="col-6 col-md-4 col-xl-3">
+                    <a href="${href}" class="quick-action-card ${extraClass}">
+                        <div class="qa-icon"><i class="bi ${icon}"></i></div>
+                        <div>
+                            <p class="qa-title">${escapeHtml(title)}</p>
+                            <p class="qa-sub">${escapeHtml(sub)}</p>
+                        </div>
+                    </a>
+                </div>
+            `;
+        }
+
+
+        // =====================================================
+        // SCOPE CHIPS
+        // =====================================================
+
+        function renderScopeChips(visibleBusinesses) {
+            if (isSuperRole(currentRole)) {
+                $("scopeInfo").classList.add("d-none");
+                return;
+            }
+
+            $("scopeInfo").classList.remove("d-none");
+
+            const chips = visibleBusinesses.map(b => {
+                let label = b.name || b.id;
+                if (b.construction === true) label += " (Construction)";
+                return `<span class="biz-chip"><i class="bi bi-building"></i>${escapeHtml(label)}</span>`;
+            }).join("");
+
+            if (isBusinessAdmin(currentRole)) {
+                $("scopeTitle").textContent = "Your Business Access";
+                $("scopeHint").textContent = "Data below is limited to the businesses you have been granted access to.";
+            } else if (isProjectAdmin(currentRole)) {
+                $("scopeTitle").textContent = "Your Project Access";
+                $("scopeHint").textContent = "Data below is limited to the projects assigned to you.";
+            }
+
+            $("scopeChips").innerHTML = chips ||
+                `<span class="text-muted small">No access configured.</span>`;
+        }
+
+
+        // =====================================================
+        // PANELS
+        // =====================================================
+
+        function renderBusinessPanel(visibleBusinesses) {
+            const body = $("businessPanelBody");
+            $("businessPanelCount").textContent = visibleBusinesses.length;
+
+            if (isBusinessAdmin(currentRole)) {
+                $("businessPanelTitle").textContent = "My Businesses";
+            } else if (isProjectAdmin(currentRole)) {
+                $("businessPanelTitle").textContent = "Accessible Businesses";
+            } else {
+                $("businessPanelTitle").textContent = "Businesses";
+            }
+
+            if (!visibleBusinesses.length) {
+                body.innerHTML = `
+                    <div class="empty-panel">
+                        <i class="bi bi-building"></i>
+                        No businesses available.
+                    </div>
+                `;
+                return;
+            }
+
+            body.innerHTML = visibleBusinesses
+                .sort((a, b) => a.id.localeCompare(b.id))
+                .map(b => {
+                    const isConstruction = b.construction === true;
+                    const badge = isConstruction
+                        ? `<span class="badge" style="background:#fff3cd;color:#856404;border:1px solid #ffe69c;">
+                                <i class="bi bi-cone-striped me-1"></i>Construction
+                           </span>`
+                        : `<span class="badge bg-light text-dark border">Regular</span>`;
+
+                    return `
+                        <div class="list-row">
+                            <div>
+                                <div class="lr-title">${escapeHtml(b.name || b.id)}</div>
+                                <div class="lr-sub">ID: ${escapeHtml(b.id)}</div>
+                            </div>
+                            <div>${badge}</div>
+                        </div>
+                    `;
+                })
+                .join("");
+        }
+
+
+        function renderProjectPanel(visibleBusinesses, projectsByBiz) {
+            const allProjects = [];
+            visibleBusinesses.forEach(b => {
+                const list = projectsByBiz[b.id] || [];
+                list.forEach(p => {
+                    allProjects.push({
+                        ...p,
+                        businessId: b.id,
+                        businessName: b.name || b.id
+                    });
+                });
+            });
+
+            $("projectPanelCount").textContent = allProjects.length;
+
+            if (isProjectAdmin(currentRole)) {
+                $("projectPanelTitle").textContent = "My Projects";
+            } else {
+                $("projectPanelTitle").textContent = "Projects";
+            }
+
+            const body = $("projectPanelBody");
+
+            if (!allProjects.length) {
+                body.innerHTML = `
+                    <div class="empty-panel">
+                        <i class="bi bi-cone-striped"></i>
+                        No projects found.
+                    </div>
+                `;
+                return;
+            }
+
+            // Show up to 8 latest projects
+            body.innerHTML = allProjects
+                .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
+                .slice(0, 8)
+                .map(p => `
+                    <div class="list-row">
+                        <div>
+                            <div class="lr-title">
+                                <i class="bi bi-cone-striped text-warning me-1"></i>
+                                ${escapeHtml(p.projectId || "—")}
+                                ${p.projectName
+                                    ? ` <span class="text-muted small">— ${escapeHtml(p.projectName)}</span>`
+                                    : ""}
+                            </div>
+                            <div class="lr-sub">${escapeHtml(p.businessName)}</div>
+                        </div>
+                    </div>
+                `)
+                .join("");
+        }
+
+
+        function renderBillsPanel(bills) {
+            const body = $("billsPanelBody");
+
+            if (!bills.length) {
+                body.innerHTML = `
+                    <div class="empty-panel">
+                        <i class="bi bi-receipt"></i>
+                        No bills yet.
+                    </div>
+                `;
+                return;
+            }
+
+            body.innerHTML = bills
+                .slice(0, 8)
+                .map(b => {
+                    const label = b.invoicenumber || `Bill ${b.id}`;
+                    const date = b.invoicedate || "—";
+                    return `
+                        <div class="list-row">
+                            <div>
+                                <div class="lr-title">${escapeHtml(label)}</div>
+                                <div class="lr-sub">
+                                    ${escapeHtml(b.businessName)}
+                                    ${b.projectId
+                                        ? ` • ${escapeHtml(b.projectId)}`
+                                        : ""}
+                                    • ${escapeHtml(date)}
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <div class="lr-value text-success">${money(b.grandTotal)}</div>
+                                <div class="lr-sub">
+                                    ${b.billType ? escapeHtml(b.billType) : ""}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                })
+                .join("");
+        }
+
+
+        function renderUsersPanel(allUsers) {
+            const body = $("usersPanelBody");
+            const linkEl = $("usersPanelLink");
+
+            if (!canManageUsers(currentRole)) {
+                $("usersPanelTitle").textContent = "Team Members";
+                linkEl.classList.add("d-none");
+
+                // Show users in the same businesses for scoped admins
+                let scopedUsers = [];
+                if (isBusinessAdmin(currentRole) || isProjectAdmin(currentRole)) {
+                    const myBusinessIds = new Set(visibleBusinessIds());
+                    scopedUsers = Object.entries(allUsers || {})
+                        .map(([uid, u]) => ({ uid, ...u }))
+                        .filter(u => {
+                            const uBiz = extractBusinessIds(u.businessAccess);
+                            return uBiz.some(id => myBusinessIds.has(id));
+                        });
+                }
+
+                if (!scopedUsers.length) {
+                    body.innerHTML = `
+                        <div class="empty-panel">
+                            <i class="bi bi-people"></i>
+                            No team members visible.
+                        </div>
+                    `;
+                    return;
+                }
+
+                body.innerHTML = scopedUsers.slice(0, 8).map(u => `
+                    <div class="list-row">
+                        <div>
+                            <div class="lr-title">${escapeHtml(u.name || u.email || u.uid)}</div>
+                            <div class="lr-sub">${escapeHtml(u.email || "")}</div>
+                        </div>
+                        <span class="badge bg-primary">${escapeHtml(roleLabel(u.role))}</span>
+                    </div>
+                `).join("");
+                return;
+            }
+
+            // Super roles
+            // Super roles
+            $("usersPanelTitle").textContent = "System Users";
+            linkEl.classList.remove("d-none");
+
+            // ✅ Hide dev-admin users from the list
+            const list = Object.entries(allUsers || {})
+                .map(([uid, u]) => ({ uid, ...u }))
+                .filter(u => u.role !== "dev-admin");
+
+            if (!list.length) {
+                body.innerHTML = `
+                    <div class="empty-panel">
+                        <i class="bi bi-people"></i>
+                        No users found.
+                    </div>
+                `;
+                return;
+            }
+
+            const roleCounts = {};
+            list.forEach(u => {
+                const r = u.role || "unknown";
+                roleCounts[r] = (roleCounts[r] || 0) + 1;
+            });
+
+            const rows = Object.entries(roleCounts)
+                .sort((a, b) => b[1] - a[1])
+                .map(([role, count]) => `
+                    <div class="list-row">
+                        <div>
+                            <div class="lr-title">${escapeHtml(roleLabel(role))}</div>
+                            <div class="lr-sub">${count} user${count === 1 ? "" : "s"}</div>
+                        </div>
+                        <span class="badge bg-primary">${count}</span>
+                    </div>
+                `)
+                .join("");
+
+            const disabled = list.filter(u => u["user-status"] === false).length;
+
+            body.innerHTML = rows + `
+                <div class="list-row">
+                    <div>
+                        <div class="lr-title text-danger">Disabled</div>
+                        <div class="lr-sub">Accounts blocked</div>
+                    </div>
+                    <span class="badge bg-danger">${disabled}</span>
+                </div>
+            `;
+        }
+
+
+        function visibleBusinessIds() {
+            // Recompute from current scope — used for user panel
+            const businesses = window.__cachedBusinesses || {};
+            return Object.keys(businesses);
+        }
+
+    </script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('service-worker.js');
+}
+</script>
+
+</body>
+
+</html>
+
+
+
+
+
+
+
+

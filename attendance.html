@@ -1,0 +1,1885 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Attendance - SR Group</title>
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet">
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+        rel="stylesheet">
+
+    <link rel="stylesheet" href="sidebar/sidebar.css">
+
+    <style>
+        body { background: #f5f6f8; }
+
+        #sidebar-container {
+            position: fixed;
+            top: 0; left: 0;
+            width: 250px; height: 100vh;
+            z-index: 1000;
+        }
+
+        .main-content {
+            margin-left: 250px;
+            padding: 25px;
+        }
+
+        @media (max-width: 767px) {
+            #sidebar-container { width: 0; }
+            .main-content { margin-left: 0; padding: 15px; }
+        }
+
+        .attendance-select {
+            min-width: 130px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .att-select-P  { border-color: #198754; color: #198754; }
+        .att-select-A  { border-color: #dc3545; color: #dc3545; }
+        .att-select-H  { border-color: #ffc107; color: #b8860b; }
+        .att-select-L  { border-color: #fd7e14; color: #fd7e14; }
+        .att-select-OT { border-color: #0d6efd; color: #0d6efd; }
+
+        .summary-pill {
+            font-size: 0.8rem;
+            padding: 4px 10px;
+            border-radius: 999px;
+            margin-right: 6px;
+            font-weight: 600;
+        }
+
+        .summary-P  { background: rgba(25,135,84,.12);   color: #198754; }
+        .summary-A  { background: rgba(220,53,69,.12);   color: #dc3545; }
+        .summary-H  { background: rgba(255,193,7,.18);   color: #b8860b; }
+        .summary-L  { background: rgba(253,126,20,.14);  color: #fd7e14; }
+        .summary-OT { background: rgba(13,110,253,.12);  color: #0d6efd; }
+        .summary-UN { background: rgba(108,117,125,.15); color: #6c757d; }
+
+        .emp-name { font-weight: 600; }
+        .emp-meta { font-size: 0.78rem; color: #6c757d; }
+
+        .sticky-toolbar {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .status-cell {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: nowrap;
+        }
+
+        .overtime-input {
+            width: 90px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border-color: #0d6efd;
+            color: #0d6efd;
+        }
+
+        .overtime-input::placeholder {
+            color: #9ec5fe;
+            font-weight: 500;
+        }
+
+        .filter-badge {
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 999px;
+            background: rgba(13,110,253,.12);
+            color: #0d6efd;
+            font-weight: 600;
+            margin-left: 6px;
+        }
+
+        .project-badge-construction {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffe69c;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="sidebar-container"></div>
+
+
+    <main class="main-content">
+
+        <!-- HEADER -->
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+
+            <div>
+                <h3 class="fw-bold mb-1">
+                    <i class="bi bi-calendar-check me-2"></i>
+                    Attendance
+                </h3>
+
+                <p class="text-muted mb-0">
+                    Mark daily attendance for employees.
+                </p>
+            </div>
+
+        </div>
+
+
+        <!-- STATUS -->
+        <div id="statusMessage" class="alert d-none"></div>
+
+
+        <!-- SELECTORS -->
+        <div class="card border-0 shadow-sm mb-4">
+
+            <div class="card-body">
+
+                <div class="row g-3">
+
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">
+                            Business
+                            <span class="text-danger">*</span>
+                        </label>
+
+                        <select id="businessSelect" class="form-select" disabled>
+                            <option value="">Loading...</option>
+                        </select>
+                    </div>
+
+                    <!-- PROJECT SELECT — only shown for construction businesses -->
+                    <div class="col-md-4 d-none" id="projectCol">
+                        <label class="form-label fw-semibold">
+                            <i class="bi bi-cone-striped me-1 text-warning"></i>
+                            Project
+                            <span class="text-danger">*</span>
+                            <span class="badge project-badge-construction ms-1">
+                                Construction
+                            </span>
+                        </label>
+
+                        <select id="projectSelect" class="form-select" disabled>
+                            <option value="">Select Project</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">
+                            Date
+                            <span class="text-danger">*</span>
+                        </label>
+
+                        <input
+                            type="date"
+                            id="dateSelect"
+                            class="form-select">
+                    </div>
+
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button
+                            type="button"
+                            class="btn btn-outline-secondary w-100"
+                            id="todayBtn">
+
+                            <i class="bi bi-calendar-event me-1"></i>
+                            Today
+
+                        </button>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">
+                            Status Filter
+                        </label>
+
+                        <select id="statusFilter" class="form-select" disabled>
+                            <option value="all" selected>All Statuses</option>
+                            <option value="P">Present (P)</option>
+                            <option value="A">Absent (A)</option>
+                            <option value="H">Half Day (H)</option>
+                            <option value="L">Leave (L)</option>
+                            <option value="OT">Overtime (OT)</option>
+                            <option value="UNMARKED">Unmarked</option>
+                        </select>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- SUMMARY -->
+        <div id="summaryRow" class="mb-3 d-none"></div>
+
+
+        <!-- ATTENDANCE TABLE -->
+        <div class="card border-0 shadow-sm">
+
+            <div class="card-header bg-white py-3 sticky-toolbar">
+
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+
+                    <h5 class="mb-0 fw-semibold">
+                        Employee Attendance
+                        <span
+                            class="badge bg-secondary ms-2"
+                            id="employeeCount">
+                            0
+                        </span>
+                        <span
+                            class="filter-badge d-none"
+                            id="filterBadge">
+                        </span>
+                    </h5>
+
+                    <div class="d-flex gap-2 flex-wrap">
+
+                        <button
+                            type="button"
+                            class="btn btn-sm btn-outline-success"
+                            id="markAllPresentBtn"
+                            disabled>
+
+                            <i class="bi bi-check2-all me-1"></i>
+                            All Present
+
+                        </button>
+
+                        <button
+                            type="button"
+                            class="btn btn-sm btn-primary"
+                            id="saveAttendanceBtn"
+                            disabled>
+
+                            <i class="bi bi-save me-1"></i>
+                            Save Attendance
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="table-responsive">
+
+                <table class="table table-hover align-middle mb-0">
+
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width:50px;">#</th>
+                            <th>Employee</th>
+                            <th style="width:110px;">ID</th>
+                            <th style="width:110px;">Type</th>
+                            <th style="width:130px;">Amount</th>
+                            <th style="width:280px;">Status</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="employeeTableBody">
+                        <tr>
+                            <td colspan="6"
+                                class="text-center text-muted py-5">
+
+                                Select a business to load employees.
+
+                            </td>
+                        </tr>
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </main>
+
+
+    <script
+        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js">
+    </script>
+
+
+    <script
+        type="module"
+        src="sidebar/sidebar.js">
+    </script>
+
+
+<script type="module">
+
+    import {
+        auth,
+        db
+    } from "./firebase-config.js";
+
+    import {
+        onAuthStateChanged,
+        signOut
+    } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+
+    import {
+        ref,
+        get,
+        set
+    } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-database.js";
+
+
+    // --------------------------------------------------
+    // Constants
+    // --------------------------------------------------
+
+    const SETTING_KEY = "employee";
+
+    const STATUS_OPTIONS = [
+        { value: "P",  label: "Present",  cls: "att-select-P"  },
+        { value: "A",  label: "Absent",   cls: "att-select-A"  },
+        { value: "H",  label: "Half Day", cls: "att-select-H"  },
+        { value: "L",  label: "Leave",    cls: "att-select-L"  },
+        { value: "OT", label: "Overtime", cls: "att-select-OT" }
+    ];
+
+    const STATUS_SUMMARY_ORDER = ["P", "A", "H", "L", "OT"];
+
+
+    // --------------------------------------------------
+    // Elements
+    // --------------------------------------------------
+
+    const businessSelect =
+        document.getElementById("businessSelect");
+
+    const projectCol =
+        document.getElementById("projectCol");
+
+    const projectSelect =
+        document.getElementById("projectSelect");
+
+    const dateSelect =
+        document.getElementById("dateSelect");
+
+    const todayBtn =
+        document.getElementById("todayBtn");
+
+    const statusFilter =
+        document.getElementById("statusFilter");
+
+    const summaryRow =
+        document.getElementById("summaryRow");
+
+    const employeeTableBody =
+        document.getElementById("employeeTableBody");
+
+    const employeeCount =
+        document.getElementById("employeeCount");
+
+    const filterBadge =
+        document.getElementById("filterBadge");
+
+    const markAllPresentBtn =
+        document.getElementById("markAllPresentBtn");
+
+    const saveAttendanceBtn =
+        document.getElementById("saveAttendanceBtn");
+
+    const statusMessage =
+        document.getElementById("statusMessage");
+
+
+    // --------------------------------------------------
+    // State
+    // --------------------------------------------------
+
+    let currentAdminRole = "";
+    let businessAccess = {};
+    let currentUserData = null;
+
+    let currentBusinessId = "";
+    let currentBusinessIsConstruction = false;
+    let currentProjectId = "";
+
+    let currentDate = "";
+
+    let fields = [];
+    let employees = [];
+
+    let attendanceState = {};
+
+    const rowRefs = new Map();
+
+    let currentFilter = "all";
+
+
+    // --------------------------------------------------
+    // Helpers
+    // --------------------------------------------------
+
+    function isSuperAdmin() {
+        return (
+            currentAdminRole === "main-admin" ||
+            currentAdminRole === "dev-admin" ||
+            currentAdminRole === "owner"
+        );
+    }
+
+    function isBusinessAdmin() {
+        return currentAdminRole === "business-admin";
+    }
+
+    function isProjectAdmin() {
+        return currentAdminRole === "project-admin";
+    }
+
+    function hasBusinessAccess(businessId) {
+
+        if (!businessId) return false;
+
+        if (isSuperAdmin()) return true;
+
+        if (isProjectAdmin()) {
+
+            const access =
+                currentUserData?.projectAccess?.[businessId];
+
+            return !!(access && typeof access === "object");
+        }
+
+        if (!isBusinessAdmin()) return false;
+
+        if (!businessAccess || typeof businessAccess !== "object") {
+            return false;
+        }
+
+        const entry = businessAccess[businessId];
+
+        if (entry === undefined || entry === null || entry === false) {
+            return false;
+        }
+
+        return true;
+    }
+
+    function showStatus(message, type = "danger") {
+        statusMessage.className = `alert alert-${type}`;
+        statusMessage.textContent = message;
+        statusMessage.classList.remove("d-none");
+
+        clearTimeout(showStatus._timer);
+        showStatus._timer = setTimeout(() => {
+            statusMessage.classList.add("d-none");
+        }, 4000);
+    }
+
+    function escapeHtml(value) {
+        return String(value)
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#039;");
+    }
+
+    function todayIso() {
+        const d = new Date();
+        const pad = n => String(n).padStart(2, "0");
+        return (
+            d.getFullYear() + "-" +
+            pad(d.getMonth() + 1) + "-" +
+            pad(d.getDate())
+        );
+    }
+
+
+    // --------------------------------------------------
+    // Filter helpers
+    // --------------------------------------------------
+
+    function employeeMatchesFilter(rowId) {
+
+        if (currentFilter === "all") return true;
+
+        const st =
+            (attendanceState[rowId] || {}).status || "";
+
+        if (currentFilter === "UNMARKED") {
+            return st === "";
+        }
+
+        return st === currentFilter;
+    }
+
+
+    function getVisibleEmployees() {
+
+        return employees.filter(emp =>
+            employeeMatchesFilter(emp.rowId)
+        );
+    }
+
+
+    // --------------------------------------------------
+    // Business dropdown
+    // --------------------------------------------------
+
+    async function loadBusinessDropdown() {
+
+        businessSelect.innerHTML =
+            `<option value="">Loading...</option>`;
+
+        businessSelect.disabled = true;
+
+
+        let businesses = {};
+
+        try {
+
+            if (isSuperAdmin()) {
+
+                const snap = await get(ref(db, "sr_group/businesses"));
+
+                if (snap.exists()) {
+                    businesses = snap.val() || {};
+                }
+
+            } else if (isBusinessAdmin()) {
+
+                const ids = Object.keys(businessAccess || {});
+
+                for (const id of ids) {
+
+                    try {
+
+                        const snap = await get(
+                            ref(db, `sr_group/businesses/${id}`)
+                        );
+
+                        if (snap.exists()) {
+                            businesses[id] = snap.val();
+                        } else {
+                            businesses[id] = { name: id };
+                        }
+
+                    } catch (err) {
+                        businesses[id] = { name: id };
+                    }
+                }
+
+            } else if (isProjectAdmin()) {
+
+                // project-admin: derive business list from projectAccess
+                const projectAccess =
+                    currentUserData?.projectAccess || {};
+
+                const ids = Object.keys(projectAccess);
+
+                for (const id of ids) {
+
+                    try {
+
+                        const snap = await get(
+                            ref(db, `sr_group/businesses/${id}`)
+                        );
+
+                        if (snap.exists()) {
+                            businesses[id] = snap.val();
+                        } else {
+                            businesses[id] = { name: id };
+                        }
+
+                    } catch (err) {
+                        businesses[id] = { name: id };
+                    }
+                }
+
+            } else {
+                throw new Error(
+                    "You do not have permission to view attendance."
+                );
+            }
+
+        } catch (error) {
+
+            console.error("Load businesses error:", error);
+
+            businessSelect.innerHTML =
+                `<option value="">Unable to load</option>`;
+
+            return;
+        }
+
+
+        const ids =
+            Object.keys(businesses).sort();
+
+
+        businessSelect.innerHTML =
+            `<option value="">-- Select business --</option>`;
+
+
+        if (!ids.length) {
+
+            businessSelect.innerHTML =
+                `<option value="">No businesses available</option>`;
+
+            businessSelect.disabled = true;
+            return;
+        }
+
+
+        ids.forEach(id => {
+
+            const option = document.createElement("option");
+
+            option.value = id;
+
+            const isConstruction =
+                businesses[id]?.construction === true;
+
+            option.textContent =
+                `${businesses[id]?.name || id} (${id})` +
+                (isConstruction ? " — Construction" : "");
+
+            option.dataset.construction =
+                isConstruction ? "true" : "false";
+
+            businessSelect.appendChild(option);
+        });
+
+
+        businessSelect.disabled = false;
+
+
+        // Restore from URL if applicable
+        const params = new URLSearchParams(location.search);
+        const fromUrl = params.get("business");
+        const projectFromUrl = params.get("project") || "";
+
+        if (
+            fromUrl &&
+            hasBusinessAccess(fromUrl) &&
+            businessSelect.querySelector(`option[value="${CSS.escape(fromUrl)}"]`)
+        ) {
+
+            businessSelect.value = fromUrl;
+
+            await onBusinessChange(projectFromUrl);
+
+        } else {
+
+            employeeTableBody.innerHTML = `
+                <tr>
+                    <td colspan="6"
+                        class="text-center text-muted py-5">
+                        Select a business to load employees.
+                    </td>
+                </tr>
+            `;
+
+            employeeCount.textContent = "0";
+            markAllPresentBtn.disabled = true;
+            saveAttendanceBtn.disabled = true;
+            statusFilter.disabled = true;
+            summaryRow.classList.add("d-none");
+            filterBadge.classList.add("d-none");
+        }
+    }
+
+
+    // --------------------------------------------------
+    // Schema loader
+    // --------------------------------------------------
+
+    async function loadEmployeeFields(businessId) {
+
+        const snap = await get(
+            ref(db, `sr_group/settings/${businessId}/${SETTING_KEY}`)
+        );
+
+        if (!snap.exists()) {
+            throw new Error(
+                `No "${SETTING_KEY}" settings found for ${businessId}.`
+            );
+        }
+
+        const raw = snap.val();
+
+        const list = [];
+
+        Object.entries(raw).forEach(([key, value]) => {
+
+            if (key === "meta") return;
+            if (!value || typeof value !== "object") return;
+
+            list.push({
+                id: key,
+                title: value.title || "Untitled",
+                type: value.type || "text",
+                order:
+                    typeof value.order === "number"
+                        ? value.order
+                        : null
+            });
+        });
+
+
+        const FALLBACK_ORDER = [
+            "ID",
+            "Employee Name",
+            "Designation",
+            "Mobile",
+            "Type",
+            "Amount"
+        ];
+
+
+        list.sort((a, b) => {
+
+            const ao = (a.order !== null)
+                ? a.order
+                : (FALLBACK_ORDER.indexOf(a.title) + 1);
+
+            const bo = (b.order !== null)
+                ? b.order
+                : (FALLBACK_ORDER.indexOf(b.title) + 1);
+
+            if (ao !== bo) return ao - bo;
+
+            return a.title.localeCompare(b.title);
+        });
+
+
+        return list;
+    }
+
+
+    // --------------------------------------------------
+    // Employee records loader — PROJECT AWARE
+    // --------------------------------------------------
+
+    async function loadEmployees(businessId) {
+
+        const path = currentBusinessIsConstruction && currentProjectId
+            ? `sr_group/businesses/${businessId}/projects/${currentProjectId}/records/${SETTING_KEY}`
+            : `sr_group/businesses/${businessId}/records/${SETTING_KEY}`;
+
+        const snap = await get(ref(db, path));
+
+        if (!snap.exists()) {
+            return [];
+        }
+
+        const raw = snap.val();
+        const list = [];
+
+        Object.entries(raw).forEach(([rowId, rowData]) => {
+
+            if (!rowData || typeof rowData !== "object") return;
+
+            list.push({ rowId, data: rowData });
+        });
+
+
+        const idField = fields.find(f => f.title === "ID");
+
+        list.sort((a, b) => {
+
+            if (idField) {
+
+                const av = a.data[idField.id];
+                const bv = b.data[idField.id];
+
+                const an = parseFloat(av);
+                const bn = parseFloat(bv);
+
+                if (!isNaN(an) && !isNaN(bn)) {
+                    return an - bn;
+                }
+
+                return String(av || "")
+                    .localeCompare(String(bv || ""));
+            }
+
+            return a.rowId.localeCompare(b.rowId);
+        });
+
+
+        return list;
+    }
+
+
+    // --------------------------------------------------
+    // Attendance loader — PROJECT AWARE
+    // --------------------------------------------------
+
+    async function loadAttendance(businessId, date) {
+
+        const path = currentBusinessIsConstruction && currentProjectId
+            ? `sr_group/businesses/${businessId}/projects/${currentProjectId}/attendance/${date}`
+            : `sr_group/businesses/${businessId}/attendance/${date}`;
+
+        const snap = await get(ref(db, path));
+
+        return snap.exists() ? snap.val() : {};
+    }
+
+
+    // --------------------------------------------------
+    // Render employees
+    // --------------------------------------------------
+
+    function renderEmployees() {
+
+        employeeTableBody.innerHTML = "";
+        rowRefs.clear();
+
+
+        if (!employees.length) {
+
+            employeeTableBody.innerHTML = `
+                <tr>
+                    <td colspan="6"
+                        class="text-center text-muted py-5">
+
+                        <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+                        No employee records for this business.
+
+                    </td>
+                </tr>
+            `;
+
+            employeeCount.textContent = "0";
+            markAllPresentBtn.disabled = true;
+            saveAttendanceBtn.disabled = true;
+            summaryRow.classList.add("d-none");
+            filterBadge.classList.add("d-none");
+            return;
+        }
+
+
+        const visible = getVisibleEmployees();
+
+        employeeCount.textContent = visible.length;
+
+        updateFilterBadge();
+
+
+        if (!visible.length) {
+
+            employeeTableBody.innerHTML = `
+                <tr>
+                    <td colspan="6"
+                        class="text-center text-muted py-5">
+
+                        <i class="bi bi-funnel fs-2 d-block mb-2"></i>
+                        No employees match the current status filter.
+
+                    </td>
+                </tr>
+            `;
+
+            markAllPresentBtn.disabled = true;
+            saveAttendanceBtn.disabled = true;
+
+            return;
+        }
+
+
+        const idField    = fields.find(f => f.title === "ID");
+        const nameField  = fields.find(f => f.title === "Employee Name");
+        const desigField = fields.find(f => f.title === "Designation");
+        const typeField  = fields.find(f => f.title === "Type");
+        const amountField= fields.find(f => f.title === "Amount");
+
+
+        visible.forEach((emp, index) => {
+
+            const tr = document.createElement("tr");
+
+
+            const idText =
+                idField ? (emp.data[idField.id] || "") : "";
+
+            const nameText =
+                nameField ? (emp.data[nameField.id] || "") : "";
+
+            const desigText =
+                desigField ? (emp.data[desigField.id] || "") : "";
+
+            const typeText =
+                typeField ? (emp.data[typeField.id] || "") : "";
+
+            const amountText =
+                amountField ? (emp.data[amountField.id] || "") : "";
+
+
+            const saved = attendanceState[emp.rowId] || {};
+            const currentStatus = saved.status || "";
+            const currentHours  =
+                saved.overtimeHours !== undefined
+                    ? saved.overtimeHours
+                    : "";
+
+
+            tr.innerHTML = `
+                <td>${index + 1}</td>
+                <td>
+                    <div class="emp-name">
+                        ${escapeHtml(nameText || "(unnamed)")}
+                    </div>
+                    <div class="emp-meta">
+                        ${escapeHtml(desigText || "")}
+                    </div>
+                </td>
+                <td>${escapeHtml(idText)}</td>
+                <td>${escapeHtml(typeText)}</td>
+                <td>${escapeHtml(amountText)}</td>
+                <td>
+                    <div class="status-cell">
+                        <select
+                            class="form-select form-select-sm attendance-select"
+                            data-row="${escapeHtml(emp.rowId)}">
+                            <option value="">-- Mark --</option>
+                            ${STATUS_OPTIONS.map(opt => `
+                                <option value="${opt.value}"
+                                    ${opt.value === currentStatus ? "selected" : ""}>
+                                    ${opt.label} (${opt.value})
+                                </option>
+                            `).join("")}
+                        </select>
+
+                        <input
+                            type="number"
+                            step="0.5"
+                            min="0"
+                            max="24"
+                            class="form-control form-control-sm overtime-input d-none"
+                            data-row="${escapeHtml(emp.rowId)}"
+                            placeholder="Hours"
+                            value="${escapeHtml(currentHours)}">
+                    </div>
+                </td>
+            `;
+
+            employeeTableBody.appendChild(tr);
+
+            const select =
+                tr.querySelector(".attendance-select");
+
+            const overtimeInput =
+                tr.querySelector(".overtime-input");
+
+
+            applySelectColor(select, currentStatus);
+
+
+            if (currentStatus === "OT") {
+                overtimeInput.classList.remove("d-none");
+            } else {
+                overtimeInput.classList.add("d-none");
+            }
+
+
+            select.addEventListener("change", () => {
+
+                attendanceState[emp.rowId] =
+                    attendanceState[emp.rowId] || {};
+
+                attendanceState[emp.rowId].status =
+                    select.value;
+
+                applySelectColor(select, select.value);
+
+
+                if (select.value === "OT") {
+
+                    overtimeInput.classList.remove("d-none");
+
+                    if (!overtimeInput.value) {
+                        overtimeInput.focus();
+                    }
+
+                    attendanceState[emp.rowId].overtimeHours =
+                        parseFloat(overtimeInput.value) || 0;
+
+                } else {
+
+                    overtimeInput.classList.add("d-none");
+                    overtimeInput.value = "";
+
+                    delete attendanceState[emp.rowId].overtimeHours;
+                }
+
+
+                updateSummary();
+
+
+                if (currentFilter !== "all") {
+                    renderEmployees();
+                }
+            });
+
+
+            overtimeInput.addEventListener("input", () => {
+
+                attendanceState[emp.rowId] =
+                    attendanceState[emp.rowId] || {};
+
+                attendanceState[emp.rowId].overtimeHours =
+                    parseFloat(overtimeInput.value) || 0;
+
+                updateSummary();
+            });
+
+
+            rowRefs.set(emp.rowId, { select, overtimeInput });
+        });
+
+
+        markAllPresentBtn.disabled = false;
+        saveAttendanceBtn.disabled = false;
+
+
+        updateSummary();
+    }
+
+
+    function applySelectColor(select, status) {
+
+        select.classList.remove(
+            "att-select-P",
+            "att-select-A",
+            "att-select-H",
+            "att-select-L",
+            "att-select-OT"
+        );
+
+        const opt = STATUS_OPTIONS.find(o => o.value === status);
+
+        if (opt) {
+            select.classList.add(opt.cls);
+        }
+    }
+
+
+    function updateFilterBadge() {
+
+        if (currentFilter === "all") {
+            filterBadge.classList.add("d-none");
+            filterBadge.textContent = "";
+            return;
+        }
+
+        let label = "";
+
+        if (currentFilter === "UNMARKED") {
+            label = "Unmarked";
+        } else {
+            label = STATUS_OPTIONS.find(o => o.value === currentFilter)?.label
+                || currentFilter;
+        }
+
+        filterBadge.textContent = `Filter: ${label}`;
+        filterBadge.classList.remove("d-none");
+    }
+
+
+    // --------------------------------------------------
+    // Summary pills
+    // --------------------------------------------------
+
+    function updateSummary() {
+
+        const counts = { P: 0, A: 0, H: 0, L: 0, OT: 0 };
+
+        let totalMarked = 0;
+        let totalOvertimeHours = 0;
+
+
+        employees.forEach(emp => {
+
+            const s = attendanceState[emp.rowId] || {};
+            const status = s.status || "";
+
+            if (status && counts.hasOwnProperty(status)) {
+                counts[status]++;
+                totalMarked++;
+            }
+
+            if (status === "OT") {
+
+                const h = parseFloat(s.overtimeHours);
+
+                if (Number.isFinite(h) && h > 0) {
+                    totalOvertimeHours += h;
+                }
+            }
+        });
+
+
+        if (totalMarked === 0) {
+            summaryRow.classList.add("d-none");
+            summaryRow.innerHTML = "";
+            return;
+        }
+
+
+        summaryRow.classList.remove("d-none");
+
+        let html = `<div class="d-flex flex-wrap align-items-center gap-2">`;
+
+        html += `<span class="text-muted small fw-semibold me-2">
+                    Marked: ${totalMarked} of ${employees.length}
+                 </span>`;
+
+
+        STATUS_SUMMARY_ORDER.forEach(code => {
+
+            if (counts[code] > 0) {
+
+                const label =
+                    STATUS_OPTIONS.find(o => o.value === code)?.label || code;
+
+                let extra = "";
+
+                if (code === "OT" && totalOvertimeHours > 0) {
+                    extra = ` · ${totalOvertimeHours}h`;
+                }
+
+                html += `
+                    <span class="summary-pill summary-${code}">
+                        ${label}: ${counts[code]}${extra}
+                    </span>
+                `;
+            }
+        });
+
+
+        const unmarked = employees.length - totalMarked;
+
+        if (unmarked > 0) {
+            html += `
+                <span class="summary-pill summary-UN">
+                    Unmarked: ${unmarked}
+                </span>
+            `;
+        }
+
+        html += `</div>`;
+
+        summaryRow.innerHTML = html;
+    }
+
+
+    // --------------------------------------------------
+    // Projects loader — PROJECT ADMIN AWARE
+    // --------------------------------------------------
+
+    async function loadProjectsForBusiness(businessId) {
+
+        projectSelect.innerHTML =
+            `<option value="">Loading...</option>`;
+
+        projectSelect.disabled = true;
+
+
+        let projects = {};
+
+
+        // 1. Read from the business node
+        try {
+
+            const snap = await get(
+                ref(db, `sr_group/businesses/${businessId}/projects`)
+            );
+
+            if (snap.exists()) {
+                projects = snap.val() || {};
+            }
+
+        } catch (error) {
+
+            console.warn(
+                "Could not load projects from business node:",
+                error
+            );
+        }
+
+
+        // 2. For project-admin, restrict to assigned projects
+        if (isProjectAdmin()) {
+
+            const assigned =
+                currentUserData?.projectAccess?.[businessId] || {};
+
+            const restricted = {};
+
+            Object.entries(projects).forEach(([pushId, p]) => {
+
+                if (pushId === "_placeholder") return;
+                if (!p || typeof p !== "object") return;
+
+                if (assigned[pushId]) {
+                    restricted[pushId] = p;
+                }
+            });
+
+            // Fallback: if nothing matched (or business read failed),
+            // use the assigned map itself
+            if (!Object.keys(restricted).length) {
+
+                Object.entries(assigned).forEach(([pushId, p]) => {
+
+                    if (pushId === "_placeholder") return;
+                    if (!p || typeof p !== "object") return;
+
+                    restricted[pushId] = {
+                        projectId: p.projectId || "",
+                        projectName: p.name || p.projectName || pushId
+                    };
+                });
+            }
+
+            projects = restricted;
+        }
+
+
+        // 3. Clean placeholders / invalid entries
+        const cleaned = {};
+
+        Object.entries(projects).forEach(([id, p]) => {
+            if (id === "_placeholder") return;
+            if (!p || typeof p !== "object") return;
+            cleaned[id] = p;
+        });
+
+
+        projectSelect.innerHTML =
+            `<option value="">Select Project</option>`;
+
+
+        const entries =
+            Object.entries(cleaned);
+
+
+        if (!entries.length) {
+
+            projectSelect.innerHTML =
+                `<option value="">No projects available</option>`;
+
+            projectSelect.disabled = true;
+
+            return;
+        }
+
+
+        entries.forEach(([pushId, p]) => {
+
+            const opt = document.createElement("option");
+
+            opt.value = pushId;
+
+            const pId = p.projectId || "";
+            const pName = p.projectName || p.name || pushId;
+
+            opt.textContent =
+                `${pId} — ${pName}`;
+
+            projectSelect.appendChild(opt);
+        });
+
+
+        projectSelect.disabled = false;
+    }
+
+
+    // --------------------------------------------------
+    // Business / date / filter change
+    // --------------------------------------------------
+
+    async function onBusinessChange(preselectProjectId = "") {
+
+        currentBusinessId = businessSelect.value;
+
+        rowRefs.clear();
+        employees = [];
+        fields = [];
+        attendanceState = {};
+        currentProjectId = "";
+
+
+        // Hide project card initially
+        projectCol.classList.add("d-none");
+
+
+        if (!currentBusinessId) {
+
+            currentBusinessIsConstruction = false;
+
+            employeeTableBody.innerHTML = `
+                <tr>
+                    <td colspan="6"
+                        class="text-center text-muted py-5">
+                        Select a business to load employees.
+                    </td>
+                </tr>
+            `;
+
+            employeeCount.textContent = "0";
+            markAllPresentBtn.disabled = true;
+            saveAttendanceBtn.disabled = true;
+            statusFilter.disabled = true;
+            summaryRow.classList.add("d-none");
+            filterBadge.classList.add("d-none");
+
+            return;
+        }
+
+
+        if (!hasBusinessAccess(currentBusinessId)) {
+
+            showStatus("You do not have access to this business.");
+
+            businessSelect.value = "";
+            currentBusinessId = "";
+
+            return;
+        }
+
+
+        // Detect construction from the <option> data attribute
+        const opt =
+            businessSelect.querySelector(
+                `option[value="${CSS.escape(currentBusinessId)}"]`
+            );
+
+        currentBusinessIsConstruction =
+            opt?.dataset.construction === "true";
+
+
+        // ---------------------------------------------
+        // Construction → require project first
+        // ---------------------------------------------
+
+        if (currentBusinessIsConstruction) {
+
+            projectCol.classList.remove("d-none");
+
+            await loadProjectsForBusiness(currentBusinessId);
+
+
+            if (preselectProjectId) {
+
+                const target =
+                    projectSelect.querySelector(
+                        `option[value="${CSS.escape(preselectProjectId)}"]`
+                    );
+
+                if (target) {
+                    projectSelect.value = preselectProjectId;
+                    currentProjectId = preselectProjectId;
+                    await onProjectChange();
+                    return;
+                }
+            }
+
+
+            employeeTableBody.innerHTML = `
+                <tr>
+                    <td colspan="6"
+                        class="text-center text-muted py-5">
+                        Select a project to load employees.
+                    </td>
+                </tr>
+            `;
+
+            employeeCount.textContent = "0";
+            markAllPresentBtn.disabled = true;
+            saveAttendanceBtn.disabled = true;
+            statusFilter.disabled = true;
+            summaryRow.classList.add("d-none");
+            filterBadge.classList.add("d-none");
+
+            return;
+        }
+
+
+        // ---------------------------------------------
+        // Non-construction → load directly
+        // ---------------------------------------------
+
+        await loadEmployeesForCurrentSelection();
+    }
+
+
+    async function onProjectChange() {
+
+        currentProjectId = projectSelect.value;
+
+        if (!currentProjectId) {
+
+            employees = [];
+            attendanceState = {};
+
+            employeeTableBody.innerHTML = `
+                <tr>
+                    <td colspan="6"
+                        class="text-center text-muted py-5">
+                        Select a project to load employees.
+                    </td>
+                </tr>
+            `;
+
+            employeeCount.textContent = "0";
+            markAllPresentBtn.disabled = true;
+            saveAttendanceBtn.disabled = true;
+            statusFilter.disabled = true;
+            summaryRow.classList.add("d-none");
+            filterBadge.classList.add("d-none");
+
+            return;
+        }
+
+
+        await loadEmployeesForCurrentSelection();
+    }
+
+
+    async function loadEmployeesForCurrentSelection() {
+
+        employeeTableBody.innerHTML = `
+            <tr>
+                <td colspan="6"
+                    class="text-center text-muted py-5">
+                    Loading employees...
+                </td>
+            </tr>
+        `;
+
+
+        try {
+
+            fields =
+                await loadEmployeeFields(currentBusinessId);
+
+            employees =
+                await loadEmployees(currentBusinessId);
+
+            await reloadAttendanceForDate();
+
+
+        } catch (error) {
+
+            console.error("Load error:", error);
+
+            employeeTableBody.innerHTML = `
+                <tr>
+                    <td colspan="6"
+                        class="text-center text-danger py-5">
+                        ${escapeHtml(error.message || "Failed to load.")}
+                    </td>
+                </tr>
+            `;
+
+            showStatus(
+                error.message || "Failed to load employees."
+            );
+
+            return;
+        }
+
+
+        statusFilter.disabled = false;
+
+        renderEmployees();
+    }
+
+
+    // --------------------------------------------------
+    // Sync URL params
+    // --------------------------------------------------
+
+    function syncUrlParams() {
+
+        const params = new URLSearchParams(location.search);
+
+        let changed = false;
+
+        if (params.get("business") !== currentBusinessId) {
+            params.set("business", currentBusinessId);
+            changed = true;
+        }
+
+        if (currentBusinessIsConstruction) {
+
+            if (params.get("project") !== currentProjectId) {
+                params.set("project", currentProjectId);
+                changed = true;
+            }
+
+        } else {
+
+            if (params.has("project")) {
+                params.delete("project");
+                changed = true;
+            }
+        }
+
+        if (changed) {
+            history.replaceState(
+                null,
+                "",
+                "?" + params.toString()
+            );
+        }
+    }
+
+
+    async function reloadAttendanceForDate() {
+
+        if (!currentBusinessId) return;
+
+        syncUrlParams();
+
+        attendanceState =
+            await loadAttendance(currentBusinessId, currentDate);
+    }
+
+
+    async function onDateChange() {
+
+        const newDate = dateSelect.value;
+
+        if (!newDate) return;
+
+        currentDate = newDate;
+
+        if (!currentBusinessId) return;
+
+        if (currentBusinessIsConstruction && !currentProjectId) {
+            return;
+        }
+
+
+        try {
+
+            await reloadAttendanceForDate();
+
+        } catch (error) {
+
+            console.error("Load attendance error:", error);
+
+            showStatus("Failed to load attendance for this date.");
+
+            attendanceState = {};
+        }
+
+
+        renderEmployees();
+    }
+
+
+    function onFilterChange() {
+
+        currentFilter = statusFilter.value || "all";
+
+        renderEmployees();
+    }
+
+
+    // --------------------------------------------------
+    // Save attendance
+    // --------------------------------------------------
+
+    async function saveAttendance() {
+
+        if (!currentBusinessId) {
+            showStatus("Please select a business.");
+            return;
+        }
+
+        if (currentBusinessIsConstruction && !currentProjectId) {
+            showStatus("Please select a project.");
+            return;
+        }
+
+        if (!currentDate) {
+            showStatus("Please select a date.");
+            return;
+        }
+
+        if (!employees.length) {
+            showStatus("No employees to save.");
+            return;
+        }
+
+
+        const payload = {};
+
+        let missingHours = 0;
+
+
+        employees.forEach(emp => {
+
+            const st =
+                (attendanceState[emp.rowId] || {}).status || "";
+
+            if (!st) return;
+
+
+            const entry = {
+                status: st,
+                employeeName:
+                    pickFieldValue(emp.data, "Employee Name"),
+                employeeId:
+                    pickFieldValue(emp.data, "ID"),
+                markedAt: Date.now()
+            };
+
+
+            if (st === "OT") {
+
+                const h = parseFloat(
+                    (attendanceState[emp.rowId] || {}).overtimeHours
+                );
+
+                if (Number.isFinite(h) && h > 0) {
+                    entry.overtimeHours = h;
+                } else {
+                    missingHours++;
+                }
+            }
+
+
+            payload[emp.rowId] = entry;
+        });
+
+
+        if (Object.keys(payload).length === 0) {
+            showStatus(
+                "Mark at least one employee before saving.",
+                "warning"
+            );
+            return;
+        }
+
+
+        if (missingHours > 0) {
+
+            const proceed = confirm(
+                `${missingHours} employee(s) marked as Overtime but have no hours entered.\n\nSave anyway?`
+            );
+
+            if (!proceed) return;
+        }
+
+
+        saveAttendanceBtn.disabled = true;
+
+        const originalHtml = saveAttendanceBtn.innerHTML;
+
+        saveAttendanceBtn.innerHTML = `
+            <span class="spinner-border spinner-border-sm me-1"></span>
+            Saving...
+        `;
+
+
+        try {
+
+            const path = currentBusinessIsConstruction
+                ? `sr_group/businesses/${currentBusinessId}/projects/${currentProjectId}/attendance/${currentDate}`
+                : `sr_group/businesses/${currentBusinessId}/attendance/${currentDate}`;
+
+
+            await set(ref(db, path), payload);
+
+
+            showStatus(
+                `Attendance saved for ${currentDate} (${Object.keys(payload).length} employee(s)).`,
+                "success"
+            );
+
+
+        } catch (error) {
+
+            console.error("Save attendance error:", error);
+
+            showStatus("Failed to save attendance.");
+
+        } finally {
+
+            saveAttendanceBtn.disabled = false;
+            saveAttendanceBtn.innerHTML = originalHtml;
+        }
+    }
+
+
+    function pickFieldValue(data, title) {
+
+        const f = fields.find(x => x.title === title);
+
+        if (!f) return "";
+
+        return data[f.id] || "";
+    }
+
+
+    // --------------------------------------------------
+    // Mark all present
+    // --------------------------------------------------
+
+    function markAllPresent() {
+
+        if (!employees.length) return;
+
+        const visible = getVisibleEmployees();
+
+        if (!visible.length) return;
+
+
+        visible.forEach(emp => {
+
+            attendanceState[emp.rowId] =
+                attendanceState[emp.rowId] || {};
+
+            attendanceState[emp.rowId].status = "P";
+
+            delete attendanceState[emp.rowId].overtimeHours;
+
+            const refs = rowRefs.get(emp.rowId);
+
+            if (refs) {
+
+                if (refs.select) {
+                    refs.select.value = "P";
+                    applySelectColor(refs.select, "P");
+                }
+
+                if (refs.overtimeInput) {
+                    refs.overtimeInput.classList.add("d-none");
+                    refs.overtimeInput.value = "";
+                }
+            }
+        });
+
+
+        updateSummary();
+
+
+        if (currentFilter !== "all") {
+            renderEmployees();
+        }
+    }
+
+
+    // --------------------------------------------------
+    // Event wiring
+    // --------------------------------------------------
+
+    businessSelect.addEventListener(
+        "change",
+        () => onBusinessChange()
+    );
+
+    projectSelect.addEventListener(
+        "change",
+        onProjectChange
+    );
+
+    dateSelect.addEventListener(
+        "change",
+        onDateChange
+    );
+
+    todayBtn.addEventListener("click", () => {
+
+        dateSelect.value = todayIso();
+
+        onDateChange();
+    });
+
+    statusFilter.addEventListener(
+        "change",
+        onFilterChange
+    );
+
+    markAllPresentBtn.addEventListener(
+        "click",
+        markAllPresent
+    );
+
+    saveAttendanceBtn.addEventListener(
+        "click",
+        saveAttendance
+    );
+
+
+    // --------------------------------------------------
+    // Bootstrap on auth
+    // --------------------------------------------------
+
+    onAuthStateChanged(
+        auth,
+        async function (user) {
+
+            if (!user) {
+                window.location.href = "login.html";
+                return;
+            }
+
+
+            try {
+
+                const snap =
+                    await get(ref(db, `sr_group/users/${user.uid}`));
+
+                if (!snap.exists()) {
+
+                    await signOut(auth);
+                    window.location.href = "login.html";
+                    return;
+                }
+
+
+                const userData = snap.val();
+
+                currentUserData  = userData;
+                currentAdminRole = userData.role || "";
+                businessAccess   = userData.businessAccess || {};
+
+
+                dateSelect.value = todayIso();
+                currentDate = dateSelect.value;
+
+
+                await loadBusinessDropdown();
+
+
+            } catch (error) {
+
+                console.error("Auth error:", error);
+
+                window.location.href = "login.html";
+            }
+        }
+    );
+
+</script>
+
+</body>
+
+</html>

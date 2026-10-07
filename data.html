@@ -1,0 +1,1920 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data - SR Group</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="sidebar/sidebar.css">
+
+    <style>
+        .field-label {
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .table th {
+            white-space: nowrap;
+            font-size: 0.85rem;
+        }
+
+        .table td {
+            font-size: 0.9rem;
+            vertical-align: middle;
+        }
+
+        .table th.sortable {
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .table th.sortable:hover {
+            background: #f1f3f5;
+        }
+
+        .table th .sort-icon {
+            opacity: 0.4;
+            font-size: 0.75rem;
+            margin-left: 0.25rem;
+        }
+
+        .table th.sorted-asc .sort-icon,
+        .table th.sorted-desc .sort-icon {
+            opacity: 1;
+            color: #0d6efd;
+        }
+
+        .filter-label {
+            font-size: 0.78rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            color: #6c757d;
+            margin-bottom: 0.35rem;
+        }
+
+        .filter-scroll {
+            max-height: 160px;
+            overflow-y: auto;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.375rem;
+            padding: 0.5rem;
+            background: #fff;
+        }
+
+        .filter-scroll .form-check {
+            margin-bottom: 0.25rem;
+        }
+
+        .filter-panel {
+            position: fixed;
+            top: 0;
+            right: -420px;
+            width: 400px;
+            max-width: 100vw;
+            height: 100vh;
+            background: #fff;
+            box-shadow: -4px 0 24px rgba(0, 0, 0, 0.12);
+            z-index: 1050;
+            transition: right 0.25s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .filter-panel.open {
+            right: 0;
+        }
+
+        .filter-panel-header {
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .filter-panel-body {
+            padding: 1rem 1.25rem;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+
+        .filter-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.35);
+            z-index: 1040;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease;
+        }
+
+        .filter-backdrop.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .summary-card {
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem;
+            background: #fff;
+            height: 100%;
+        }
+
+        .summary-card .summary-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            color: #6c757d;
+            font-weight: 600;
+        }
+
+        .summary-card .summary-value {
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: #0d6efd;
+            line-height: 1.1;
+        }
+
+        .project-badge-construction {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffe69c;
+        }
+
+/* Soft shade backgrounds for whole rows */
+.cell-color-primary   { background-color: rgba(13, 110, 253, 0.10) !important; }
+.cell-color-secondary { background-color: rgba(108, 117, 125, 0.10) !important; }
+.cell-color-success   { background-color: rgba(25, 135, 84, 0.10) !important; }
+.cell-color-danger    { background-color: rgba(220, 53, 69, 0.10) !important; }
+.cell-color-warning   { background-color: rgba(255, 193, 7, 0.16) !important; }
+.cell-color-info      { background-color: rgba(13, 202, 240, 0.13) !important; }
+.cell-color-light     { background-color: rgba(248, 249, 250, 0.9) !important; }
+.cell-color-dark      { background-color: rgba(33, 37, 41, 0.10) !important; }
+.cell-color-none      { background-color: transparent !important; }
+
+#recordsTable tbody tr.cell-color-primary > td,
+#recordsTable tbody tr.cell-color-secondary > td,
+#recordsTable tbody tr.cell-color-success > td,
+#recordsTable tbody tr.cell-color-danger > td,
+#recordsTable tbody tr.cell-color-warning > td,
+#recordsTable tbody tr.cell-color-info > td,
+#recordsTable tbody tr.cell-color-light > td,
+#recordsTable tbody tr.cell-color-dark > td,
+#recordsTable tbody tr.cell-color-none > td {
+    background-color: transparent !important;
+}
+
+#recordsTable tbody tr.cell-color-primary:hover   > td { background-color: rgba(13, 110, 253, 0.18) !important; }
+#recordsTable tbody tr.cell-color-secondary:hover > td { background-color: rgba(108, 117, 125, 0.18) !important; }
+#recordsTable tbody tr.cell-color-success:hover   > td { background-color: rgba(25, 135, 84, 0.18) !important; }
+#recordsTable tbody tr.cell-color-danger:hover    > td { background-color: rgba(220, 53, 69, 0.18) !important; }
+#recordsTable tbody tr.cell-color-warning:hover   > td { background-color: rgba(255, 193, 7, 0.25) !important; }
+#recordsTable tbody tr.cell-color-info:hover      > td { background-color: rgba(13, 202, 240, 0.22) !important; }
+#recordsTable tbody tr.cell-color-light:hover     > td { background-color: rgba(248, 249, 250, 1) !important; }
+#recordsTable tbody tr.cell-color-dark:hover      > td { background-color: rgba(33, 37, 41, 0.18) !important; }
+
+.filter-scroll .cell-color-primary,
+.filter-scroll .cell-color-secondary,
+.filter-scroll .cell-color-success,
+.filter-scroll .cell-color-danger,
+.filter-scroll .cell-color-warning,
+.filter-scroll .cell-color-info,
+.filter-scroll .cell-color-light,
+.filter-scroll .cell-color-dark,
+.filter-scroll .cell-color-none {
+    background-color: currentColor;
+    opacity: 0.9;
+}
+    </style>
+</head>
+
+<body>
+
+<div id="sidebar-container"></div>
+
+<main id="main-content">
+    <div class="container-fluid p-4">
+
+        <!-- HEADER -->
+        <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-3">
+            <div>
+                <h3 class="mb-1">
+                    <i class="bi bi-table me-2"></i>
+                    <span id="pageTitle">Data</span>
+                </h3>
+                <p class="text-muted mb-0">
+                    Business: <strong id="businessLabel">-</strong>
+                    <span id="projectLabelWrapper" class="d-none">
+                        &nbsp;|&nbsp; Project:
+                        <strong id="projectLabel">-</strong>
+                        <span class="badge project-badge-construction ms-1">
+                            <i class="bi bi-cone-striped me-1"></i>Construction
+                        </span>
+                    </span>
+                </p>
+            </div>
+
+            <div class="d-flex gap-2 flex-wrap">
+                <a href="manage.html" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i> Back
+                </a>
+                <button class="btn btn-outline-success" id="downloadBtn" disabled>
+                    <i class="bi bi-file-earmark-excel me-1"></i> Excel
+                </button>
+                <button class="btn btn-outline-primary d-none" id="toggleFilterBtn">
+                    <i class="bi bi-funnel me-1"></i> Filters
+                    <span class="badge bg-primary ms-1 d-none" id="filterCountBadge">0</span>
+                </button>
+                <button class="btn btn-primary" id="addRecordBtn" disabled>
+                    <i class="bi bi-plus-lg me-1"></i> Add Record
+                </button>
+            </div>
+        </div>
+
+        <!-- USER -->
+        <div class="alert alert-light border mb-4">
+            <i class="bi bi-person-circle me-2"></i>
+            <strong id="currentUserName">Loading...</strong>
+            <span class="badge bg-primary ms-2" id="currentUserRole">Loading...</span>
+        </div>
+
+        <!-- SUMMARY CARDS -->
+        <div class="row g-3 mb-4" id="summaryRow"></div>
+
+        <!-- RECORDS -->
+        <div class="card shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div>
+                    <strong><i class="bi bi-list-ul me-2"></i> Records</strong>
+                    <div class="small text-muted">
+                        <span id="recordCount">0</span> of
+                        <span id="recordTotal">0</span> record(s)
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2 flex-wrap align-items-center">
+                    <div class="input-group input-group-sm" style="width: 260px;">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="text" class="form-control" id="searchInput" placeholder="Search records...">
+                        <button class="btn btn-outline-secondary" type="button" id="clearSearchBtn" title="Clear search">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-1">
+                        <label class="small text-muted mb-0" for="pageSizeSelect">Show</label>
+                        <select id="pageSizeSelect" class="form-select form-select-sm" style="width: auto;">
+                            <option value="20" selected>20</option>
+                            <option value="50">50</option>
+                            <option value="100">100</option>
+                        </select>
+                        <span class="small text-muted">/ page</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover mb-0" id="recordsTable">
+                    <thead class="table-light">
+                        <tr id="recordsHead">
+                            <th>Loading...</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recordsBody">
+                        <tr>
+                            <td colspan="20" class="text-center text-muted py-4">Loading...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- PAGINATION -->
+            <div class="card-footer bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div class="small text-muted">
+                    Page <span id="pageLabel">1</span> of <span id="pageTotalLabel">1</span>
+                </div>
+                <nav>
+                    <ul class="pagination pagination-sm mb-0" id="pagination"></ul>
+                </nav>
+            </div>
+        </div>
+
+        <!-- EMPTY / ERROR -->
+        <div id="emptyState" class="text-center text-muted py-5 d-none">
+            <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+            <span id="emptyStateText">No records yet.</span>
+        </div>
+
+    </div>
+</main>
+
+<!-- FILTER BACKDROP + PANEL -->
+<div class="filter-backdrop" id="filterBackdrop"></div>
+
+<aside class="filter-panel" id="filterPanel">
+    <div class="filter-panel-header">
+        <strong><i class="bi bi-funnel me-2"></i> Filters</strong>
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-secondary btn-sm" id="clearFiltersBtn">
+                <i class="bi bi-x-lg me-1"></i> Clear
+            </button>
+            <button class="btn btn-outline-secondary btn-sm" id="closeFilterBtn">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+    </div>
+
+    <div class="filter-panel-body">
+        <div class="row g-3" id="filterFields"></div>
+    </div>
+</aside>
+
+<!-- RECORD MODAL -->
+<div class="modal fade" id="recordModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <form id="recordForm">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-pencil-square me-2"></i>
+                        <span id="recordModalTitle">Add Record</span>
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <input type="hidden" id="recordId">
+                    <div class="row g-3" id="recordFields"></div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="saveRecordBtn">
+                        <i class="bi bi-check-lg me-1"></i> Save Record
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script type="module" src="sidebar/sidebar.js"></script>
+
+<script type="module">
+
+    import { auth, db } from "./firebase-config.js";
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+    import { ref, get, set, remove, push } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-database.js";
+
+    // =====================================================
+    // CONSTANTS
+    // =====================================================
+
+    const GLOBAL_ADMIN_ROLES = ["main-admin", "dev-admin", "owner"];
+
+    // =====================================================
+    // STATE
+    // =====================================================
+
+    let currentUser = null;
+    let currentRole = "";
+    let currentUserData = null;
+    let businessId = "";
+    let settingKey = "";
+    let settingMetaName = "";
+    let projectId = "";               // ← NEW
+    let isConstruction = false;       // ← NEW
+    let fields = [];
+    let records = {};
+    let activeFilters = {};
+    let searchQuery = "";
+    let sortState = { fieldId: null, direction: null };
+    let currentPage = 1;
+    let pageSize = 20;
+
+    // =====================================================
+    // MODAL
+    // =====================================================
+
+    const recordModal = new bootstrap.Modal(document.getElementById("recordModal"));
+
+    // =====================================================
+    // AUTH
+    // =====================================================
+
+    onAuthStateChanged(auth, async user => {
+        if (!user) {
+            location.href = "login.html";
+            return;
+        }
+
+        currentUser = user;
+
+        let snapshot;
+        try {
+            snapshot = await get(ref(db, `sr_group/users/${user.uid}`));
+        }
+        catch (err) {
+            console.error("Failed to load user profile:", err);
+            location.href = "login.html";
+            return;
+        }
+
+        if (!snapshot.exists()) {
+            location.href = "login.html";
+            return;
+        }
+
+        currentUserData = snapshot.val();
+        currentRole = currentUserData.role || "";
+
+        document.getElementById("currentUserName").textContent =
+            currentUserData.name || user.email;
+
+        document.getElementById("currentUserRole").textContent = currentRole;
+
+        const params = new URLSearchParams(location.search);
+        businessId = params.get("business") || "";
+        settingKey = params.get("setting") || "";
+        projectId = params.get("project") || "";        // ← NEW
+
+        if (!businessId || !settingKey) {
+            showFatal("Missing business or setting in the URL.");
+            return;
+        }
+
+        if (!userHasBusinessAccess(businessId)) {
+            showFatal("You do not have access to this business.");
+            return;
+        }
+
+        // Read business to know if construction
+        try {
+            const bSnap = await get(ref(db, `sr_group/businesses/${businessId}`));
+            if (bSnap.exists()) {
+                const b = bSnap.val() || {};
+                isConstruction = b.construction === true;
+            }
+        }
+        catch (err) {
+            console.warn("Could not read business node:", err);
+        }
+
+        // For construction businesses we require a project
+        if (isConstruction && !projectId) {
+            showFatal("This is a construction business. Please select a project from the Manage page.");
+            return;
+        }
+
+        document.getElementById("businessLabel").textContent = businessId;
+
+        // =====================================================
+        // PROJECT LABEL
+        // =====================================================
+
+        if (isConstruction && projectId) {
+
+            const wrapper = document.getElementById("projectLabelWrapper");
+            const label = document.getElementById("projectLabel");
+
+            wrapper.classList.remove("d-none");
+
+            // Load project details for display
+            try {
+                const pSnap = await get(
+                    ref(db, `sr_group/businesses/${businessId}/projects/${projectId}`)
+                );
+
+                if (pSnap.exists()) {
+                    const p = pSnap.val() || {};
+                    const pId = p.projectId || "";
+                    const pName = p.projectName || p.name || projectId;
+                    label.textContent = `${pId} — ${pName}`;
+                }
+                else {
+                    label.textContent = projectId;
+                }
+            }
+            catch (err) {
+                console.warn("Could not read project:", err);
+                label.textContent = projectId;
+            }
+        }
+
+        // =====================================================
+        // ACCESS CHECK FOR PROJECT-ADMIN
+        // =====================================================
+
+        if (
+            currentRole === "project-admin" &&
+            isConstruction
+        ) {
+            const projectAccess =
+                currentUserData?.projectAccess?.[businessId] || {};
+
+            const allowed =
+                Object.prototype.hasOwnProperty.call(projectAccess, projectId);
+
+            if (!allowed) {
+                showFatal("You do not have access to this project.");
+                return;
+            }
+        }
+
+        await loadFields();
+        buildFilterPanel();
+        buildSummaryCards();
+        await loadRecords();
+    });
+
+    // =====================================================
+    // ACCESS HELPERS
+    // =====================================================
+
+    function isGlobalAdmin() {
+        return GLOBAL_ADMIN_ROLES.includes(currentRole);
+    }
+
+    function userHasBusinessAccess(id) {
+        if (isGlobalAdmin()) {
+            return true;
+        }
+
+        const access = currentUserData?.businessAccess;
+        if (!access || typeof access !== "object") {
+            return false;
+        }
+
+        return Object.prototype.hasOwnProperty.call(access, id);
+    }
+
+    // =====================================================
+    // RECORDS PATH — branches based on project
+    // =====================================================
+
+    function recordsPath() {
+
+        if (isConstruction && projectId) {
+            return `sr_group/businesses/${businessId}/projects/${projectId}/records/${settingKey}`;
+        }
+
+        return `sr_group/businesses/${businessId}/records/${settingKey}`;
+    }
+
+    // =====================================================
+    // LOAD FIELDS (schema still lives under settings/{businessId}/{settingKey})
+    // =====================================================
+
+    async function loadFields() {
+        let snapshot;
+        try {
+            snapshot = await get(ref(db, `sr_group/settings/${businessId}/${settingKey}`));
+        }
+        catch (err) {
+            console.error("Failed to load fields:", err);
+            showFatal("Unable to load field definitions.");
+            return;
+        }
+
+        if (!snapshot.exists()) {
+            showFatal("No field definitions found for this setting.");
+            return;
+        }
+
+        const data = snapshot.val();
+
+        // ✅ Sort fields by `order` (1, 2, 3, ...)
+        fields = Object.entries(data)
+            .filter(([id]) => id !== "meta")
+            .map(([id, value]) => ({ id, ...value }))
+            .sort((a, b) => {
+                const ao = Number(a.order);
+                const bo = Number(b.order);
+
+                const aHas = Number.isFinite(ao) && ao > 0;
+                const bHas = Number.isFinite(bo) && bo > 0;
+
+                if (aHas && bHas) return ao - bo;
+                if (aHas) return -1;
+                if (bHas) return 1;
+
+                return String(a.title || "").localeCompare(String(b.title || ""));
+            });
+
+        const meta = data.meta || {};
+        settingMetaName = meta.name || formatSettingName(settingKey);
+
+        document.getElementById("pageTitle").textContent = settingMetaName;
+        document.title = `${settingMetaName} - SR Group`;
+
+        document.getElementById("addRecordBtn").disabled = fields.length === 0;
+
+        renderTableHeader();
+    }
+
+    // =====================================================
+    // LOAD RECORDS
+    // =====================================================
+
+    async function loadRecords() {
+        let snapshot;
+        try {
+            snapshot = await get(ref(db, recordsPath()));
+        }
+        catch (err) {
+            console.error("Failed to load records:", err);
+            showFatal("Unable to load records.");
+            return;
+        }
+
+        records = snapshot.exists() ? snapshot.val() : {};
+
+        renderRecords();
+    }
+
+    // =====================================================
+    // TABLE HEADER (with sorting)
+    // =====================================================
+
+    function renderTableHeader() {
+        const head = document.getElementById("recordsHead");
+        head.innerHTML = "";
+
+        const thIndex = document.createElement("th");
+        thIndex.textContent = "#";
+        head.appendChild(thIndex);
+
+        fields.forEach(field => {
+            const th = document.createElement("th");
+            th.classList.add("sortable");
+
+            if (field.displaySum) {
+                th.classList.add("text-end");
+            }
+
+            th.dataset.fieldId = field.id;
+
+            th.innerHTML = `
+                <span>${escapeHtml(field.title || "-")}</span>
+                <i class="bi bi-arrow-down-up sort-icon"></i>
+            `;
+
+            th.addEventListener("click", () => {
+                toggleSort(field.id);
+            });
+
+            head.appendChild(th);
+        });
+
+        const thActions = document.createElement("th");
+        thActions.className = "text-end";
+        thActions.textContent = "Actions";
+        head.appendChild(thActions);
+
+        updateSortIndicators();
+    }
+
+    function toggleSort(fieldId) {
+        if (sortState.fieldId !== fieldId) {
+            sortState.fieldId = fieldId;
+            sortState.direction = "asc";
+        }
+        else if (sortState.direction === "asc") {
+            sortState.direction = "desc";
+        }
+        else if (sortState.direction === "desc") {
+            sortState.fieldId = null;
+            sortState.direction = null;
+        }
+        else {
+            sortState.direction = "asc";
+        }
+
+        updateSortIndicators();
+        currentPage = 1;
+        renderRecords();
+    }
+
+    function updateSortIndicators() {
+        document.querySelectorAll("#recordsHead th.sortable").forEach(th => {
+            th.classList.remove("sorted-asc", "sorted-desc");
+
+            const icon = th.querySelector(".sort-icon");
+            if (!icon) return;
+
+            if (th.dataset.fieldId === sortState.fieldId) {
+                if (sortState.direction === "asc") {
+                    th.classList.add("sorted-asc");
+                    icon.className = "bi bi-sort-down sort-icon";
+                }
+                else if (sortState.direction === "desc") {
+                    th.classList.add("sorted-desc");
+                    icon.className = "bi bi-sort-up sort-icon";
+                }
+            }
+            else {
+                icon.className = "bi bi-arrow-down-up sort-icon";
+            }
+        });
+    }
+
+    // =====================================================
+    // SUMMARY CARDS
+    // =====================================================
+
+    function buildSummaryCards() {
+        const row = document.getElementById("summaryRow");
+        row.innerHTML = "";
+
+        const colCount = document.createElement("div");
+        colCount.className = "col-6 col-md-4 col-lg-3";
+        colCount.innerHTML = `
+            <div class="summary-card">
+                <div class="summary-label">Records found</div>
+                <div class="summary-value" id="summaryCount">0</div>
+            </div>
+        `;
+        row.appendChild(colCount);
+
+        fields
+            .filter(field => field.displaySum)
+            .forEach(field => {
+                const col = document.createElement("div");
+                col.className = "col-6 col-md-4 col-lg-3";
+                col.innerHTML = `
+                    <div class="summary-card">
+                        <div class="summary-label">${escapeHtml(field.title || "-")}</div>
+                        <div class="summary-value" data-sum-id="${escapeHtml(field.id)}">0</div>
+                    </div>
+                `;
+                row.appendChild(col);
+            });
+    }
+
+    // =====================================================
+    // BUILD FILTER PANEL
+    // =====================================================
+
+    function buildFilterPanel() {
+        const filterableFields = fields.filter(field => field.filter === true);
+        const toggleBtn = document.getElementById("toggleFilterBtn");
+        const container = document.getElementById("filterFields");
+
+        container.innerHTML = "";
+        activeFilters = {};
+
+        if (!filterableFields.length) {
+            toggleBtn.classList.add("d-none");
+            closeFilterPanel();
+            updateFilterBadge();
+            return;
+        }
+
+        toggleBtn.classList.remove("d-none");
+
+        filterableFields.forEach(field => {
+            const col = document.createElement("div");
+            col.className = "col-12";
+            col.appendChild(buildFilterControl(field));
+            container.appendChild(col);
+        });
+
+        updateFilterBadge();
+    }
+
+    // =====================================================
+    // BUILD FILTER CONTROL
+    // =====================================================
+
+    function buildFilterControl(field) {
+        const wrapper = document.createElement("div");
+
+        const label = document.createElement("div");
+        label.className = "filter-label";
+        label.textContent = field.title || "-";
+        wrapper.appendChild(label);
+
+        if (field.type === "date") {
+            const row = document.createElement("div");
+            row.className = "row g-2";
+
+            const colFrom = document.createElement("div");
+            colFrom.className = "col-6";
+            const fromInput = document.createElement("input");
+            fromInput.type = "date";
+            fromInput.className = "form-control form-control-sm";
+            colFrom.appendChild(fromInput);
+
+            const colTo = document.createElement("div");
+            colTo.className = "col-6";
+            const toInput = document.createElement("input");
+            toInput.type = "date";
+            toInput.className = "form-control form-control-sm";
+            colTo.appendChild(toInput);
+
+            row.appendChild(colFrom);
+            row.appendChild(colTo);
+            wrapper.appendChild(row);
+
+            activeFilters[field.id] = { from: "", to: "" };
+
+            fromInput.addEventListener("input", () => {
+                activeFilters[field.id].from = fromInput.value;
+                onFiltersChanged();
+            });
+
+            toInput.addEventListener("input", () => {
+                activeFilters[field.id].to = toInput.value;
+                onFiltersChanged();
+            });
+
+            return wrapper;
+        }
+
+        if (field.type === "number") {
+            const row = document.createElement("div");
+            row.className = "row g-2";
+
+            const colMin = document.createElement("div");
+            colMin.className = "col-6";
+            const minInput = document.createElement("input");
+            minInput.type = "number";
+            minInput.className = "form-control form-control-sm";
+            minInput.placeholder = "Min";
+            colMin.appendChild(minInput);
+
+            const colMax = document.createElement("div");
+            colMax.className = "col-6";
+            const maxInput = document.createElement("input");
+            maxInput.type = "number";
+            maxInput.className = "form-control form-control-sm";
+            maxInput.placeholder = "Max";
+            colMax.appendChild(maxInput);
+
+            row.appendChild(colMin);
+            row.appendChild(colMax);
+            wrapper.appendChild(row);
+
+            activeFilters[field.id] = { min: "", max: "" };
+
+            minInput.addEventListener("input", () => {
+                activeFilters[field.id].min = minInput.value === "" ? "" : Number(minInput.value);
+                onFiltersChanged();
+            });
+
+            maxInput.addEventListener("input", () => {
+                activeFilters[field.id].max = maxInput.value === "" ? "" : Number(maxInput.value);
+                onFiltersChanged();
+            });
+
+            return wrapper;
+        }
+
+        if (field.type === "select") {
+            const box = document.createElement("div");
+            box.className = "filter-scroll";
+
+            const values = Object.values(field.options || {});
+
+            if (!values.length) {
+                const empty = document.createElement("div");
+                empty.className = "text-muted small";
+                empty.textContent = "No options";
+                box.appendChild(empty);
+            }
+
+            activeFilters[field.id] = new Set();
+
+            values.forEach((opt, i) => {
+                const optValue =
+                    typeof opt === "object" && opt !== null
+                        ? opt.value
+                        : opt;
+
+                const optColor =
+                    typeof opt === "object" && opt !== null
+                        ? (opt.color || "secondary")
+                        : "secondary";
+
+                const id = `flt_${field.id}_${i}`;
+                const check = document.createElement("div");
+                check.className = "form-check";
+                check.innerHTML = `
+                    <input class="form-check-input" type="checkbox" id="${id}">
+                    <label class="form-check-label small d-flex align-items-center gap-2" for="${id}">
+                        <span class="badge cell-color-${optColor} text-dark border">&nbsp;</span>
+                        <span>${escapeHtml(optValue)}</span>
+                    </label>
+                `;
+
+                const input = check.querySelector("input");
+                input.addEventListener("change", () => {
+                    if (input.checked) {
+                        activeFilters[field.id].add(String(optValue));
+                    }
+                    else {
+                        activeFilters[field.id].delete(String(optValue));
+                    }
+                    onFiltersChanged();
+                });
+
+                box.appendChild(check);
+            });
+
+            wrapper.appendChild(box);
+            return wrapper;
+        }
+
+        const box = document.createElement("div");
+        box.className = "filter-scroll";
+        box.dataset.textFilterBox = field.id;
+        wrapper.appendChild(box);
+
+        activeFilters[field.id] = new Set();
+        return wrapper;
+    }
+
+    // =====================================================
+    // REFRESH TEXT FILTER BOXES
+    // =====================================================
+
+    function refreshTextFilterBoxes() {
+        const boxes = document.querySelectorAll("[data-text-filter-box]");
+
+        boxes.forEach(box => {
+            const fieldId = box.dataset.textFilterBox;
+            const field = fields.find(f => f.id === fieldId);
+
+            if (!field) return;
+
+            const values = Array.from(
+                new Set(
+                    Object.values(records)
+                        .map(r => String(r[fieldId] ?? "").trim())
+                        .filter(v => v !== "")
+                )
+            ).sort((a, b) => a.localeCompare(b));
+
+            const selected = activeFilters[fieldId] || new Set();
+
+            box.innerHTML = "";
+
+            if (!values.length) {
+                const empty = document.createElement("div");
+                empty.className = "text-muted small";
+                empty.textContent = "No values";
+                box.appendChild(empty);
+                return;
+            }
+
+            values.forEach((optValue, i) => {
+                const id = `flt_${fieldId}_${i}`;
+                const check = document.createElement("div");
+                check.className = "form-check";
+                check.innerHTML = `
+                    <input class="form-check-input" type="checkbox" id="${id}" ${selected.has(optValue) ? "checked" : ""}>
+                    <label class="form-check-label small" for="${id}">
+                        ${escapeHtml(optValue)}
+                    </label>
+                `;
+
+                const input = check.querySelector("input");
+                input.addEventListener("change", () => {
+                    if (input.checked) {
+                        activeFilters[fieldId].add(optValue);
+                    }
+                    else {
+                        activeFilters[fieldId].delete(optValue);
+                    }
+                    onFiltersChanged();
+                });
+
+                box.appendChild(check);
+            });
+        });
+    }
+
+    // =====================================================
+    // FILTER BADGE
+    // =====================================================
+
+    function updateFilterBadge() {
+        const badge = document.getElementById("filterCountBadge");
+        let count = 0;
+
+        Object.values(activeFilters).forEach(f => {
+            if (f instanceof Set) {
+                if (f.size > 0) count++;
+            }
+            else if (f && typeof f === "object") {
+                const hasValue = Object.values(f).some(
+                    v => v !== "" && v !== null && v !== undefined
+                );
+                if (hasValue) count++;
+            }
+        });
+
+        if (count > 0) {
+            badge.textContent = count;
+            badge.classList.remove("d-none");
+        }
+        else {
+            badge.classList.add("d-none");
+        }
+    }
+
+    // =====================================================
+    // FILTERS CHANGED
+    // =====================================================
+
+    function onFiltersChanged() {
+        updateFilterBadge();
+        currentPage = 1;
+        renderRecords();
+    }
+
+    // =====================================================
+    // APPLY FILTERS + SEARCH
+    // =====================================================
+
+    function getFilteredEntries() {
+        const allEntries = Object.entries(records);
+        const filterableFields = fields.filter(field => field.filter === true);
+        const q = searchQuery.trim().toLowerCase();
+
+        return allEntries.filter(([, record]) => {
+            if (q) {
+                const match = fields.some(field => {
+                    const v = String(record[field.id] ?? "").toLowerCase();
+                    return v.includes(q);
+                });
+                if (!match) return false;
+            }
+
+            for (const field of filterableFields) {
+                const f = activeFilters[field.id];
+                if (!f) continue;
+
+                const raw = record[field.id];
+
+                if (field.type === "date") {
+                    const value = String(raw ?? "").trim();
+                    if (f.from && value < f.from) return false;
+                    if (f.to && value > f.to) return false;
+                }
+                else if (field.type === "number") {
+                    const n = Number(raw);
+                    const hasBound = f.min !== "" || f.max !== "";
+
+                    if (!Number.isFinite(n)) {
+                        if (hasBound) return false;
+                        continue;
+                    }
+
+                    if (f.min !== "" && n < f.min) return false;
+                    if (f.max !== "" && n > f.max) return false;
+                }
+                else {
+                    if (f instanceof Set && f.size > 0) {
+                        const value = String(raw ?? "").trim();
+                        if (!f.has(value)) return false;
+                    }
+                }
+            }
+
+            return true;
+        });
+    }
+
+    // =====================================================
+    // SORT
+    // =====================================================
+
+    function sortEntries(entries) {
+        if (!sortState.fieldId || !sortState.direction) {
+            return entries;
+        }
+
+        const field = fields.find(f => f.id === sortState.fieldId);
+        const dir = sortState.direction === "asc" ? 1 : -1;
+        const type = field?.type || "text";
+
+        return [...entries].sort((a, b) => {
+            const va = a[1][sortState.fieldId];
+            const vb = b[1][sortState.fieldId];
+
+            if (type === "number") {
+                const na = Number(va);
+                const nb = Number(vb);
+                const fa = Number.isFinite(na);
+                const fb = Number.isFinite(nb);
+
+                if (!fa && !fb) return 0;
+                if (!fa) return 1;
+                if (!fb) return -1;
+
+                return (na - nb) * dir;
+            }
+
+            if (type === "date") {
+                const sa = String(va ?? "");
+                const sb = String(vb ?? "");
+
+                if (sa === sb) return 0;
+                if (sa === "") return 1;
+                if (sb === "") return -1;
+
+                return sa < sb ? -1 * dir : 1 * dir;
+            }
+
+            const sa = String(va ?? "").toLowerCase();
+            const sb = String(vb ?? "").toLowerCase();
+
+            if (sa === sb) return 0;
+            if (sa === "") return 1;
+            if (sb === "") return -1;
+
+            return sa < sb ? -1 * dir : 1 * dir;
+        });
+    }
+
+    // =====================================================
+    // RENDER RECORDS
+    // =====================================================
+
+    function renderRecords() {
+        refreshTextFilterBoxes();
+
+        const tbody = document.getElementById("recordsBody");
+        const empty = document.getElementById("emptyState");
+        const table = document.getElementById("recordsTable");
+
+        tbody.innerHTML = "";
+
+        const allEntries = Object.entries(records);
+        const filtered = getFilteredEntries();
+        const sorted = sortEntries(filtered);
+
+        document.getElementById("recordTotal").textContent = allEntries.length;
+        document.getElementById("recordCount").textContent = filtered.length;
+
+        updateSummary(filtered);
+
+        document.getElementById("downloadBtn").disabled = filtered.length === 0;
+
+        if (!filtered.length) {
+            table.classList.add("d-none");
+            empty.classList.remove("d-none");
+
+            document.getElementById("emptyStateText").textContent =
+                allEntries.length === 0
+                    ? "No records yet."
+                    : "No records match the current search / filters.";
+
+            renderPagination(0, 0);
+            return;
+        }
+
+        table.classList.remove("d-none");
+        empty.classList.add("d-none");
+
+        const totalPages = Math.max(1, Math.ceil(sorted.length / pageSize));
+
+        if (currentPage > totalPages) {
+            currentPage = totalPages;
+        }
+
+        const startIndex = (currentPage - 1) * pageSize;
+        const pageEntries = sorted.slice(startIndex, startIndex + pageSize);
+
+pageEntries.forEach(([id, record], index) => {
+    const tr = document.createElement("tr");
+
+    let rowColor = null;
+    for (const field of fields) {
+        if (field.type === "select") {
+            const c = getOptionColor(field, record[field.id]);
+            if (c && c !== "none") {
+                rowColor = c;
+                break;
+            }
+        }
+    }
+
+    if (rowColor) {
+        tr.classList.add(`cell-color-${rowColor}`);
+    }
+
+    const tdIndex = document.createElement("td");
+    tdIndex.textContent = startIndex + index + 1;
+    tr.appendChild(tdIndex);
+
+    fields.forEach(field => {
+        const td = document.createElement("td");
+        const value = record[field.id] ?? "";
+
+        if (field.displaySum) {
+            td.classList.add("text-end");
+        }
+
+        td.textContent = String(value);
+        tr.appendChild(td);
+    });
+
+    const tdActions = document.createElement("td");
+    tdActions.className = "text-end";
+    tdActions.innerHTML = `
+        <div class="btn-group btn-group-sm">
+            <button class="btn btn-outline-primary edit-record" title="Edit">
+                <i class="bi bi-pencil"></i>
+            </button>
+            <button class="btn btn-outline-danger delete-record" title="Delete">
+                <i class="bi bi-trash"></i>
+            </button>
+        </div>
+    `;
+
+    tdActions.querySelector(".edit-record").addEventListener("click", () => {
+        openRecordModal(id, record);
+    });
+
+    tdActions.querySelector(".delete-record").addEventListener("click", () => {
+        deleteRecord(id);
+    });
+
+    tr.appendChild(tdActions);
+    tbody.appendChild(tr);
+});
+
+        renderPagination(currentPage, totalPages);
+    }
+
+    // =====================================================
+    // PAGINATION UI
+    // =====================================================
+
+    function renderPagination(page, totalPages) {
+        const ul = document.getElementById("pagination");
+        ul.innerHTML = "";
+
+        document.getElementById("pageLabel").textContent = totalPages === 0 ? 0 : page;
+        document.getElementById("pageTotalLabel").textContent = totalPages === 0 ? 0 : totalPages;
+
+        if (totalPages <= 1) return;
+
+        const addItem = (label, targetPage, disabled, active) => {
+            const li = document.createElement("li");
+            li.className = "page-item" + (disabled ? " disabled" : "") + (active ? " active" : "");
+
+            const a = document.createElement("a");
+            a.className = "page-link";
+            a.href = "javascript:void(0)";
+            a.innerHTML = label;
+
+            if (!disabled && !active) {
+                a.addEventListener("click", () => {
+                    currentPage = targetPage;
+                    renderRecords();
+                });
+            }
+
+            li.appendChild(a);
+            ul.appendChild(li);
+        };
+
+        addItem('<i class="bi bi-chevron-double-left"></i>', 1, page === 1, false);
+        addItem('<i class="bi bi-chevron-left"></i>', page - 1, page === 1, false);
+
+        const windowSize = 2;
+        let from = Math.max(1, page - windowSize);
+        let to = Math.min(totalPages, page + windowSize);
+
+        if (from > 1) {
+            addItem("1", 1, false, page === 1);
+            if (from > 2) {
+                addItem("…", 0, true, false);
+            }
+        }
+
+        for (let p = from; p <= to; p++) {
+            addItem(String(p), p, false, p === page);
+        }
+
+        if (to < totalPages) {
+            if (to < totalPages - 1) {
+                addItem("…", 0, true, false);
+            }
+            addItem(String(totalPages), totalPages, false, page === totalPages);
+        }
+
+        addItem('<i class="bi bi-chevron-right"></i>', page + 1, page === totalPages, false);
+        addItem('<i class="bi bi-chevron-double-right"></i>', totalPages, page === totalPages, false);
+    }
+
+    // =====================================================
+    // UPDATE SUMMARY (count + sums)
+    // =====================================================
+
+    function updateSummary(filteredEntries) {
+        const countEl = document.getElementById("summaryCount");
+        if (countEl) {
+            countEl.textContent = filteredEntries.length;
+        }
+
+        fields
+            .filter(field => field.displaySum)
+            .forEach(field => {
+                const el = document.querySelector(
+                    `[data-sum-id="${cssEscape(field.id)}"]`
+                );
+
+                if (!el) return;
+
+                const total = filteredEntries.reduce((sum, [, r]) => {
+                    const n = Number(r[field.id]);
+                    return sum + (Number.isFinite(n) ? n : 0);
+                }, 0);
+
+                el.textContent = formatNumber(total);
+            });
+    }
+
+    // =====================================================
+    // FILTER PANEL TOGGLE
+    // =====================================================
+
+    const filterPanel = document.getElementById("filterPanel");
+    const filterBackdrop = document.getElementById("filterBackdrop");
+
+    document.getElementById("toggleFilterBtn").addEventListener("click", openFilterPanel);
+    document.getElementById("closeFilterBtn").addEventListener("click", closeFilterPanel);
+    filterBackdrop.addEventListener("click", closeFilterPanel);
+
+    function openFilterPanel() {
+        filterPanel.classList.add("open");
+        filterBackdrop.classList.add("open");
+    }
+
+    function closeFilterPanel() {
+        filterPanel.classList.remove("open");
+        filterBackdrop.classList.remove("open");
+    }
+
+    // =====================================================
+    // CLEAR FILTERS
+    // =====================================================
+
+    document.getElementById("clearFiltersBtn").addEventListener("click", () => {
+        buildFilterPanel();
+        currentPage = 1;
+        renderRecords();
+    });
+
+    // =====================================================
+    // SEARCH
+    // =====================================================
+
+    const searchInput = document.getElementById("searchInput");
+
+    searchInput.addEventListener("input", () => {
+        searchQuery = searchInput.value;
+        currentPage = 1;
+        renderRecords();
+    });
+
+    document.getElementById("clearSearchBtn").addEventListener("click", () => {
+        searchInput.value = "";
+        searchQuery = "";
+        currentPage = 1;
+        renderRecords();
+    });
+
+    // =====================================================
+    // PAGE SIZE
+    // =====================================================
+
+    document.getElementById("pageSizeSelect").addEventListener("change", event => {
+        pageSize = Number(event.target.value) || 20;
+        currentPage = 1;
+        renderRecords();
+    });
+
+    // =====================================================
+    // ADD RECORD BUTTON
+    // =====================================================
+
+    document.getElementById("addRecordBtn").addEventListener("click", () => {
+        openRecordModal(null, null);
+    });
+
+    // =====================================================
+    // AUTO GENERATE ID
+    // =====================================================
+
+    function generateAutoId(field) {
+        const pattern = (field.autoPattern || "").trim();
+        if (!pattern) return "";
+
+        const year = new Date().getFullYear();
+        const yearReplaced = pattern.replace(/\[YEAR\]/gi, String(year));
+
+        const numTokenRegex = /\[Number\]/i;
+        const match = yearReplaced.match(numTokenRegex);
+
+        if (!match) {
+            return ensureUnique(yearReplaced, field);
+        }
+
+        const prefix = yearReplaced.slice(0, match.index);
+        const suffix = yearReplaced.slice(match.index + match[0].length);
+
+        let maxNum = 0;
+
+        Object.values(records).forEach(record => {
+            const raw = String(record[field.id] ?? "").trim();
+            if (!raw) return;
+            if (!raw.startsWith(prefix)) return;
+            if (suffix && !raw.endsWith(suffix)) return;
+
+            const middle = raw.slice(
+                prefix.length,
+                suffix ? raw.length - suffix.length : undefined
+            );
+
+            const n = parseInt(middle, 10);
+            if (Number.isFinite(n) && n > maxNum) {
+                maxNum = n;
+            }
+        });
+
+        const next = maxNum + 1;
+        const padded = String(next).padStart(3, "0");
+
+        return `${prefix}${padded}${suffix}`;
+    }
+
+    function ensureUnique(candidate, field) {
+        if (!candidate) return candidate;
+
+        const taken = new Set(
+            Object.values(records)
+                .map(r => String(r[field.id] ?? "").trim())
+                .filter(Boolean)
+        );
+
+        if (!taken.has(candidate)) return candidate;
+
+        const trailingMatch = candidate.match(/^(.*?)(\d+)(\D*)$/);
+
+        if (!trailingMatch) {
+            let i = 1;
+            let next = `${candidate}-${i}`;
+            while (taken.has(next)) {
+                i++;
+                next = `${candidate}-${i}`;
+            }
+            return next;
+        }
+
+        const [, before, digits, after] = trailingMatch;
+        let n = parseInt(digits, 10);
+        const width = digits.length;
+
+        let next;
+        do {
+            n++;
+            const padded = String(n).padStart(width, "0");
+            next = `${before}${padded}${after}`;
+        } while (taken.has(next));
+
+        return next;
+    }
+
+    function computeUniqueAutoId(field) {
+        const initial = generateAutoId(field);
+        return ensureUnique(initial, field);
+    }
+
+    // =====================================================
+    // RECORD MODAL — OPEN (ADD / EDIT)
+    // =====================================================
+
+    function openRecordModal(id, record) {
+        const isEdit = id !== null && id !== undefined && record !== undefined;
+
+        document.getElementById("recordModalTitle").textContent =
+            isEdit ? "Edit Record" : "Add Record";
+
+        document.getElementById("recordId").value = isEdit ? id : "";
+
+        const container = document.getElementById("recordFields");
+        container.innerHTML = "";
+
+        fields.forEach(field => {
+            const col = document.createElement("div");
+            col.className = "col-12 col-md-6";
+
+            const label = document.createElement("label");
+            label.className = "field-label";
+            label.setAttribute("for", `rf_${field.id}`);
+            label.textContent = field.title || "-";
+            col.appendChild(label);
+
+            let input;
+
+            if (field.type === "auto-generate") {
+                input = document.createElement("input");
+                input.type = "text";
+                input.className = "form-control bg-light";
+                input.id = `rf_${field.id}`;
+                input.readOnly = true;
+
+                if (isEdit && record[field.id] !== undefined && record[field.id] !== null) {
+                    input.value = record[field.id];
+                }
+                else {
+                    input.value = computeUniqueAutoId(field);
+                }
+
+                col.appendChild(input);
+
+                if (field.autoPattern) {
+                    const hint = document.createElement("div");
+                    hint.className = "form-text small";
+                    hint.innerHTML = `Pattern: <code>${escapeHtml(field.autoPattern)}</code> (auto)`;
+                    col.appendChild(hint);
+                }
+
+                container.appendChild(col);
+                return;
+            }
+
+            if (field.type === "select") {
+                input = document.createElement("select");
+                input.className = "form-select";
+                input.id = `rf_${field.id}`;
+
+                const blank = document.createElement("option");
+                blank.value = "";
+                blank.textContent = "-- Select --";
+                input.appendChild(blank);
+
+                Object.values(field.options || {}).forEach(opt => {
+                    const optValue =
+                        typeof opt === "object" && opt !== null
+                            ? opt.value
+                            : opt;
+
+                    const optColor =
+                        typeof opt === "object" && opt !== null
+                            ? (opt.color || "secondary")
+                            : "secondary";
+
+                    const o = document.createElement("option");
+                    o.value = optValue;
+                    o.textContent = optValue;
+
+                    if (optColor && optColor !== "none") {
+                        o.classList.add(`cell-color-${optColor}`);
+                    }
+
+                    input.appendChild(o);
+                });
+            }
+            else if (field.type === "date") {
+                input = document.createElement("input");
+                input.type = "date";
+                input.className = "form-control";
+                input.id = `rf_${field.id}`;
+            }
+            else if (field.type === "number") {
+                input = document.createElement("input");
+                input.type = "number";
+                input.step = "any";
+                input.className = "form-control";
+                input.id = `rf_${field.id}`;
+            }
+            else {
+                input = document.createElement("input");
+                input.type = "text";
+                input.className = "form-control";
+                input.id = `rf_${field.id}`;
+            }
+
+            if (isEdit && record[field.id] !== undefined && record[field.id] !== null) {
+                input.value = record[field.id];
+            }
+
+            col.appendChild(input);
+            container.appendChild(col);
+        });
+
+        recordModal.show();
+    }
+
+    // =====================================================
+    // RECORD FORM — SUBMIT
+    // =====================================================
+
+    document.getElementById("recordForm").addEventListener("submit", async event => {
+        event.preventDefault();
+
+        const saveBtn = document.getElementById("saveRecordBtn");
+        saveBtn.disabled = true;
+
+        const id = document.getElementById("recordId").value;
+        const isEdit = !!id;
+
+        const payload = {};
+
+        fields.forEach(field => {
+            if (field.type === "auto-generate") {
+                if (isEdit && records[id] && records[id][field.id]) {
+                    payload[field.id] = records[id][field.id];
+                }
+                else {
+                    const generated = computeUniqueAutoId(field);
+                    payload[field.id] = generated;
+                }
+                return;
+            }
+
+            const el = document.getElementById(`rf_${field.id}`);
+            let value = el ? el.value : "";
+
+            if (field.type === "number" && value !== "") {
+                const n = Number(value);
+                value = Number.isFinite(n) ? n : value;
+            }
+
+            payload[field.id] = value;
+        });
+
+        try {
+            if (id) {
+                await set(ref(db, `${recordsPath()}/${id}`), payload);
+                records[id] = payload;
+            }
+            else {
+                const newRef = push(ref(db, recordsPath()));
+                await set(newRef, payload);
+                records[newRef.key] = payload;
+            }
+
+            recordModal.hide();
+            renderRecords();
+        }
+        catch (err) {
+            console.error("Failed to save record:", err);
+            alert("Failed to save record. Please try again.");
+        }
+        finally {
+            saveBtn.disabled = false;
+        }
+    });
+
+    // =====================================================
+    // DELETE RECORD
+    // =====================================================
+
+    async function deleteRecord(id) {
+        const record = records[id];
+        if (!record) return;
+
+        const preview = fields
+            .slice(0, 3)
+            .map(f => `${f.title || "-"}: ${record[f.id] ?? ""}`)
+            .join("\n");
+
+        if (!confirm(`Delete this record?\n\n${preview}`)) {
+            return;
+        }
+
+        try {
+            await remove(ref(db, `${recordsPath()}/${id}`));
+            delete records[id];
+            renderRecords();
+        }
+        catch (err) {
+            console.error("Failed to delete record:", err);
+            alert("Failed to delete record. Please try again.");
+        }
+    }
+
+    // =====================================================
+    // EXCEL DOWNLOAD
+    // =====================================================
+
+    document.getElementById("downloadBtn").addEventListener("click", () => {
+        downloadExcel();
+    });
+
+    function downloadExcel() {
+        const filtered = sortEntries(getFilteredEntries());
+
+        if (!filtered.length) {
+            alert("There are no records to download with the current filters.");
+            return;
+        }
+
+        const totalRecords = Object.keys(records).length;
+        const filterCount = getActiveFilterCount();
+
+        const msgParts = [];
+        msgParts.push(`Download ${filtered.length} of ${totalRecords} record(s) as Excel?`);
+
+        if (searchQuery.trim()) {
+            msgParts.push(`Search: "${searchQuery.trim()}"`);
+        }
+
+        if (filterCount > 0) {
+            msgParts.push(`Active filters: ${filterCount}`);
+        }
+
+        if (!confirm(msgParts.join("\n"))) {
+            return;
+        }
+
+        const header = fields.map(field => field.title || "-");
+
+        const rows = filtered.map(([, record], index) => {
+            const row = { "#": index + 1 };
+            fields.forEach(field => {
+                row[field.title || "-"] = record[field.id] ?? "";
+            });
+            return row;
+        });
+
+        const sumFields = fields.filter(field => field.displaySum);
+
+        if (sumFields.length) {
+            const sumRow = { "#": "Total" };
+
+            fields.forEach(field => {
+                if (field.displaySum) {
+                    const total = filtered.reduce((s, [, r]) => {
+                        const n = Number(r[field.id]);
+                        return s + (Number.isFinite(n) ? n : 0);
+                    }, 0);
+                    sumRow[field.title || "-"] = total;
+                }
+                else {
+                    sumRow[field.title || "-"] = "";
+                }
+            });
+
+            rows.push(sumRow);
+        }
+
+        const aoa = [
+            header,
+            ...rows.map(r => [
+                r["#"],
+                ...fields.map(field => r[field.title || "-"])
+            ])
+        ];
+
+        aoa[0] = ["#", ...header];
+
+        const ws = XLSX.utils.aoa_to_sheet(aoa);
+        const wb = XLSX.utils.book_new();
+
+        const sheetName =
+            (settingMetaName || "Records")
+                .replace(/[\\/?*\[\]:]/g, " ")
+                .slice(0, 31) || "Records";
+
+        XLSX.utils.book_append_sheet(wb, ws, sheetName);
+
+        const filename =
+            `${sanitizeFilename(settingMetaName || "records")}_${timestampForFilename()}.xlsx`;
+
+        XLSX.writeFile(wb, filename);
+    }
+
+    // =====================================================
+    // HELPERS
+    // =====================================================
+
+    function getOptionColor(field, rawValue) {
+        if (!field || field.type !== "select" || !field.options) {
+            return null;
+        }
+
+        const value = String(rawValue ?? "").trim();
+        if (!value) return null;
+
+        for (const opt of Object.values(field.options)) {
+            if (typeof opt === "object" && opt !== null) {
+                if (String(opt.value ?? "").trim() === value) {
+                    return opt.color || "secondary";
+                }
+            }
+            else if (String(opt).trim() === value) {
+                return "secondary";
+            }
+        }
+
+        return null;
+    }
+
+    function getActiveFilterCount() {
+        let count = 0;
+
+        Object.values(activeFilters).forEach(f => {
+            if (f instanceof Set) {
+                if (f.size > 0) count++;
+            }
+            else if (f && typeof f === "object") {
+                const hasValue = Object.values(f).some(
+                    v => v !== "" && v !== null && v !== undefined
+                );
+                if (hasValue) count++;
+            }
+        });
+
+        return count;
+    }
+
+    function timestampForFilename() {
+        const d = new Date();
+        const pad = n => String(n).padStart(2, "0");
+
+        return (
+            `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}_` +
+            `${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`
+        );
+    }
+
+    function sanitizeFilename(name) {
+        return String(name)
+            .trim()
+            .replace(/[\\/:*?"<>|]+/g, "_")
+            .replace(/\s+/g, "_")
+            .slice(0, 60) || "records";
+    }
+
+    function formatNumber(n) {
+        if (!Number.isFinite(n)) return "0";
+
+        return n.toLocaleString(undefined, {
+            maximumFractionDigits: 2
+        });
+    }
+
+    function formatSettingName(name) {
+        return name
+            .replace(/[-_]+/g, " ")
+            .replace(/\b\w/g, char => char.toUpperCase());
+    }
+
+    function cssEscape(value) {
+        if (window.CSS && typeof window.CSS.escape === "function") {
+            return window.CSS.escape(value);
+        }
+
+        return String(value).replace(/[^a-zA-Z0-9_-]/g, "\\$&");
+    }
+
+    function escapeHtml(value) {
+        return String(value)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+    // =====================================================
+    // FATAL ERROR
+    // =====================================================
+
+    function showFatal(message) {
+        document.getElementById("pageTitle").textContent = "Error";
+        document.getElementById("recordsBody").innerHTML = `
+            <tr>
+                <td colspan="20" class="text-center text-danger py-4">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    ${escapeHtml(message)}
+                </td>
+            </tr>
+        `;
+        document.getElementById("recordsTable").classList.remove("d-none");
+        document.getElementById("emptyState").classList.add("d-none");
+        document.getElementById("downloadBtn").disabled = true;
+        document.getElementById("addRecordBtn").disabled = true;
+    }
+
+</script>
+
+</body>
+</html>

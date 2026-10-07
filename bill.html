@@ -1,0 +1,1242 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+    <title>Bill - SR Group</title>
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet">
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+        rel="stylesheet">
+
+    <link
+        rel="stylesheet"
+        href="sidebar/sidebar.css">
+
+    <style>
+        :root {
+            --brand: #0d6efd;
+            --border: #d0d7de;
+            --muted: #6c757d;
+        }
+
+        body {
+            background: #eef1f5;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+                Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        #sidebar-container {
+            position: fixed;
+            top: 0; left: 0;
+            width: 250px; height: 100vh;
+            z-index: 1000;
+        }
+
+        #main-content {
+            margin-left: 250px;
+            padding: 24px;
+        }
+
+        @media (max-width: 767px) {
+            #sidebar-container { width: 0; }
+            #main-content { margin-left: 0; padding: 12px; }
+        }
+
+
+        /* =====================================================
+           A4 PAGE
+           ===================================================== */
+
+        .a4-page {
+            width: 210mm;
+            min-height: 297mm;
+            padding: 14mm 14mm 16mm 14mm;
+            background: #fff;
+            margin: 0 auto 24px auto;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+            border-radius: 4px;
+            box-sizing: border-box;
+            color: #212529;
+            font-size: 12px;
+            position: relative;
+        }
+
+        @media (max-width: 767px) {
+            .a4-page {
+                width: 100%;
+                min-height: auto;
+                padding: 14px;
+            }
+        }
+
+
+        /* =====================================================
+           GST HEADER
+           ===================================================== */
+
+        .gst-header {
+            border-bottom: 2px solid var(--brand);
+            padding-bottom: 12px;
+            margin-bottom: 14px;
+        }
+
+        .gst-header .gst-title {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--brand);
+            letter-spacing: 0.3px;
+            line-height: 1.1;
+            margin: 0;
+        }
+
+        .gst-header .gst-subtitle {
+            font-size: 11px;
+            color: var(--muted);
+            margin-top: 2px;
+        }
+
+        .gst-header .gst-meta {
+            text-align: right;
+            font-size: 11px;
+            line-height: 1.5;
+        }
+
+        .gst-header .gst-meta strong {
+            color: #212529;
+        }
+
+
+        /* =====================================================
+           PROJECT BADGE (construction invoices)
+           ===================================================== */
+
+        .project-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffe69c;
+            border-radius: 4px;
+            padding: 3px 8px;
+            font-size: 10.5px;
+            font-weight: 600;
+            margin-top: 6px;
+            line-height: 1.3;
+        }
+
+        .project-badge i {
+            font-size: 11px;
+        }
+
+        .project-badge .project-id {
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            font-weight: 700;
+            color: #664d03;
+        }
+
+        .project-badge .project-name {
+            color: #856404;
+        }
+
+
+        /* =====================================================
+           SEGMENTS — 2 fields per row
+           ===================================================== */
+
+        .segment-block {
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            margin-bottom: 10px;
+            overflow: hidden;
+        }
+
+        .segment-block .segment-title {
+            background: #f1f5f9;
+            padding: 5px 10px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: #334155;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .segment-block .segment-body {
+            padding: 6px 10px;
+        }
+
+        .field-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            column-gap: 16px;
+            row-gap: 4px;
+        }
+
+        .field-item {
+            display: flex;
+            align-items: baseline;
+            gap: 6px;
+            font-size: 10.5px;
+            padding: 3px 0;
+            border-bottom: 1px dashed #eef1f5;
+            min-width: 0;
+        }
+
+        .field-item .field-label {
+            color: var(--muted);
+            font-weight: 600;
+            flex-shrink: 0;
+            white-space: nowrap;
+        }
+
+        .field-item .field-label::after {
+            content: ":";
+            margin-left: 1px;
+        }
+
+        .field-item .field-value {
+            color: #212529;
+            font-weight: 500;
+            word-break: break-word;
+            white-space: pre-line;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+
+        /* =====================================================
+           ITEMS TABLE
+           ===================================================== */
+
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11.5px;
+            margin-bottom: 12px;
+        }
+
+        .items-table thead th {
+            background: var(--brand);
+            color: #fff;
+            font-weight: 600;
+            text-align: left;
+            padding: 8px 8px;
+            border: 1px solid #0b5ed7;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .items-table tbody td {
+            border: 1px solid var(--border);
+            padding: 7px 8px;
+            vertical-align: top;
+        }
+
+        .items-table tbody tr:nth-child(even) td {
+            background: #f8fafc;
+        }
+
+        .items-table .text-end { text-align: right; }
+        .items-table .text-center { text-align: center; }
+
+        .item-type-badge {
+            display: inline-block;
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 1px 5px;
+            border-radius: 3px;
+            margin-left: 4px;
+            vertical-align: middle;
+        }
+
+        .item-type-badge.product { background: #0d6efd; color: #fff; }
+        .item-type-badge.service { background: #198754; color: #fff; }
+
+
+        /* =====================================================
+           TOTALS
+           ===================================================== */
+
+        .totals-wrap {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 6px;
+        }
+
+        .totals-box {
+            width: 62mm;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            overflow: hidden;
+            font-size: 12px;
+        }
+
+        .totals-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 10px;
+            border-bottom: 1px solid #eef1f5;
+        }
+
+        .totals-row:last-child { border-bottom: none; }
+
+        .totals-row .label { color: var(--muted); font-weight: 500; }
+        .totals-row .value { font-weight: 600; color: #212529; }
+
+        .totals-row.discount .label,
+        .totals-row.discount .value { color: #dc3545; }
+
+        .totals-row.grand {
+            background: var(--brand);
+            color: #fff;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .totals-row.grand .label,
+        .totals-row.grand .value { color: #fff; }
+
+        /* Grand total in words */
+
+        .grand-words {
+            text-align: right;
+            font-size: 11px;
+            color: #334155;
+            margin-bottom: 14px;
+            font-style: italic;
+            font-weight: 600;
+            padding-right: 2px;
+        }
+
+        .grand-words .words-label {
+            color: var(--muted);
+            font-weight: 500;
+            font-style: normal;
+        }
+
+
+        /* =====================================================
+           FOOTER — no signature
+           ===================================================== */
+
+        .bill-footer {
+            position: absolute;
+            left: 14mm;
+            right: 14mm;
+            bottom: 10mm;
+            text-align: center;
+            font-size: 10px;
+            color: var(--muted);
+            border-top: 1px dashed var(--border);
+            padding-top: 8px;
+            line-height: 1.5;
+        }
+
+        .bill-footer .footer-strong {
+            font-weight: 600;
+            color: #495057;
+        }
+
+
+        /* =====================================================
+           ACTIONS (screen only)
+           ===================================================== */
+
+        .action-bar {
+            max-width: 210mm;
+            margin: 0 auto 16px auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        @media (max-width: 767px) {
+            .action-bar { max-width: 100%; }
+        }
+
+
+        /* =====================================================
+           STATUS / ERROR
+           ===================================================== */
+
+        .loading-msg {
+            max-width: 210mm;
+            margin: 40px auto;
+            text-align: center;
+            color: var(--muted);
+        }
+
+
+        /* =====================================================
+           PRINT
+           ===================================================== */
+
+        @page {
+            size: A4;
+            margin: 0;
+        }
+
+        @media print {
+            body { background: #fff; }
+
+            #sidebar-container,
+            .action-bar,
+            .no-print {
+                display: none !important;
+            }
+
+            #main-content {
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            .a4-page {
+                width: 210mm;
+                min-height: 297mm;
+                margin: 0;
+                padding: 14mm 14mm 16mm 14mm;
+                box-shadow: none;
+                border-radius: 0;
+            }
+
+            .items-table thead th,
+            .totals-row.grand,
+            .project-badge {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <div id="sidebar-container"></div>
+
+
+    <main id="main-content">
+
+        <!-- ACTION BAR (screen only) -->
+
+        <div class="action-bar no-print">
+
+            <div>
+
+                <button
+                    type="button"
+                    class="btn btn-outline-secondary btn-sm"
+                    onclick="history.back()">
+
+                    <i class="bi bi-arrow-left me-1"></i>
+                    Back
+
+                </button>
+
+            </div>
+
+            <div class="d-flex gap-2">
+
+                <button
+                    type="button"
+                    class="btn btn-outline-primary btn-sm"
+                    id="printBtn">
+
+                    <i class="bi bi-printer me-1"></i>
+                    Print
+
+                </button>
+
+                <button
+                    type="button"
+                    class="btn btn-primary btn-sm"
+                    id="downloadBtn">
+
+                    <i class="bi bi-download me-1"></i>
+                    Download PDF
+
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <!-- STATUS -->
+
+        <div
+            id="statusMessage"
+            class="alert d-none"
+            style="max-width: 210mm; margin: 0 auto 16px auto;">
+        </div>
+
+
+        <!-- LOADING -->
+
+        <div id="loadingMsg" class="loading-msg">
+            <span class="spinner-border spinner-border-sm me-2"></span>
+            Loading bill...
+        </div>
+
+
+        <!-- A4 PAGE -->
+
+        <div id="billPage" class="a4-page d-none">
+
+            <!-- GST HEADER -->
+
+            <div class="gst-header">
+
+                <div class="row align-items-start g-2">
+
+                    <div class="col-md-7">
+
+                        <h1 class="gst-title" id="gstTitle">-</h1>
+
+                        <div class="gst-subtitle" id="gstSubtitle">
+                            Tax Invoice
+                        </div>
+
+                        <!-- PROJECT BADGE — only for construction bills -->
+
+                        <div id="projectBadgeWrap" class="d-none">
+
+                            <span class="project-badge">
+
+                                <i class="bi bi-cone-striped"></i>
+
+                                <span>Project:</span>
+
+                                <span class="project-id" id="projectIdLabel">-</span>
+
+                                <span class="project-name" id="projectNameLabel"></span>
+
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                    <div class="col-md-5">
+
+                        <div class="gst-meta" id="gstMeta"></div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- DYNAMIC SEGMENTS -->
+
+            <div id="segmentsWrap"></div>
+
+
+            <!-- ITEMS -->
+
+            <div class="mb-3">
+
+                <table class="items-table">
+
+                    <thead>
+                        <tr>
+                            <th style="width: 6%;" class="text-center">#</th>
+                            <th style="width: 34%;">Item</th>
+                            <th style="width: 10%;" class="text-center">Qty</th>
+                            <th style="width: 10%;" class="text-center">Unit</th>
+                            <th style="width: 12%;" class="text-end">Price</th>
+                            <th style="width: 14%;" class="text-end">Amount</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="itemsBody"></tbody>
+
+                </table>
+
+            </div>
+
+
+            <!-- TOTALS -->
+
+            <div class="totals-wrap">
+
+                <div class="totals-box">
+
+                    <div class="totals-row">
+                        <span class="label">Subtotal</span>
+                        <span class="value" id="subtotal">0.00</span>
+                    </div>
+
+                    <div class="totals-row discount d-none" id="discountRow">
+                        <span class="label" id="discountLabel">Discount</span>
+                        <span class="value" id="discountAmount">0.00</span>
+                    </div>
+
+                    <div class="totals-row">
+                        <span class="label">Taxable Amount</span>
+                        <span class="value" id="taxableAmount">0.00</span>
+                    </div>
+
+                    <div class="totals-row d-none" id="cgstRow">
+                        <span class="label">
+                            CGST (<span id="cgstRateLabel">0</span>%)
+                        </span>
+                        <span class="value" id="cgstAmount">0.00</span>
+                    </div>
+
+                    <div class="totals-row d-none" id="sgstRow">
+                        <span class="label">
+                            SGST (<span id="sgstRateLabel">0</span>%)
+                        </span>
+                        <span class="value" id="sgstAmount">0.00</span>
+                    </div>
+
+                    <div class="totals-row d-none" id="igstRow">
+                        <span class="label">
+                            IGST (<span id="igstRateLabel">0</span>%)
+                        </span>
+                        <span class="value" id="igstAmount">0.00</span>
+                    </div>
+
+                    <div class="totals-row grand">
+                        <span class="label">Grand Total</span>
+                        <span class="value" id="grandTotal">0.00</span>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- GRAND TOTAL IN WORDS -->
+
+            <div class="grand-words">
+                <span class="words-label">Amount in words:</span>
+                <span id="grandTotalWords">-</span>
+            </div>
+
+
+            <!-- FOOTER — no signature -->
+
+            <div class="bill-footer">
+                <div class="footer-strong">
+                    This is a computer generated document.
+                </div>
+                <div>
+                    Generated on <span id="generatedOn">-</span>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script type="module" src="sidebar/sidebar.js"></script>
+
+
+    <script type="module">
+
+        import { db } from "./firebase-config.js";
+
+        import {
+            ref, get
+        } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-database.js";
+
+
+        // =====================================================
+        // HELPERS
+        // =====================================================
+
+        function escapeHtml(value) {
+            return String(value ?? "")
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        function formatMoney(n) {
+            const v = Number(n) || 0;
+            return v.toFixed(2);
+        }
+
+        function showStatus(message, type = "danger") {
+            const el = document.getElementById("statusMessage");
+            el.className = `alert alert-${type}`;
+            el.textContent = message;
+            el.classList.remove("d-none");
+        }
+
+        function hideLoading() {
+            document.getElementById("loadingMsg").classList.add("d-none");
+        }
+
+
+        // =====================================================
+        // NUMBER TO WORDS (Indian Numbering System)
+        // =====================================================
+
+        const ONES = [
+            "", "One", "Two", "Three", "Four", "Five", "Six", "Seven",
+            "Eight", "Nine", "Ten", "Eleven", "Twelve", "Thirteen",
+            "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen",
+            "Nineteen"
+        ];
+
+        const TENS = [
+            "", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty",
+            "Seventy", "Eighty", "Ninety"
+        ];
+
+        function twoDigits(n) {
+            if (n < 20) return ONES[n];
+            return TENS[Math.floor(n / 10)] + (n % 10 ? " " + ONES[n % 10] : "");
+        }
+
+        function threeDigits(n) {
+            if (n < 100) return twoDigits(n);
+            const h = Math.floor(n / 100);
+            const rest = n % 100;
+            return ONES[h] + " Hundred" + (rest ? " " + twoDigits(rest) : "");
+        }
+
+        function integerToWords(num) {
+            if (num === 0) return "Zero";
+
+            const crore = Math.floor(num / 10000000);
+            const lakh = Math.floor((num % 10000000) / 100000);
+            const thousand = Math.floor((num % 100000) / 1000);
+            const hundred = num % 1000;
+
+            const parts = [];
+
+            if (crore) parts.push(threeDigits(crore) + " Crore");
+            if (lakh) parts.push(threeDigits(lakh) + " Lakh");
+            if (thousand) parts.push(threeDigits(thousand) + " Thousand");
+            if (hundred) parts.push(threeDigits(hundred));
+
+            return parts.join(" ").trim();
+        }
+
+        function numberToWords(amount) {
+            const num = Number(amount) || 0;
+
+            const rupees = Math.floor(Math.abs(num));
+            const paise = Math.round((Math.abs(num) - rupees) * 100);
+
+            let words = integerToWords(rupees) + " Rupees";
+
+            if (paise > 0) {
+                words += " and " + twoDigits(paise) + " Paise";
+            }
+
+            words += " Only";
+
+            if (num < 0) words = "Minus " + words;
+
+            return words;
+        }
+
+
+        // =====================================================
+        // BILL PATH — PROJECT AWARE
+        // =====================================================
+
+        function buildBillPath(businessId, projectId, billId) {
+            if (projectId) {
+                return `sr_group/businesses/${businessId}/projects/${projectId}/bills/${billId}`;
+            }
+            return `sr_group/businesses/${businessId}/bills/${billId}`;
+        }
+
+
+        // =====================================================
+        // BOOT
+        // =====================================================
+
+        const params = new URLSearchParams(location.search);
+        const billId = params.get("id");
+        const businessId = params.get("business");
+        const projectIdFromUrl = params.get("project") || "";
+
+        if (!billId || !businessId) {
+            hideLoading();
+            showStatus("Missing bill id or business in the URL.");
+        }
+        else {
+            loadBill(billId, businessId, projectIdFromUrl);
+        }
+
+
+        // =====================================================
+        // LOAD BILL
+        // =====================================================
+
+        async function loadBill(billId, businessId, projectIdFromUrl) {
+
+            let billSnap = null;
+            let usedProjectId = projectIdFromUrl;
+
+            // ---------------------------------------------
+            // 1. Try the project path first (if provided)
+            // ---------------------------------------------
+
+            if (projectIdFromUrl) {
+
+                try {
+                    billSnap = await get(
+                        ref(db, buildBillPath(businessId, projectIdFromUrl, billId))
+                    );
+                }
+                catch (err) {
+                    console.warn("Could not read from project path:", err);
+                }
+            }
+
+
+            // ---------------------------------------------
+            // 2. Fall back to the top-level bills path
+            // ---------------------------------------------
+
+            if (!billSnap || !billSnap.exists()) {
+
+                try {
+                    billSnap = await get(
+                        ref(db, buildBillPath(businessId, "", billId))
+                    );
+
+                    if (billSnap.exists()) {
+                        // Found at top-level — clear the project hint
+                        usedProjectId = "";
+                    }
+                }
+                catch (err) {
+                    console.warn("Could not read from top-level path:", err);
+                }
+            }
+
+
+            // ---------------------------------------------
+            // 3. Final: check if it exists
+            // ---------------------------------------------
+
+            if (!billSnap || !billSnap.exists()) {
+                hideLoading();
+                showStatus("Bill not found. It may have been deleted.");
+                return;
+            }
+
+            const bill = billSnap.val();
+
+
+            // ---------------------------------------------
+            // If we fell back to top-level but the bill
+            // itself carries a project reference, use it
+            // for consistency (URL doesn't matter for display)
+            // ---------------------------------------------
+
+            const effectiveProjectId =
+                usedProjectId ||
+                bill?.project?.id ||
+                "";
+
+
+            // ---------------------------------------------
+            // GST setting
+            // ---------------------------------------------
+
+            let gst = {};
+
+            if (bill.gstId) {
+                try {
+                    const gstSnap = await get(
+                        ref(db, `sr_group/settings/gst-setting/${bill.gstId}`)
+                    );
+                    if (gstSnap.exists()) gst = gstSnap.val();
+                }
+                catch (err) {
+                    console.warn("Could not load GST setting:", err);
+                }
+            }
+
+
+            // ---------------------------------------------
+            // Bill setting (for segment ordering)
+            // ---------------------------------------------
+
+            let billSetting = null;
+
+            try {
+                const bsSnap = await get(
+                    ref(db, "sr_group/settings/bill-setting")
+                );
+
+                if (bsSnap.exists()) {
+                    const all = bsSnap.val();
+                    billSetting = Object.values(all).find(
+                        b => (b.name || "").toLowerCase() ===
+                             (bill.billType || "").toLowerCase()
+                    ) || null;
+                }
+            }
+            catch (err) {
+                console.warn("Could not load bill setting:", err);
+            }
+
+
+            // ---------------------------------------------
+            // Render
+            // ---------------------------------------------
+
+            hideLoading();
+            document.getElementById("billPage").classList.remove("d-none");
+
+            renderGstHeader(gst, bill);
+            renderProjectBadge(bill);
+            renderSegments(bill, billSetting);
+            renderItems(bill);
+            renderTotals(bill);
+
+            document.getElementById("generatedOn").textContent =
+                new Date().toLocaleString();
+        }
+
+
+        // =====================================================
+        // RENDER — GST HEADER
+        // =====================================================
+
+        function renderGstHeader(gst, bill) {
+
+            const title = gst.title || gst.name || "-";
+            document.getElementById("gstTitle").textContent = title;
+
+            document.getElementById("gstSubtitle").textContent =
+                bill.billType || "Tax Invoice";
+
+            const metaLines = [];
+
+            if (gst.gstNumber) {
+                metaLines.push(
+                    `<div><strong>GSTIN:</strong> ${escapeHtml(gst.gstNumber)}</div>`
+                );
+            }
+            if (gst.mobile) {
+                metaLines.push(
+                    `<div><strong>Mobile:</strong> ${escapeHtml(gst.mobile)}</div>`
+                );
+            }
+            if (gst.address) {
+                const addr = String(gst.address).replace(/\n/g, "<br>");
+                metaLines.push(
+                    `<div><strong>Address:</strong><br>${addr}</div>`
+                );
+            }
+
+            document.getElementById("gstMeta").innerHTML =
+                metaLines.join("") || "";
+        }
+
+
+        // =====================================================
+        // RENDER — PROJECT BADGE (only when bill.project exists)
+        // =====================================================
+
+        function renderProjectBadge(bill) {
+
+            const wrap = document.getElementById("projectBadgeWrap");
+
+            const project = bill?.project;
+
+            const hasProject =
+                project &&
+                typeof project === "object" &&
+                (project.projectId || project.name || project.id);
+
+            if (!hasProject) {
+                wrap.classList.add("d-none");
+                return;
+            }
+
+            const idLabel = document.getElementById("projectIdLabel");
+            const nameLabel = document.getElementById("projectNameLabel");
+
+            const pid = String(project.projectId || "").trim();
+            const rawName = String(project.name || "").trim();
+
+            let cleanName = rawName;
+
+            if (pid && rawName.startsWith(pid)) {
+                cleanName = rawName
+                    .slice(pid.length)
+                    .replace(/^\s*[—–-]\s*/, "")
+                    .trim();
+            }
+
+            idLabel.textContent = pid || "—";
+
+            if (cleanName) {
+                nameLabel.textContent = cleanName;
+                nameLabel.classList.remove("d-none");
+            }
+            else {
+                nameLabel.textContent = "";
+                nameLabel.classList.add("d-none");
+            }
+
+            wrap.classList.remove("d-none");
+        }
+
+
+        // =====================================================
+        // RENDER — SEGMENTS (2 fields per row, ordered)
+        // =====================================================
+
+        function renderSegments(bill, billSetting) {
+            const wrap = document.getElementById("segmentsWrap");
+            wrap.innerHTML = "";
+
+            const dynamicFields = bill.dynamicFields || {};
+
+            const orderedSegments = [];
+
+            if (billSetting?.segments) {
+                Object.values(billSetting.segments).forEach(seg => {
+                    const segName = seg.name || "";
+                    if (!segName) return;
+
+                    const fieldNames = Object.values(seg.fields || {})
+                        .map(f => f.name)
+                        .filter(Boolean);
+
+                    orderedSegments.push({ name: segName, fieldNames });
+                });
+            }
+
+            Object.keys(dynamicFields).forEach(name => {
+                if (!orderedSegments.find(s => s.name === name)) {
+                    orderedSegments.push({
+                        name,
+                        fieldNames: Object.keys(dynamicFields[name] || {})
+                    });
+                }
+            });
+
+            orderedSegments.forEach(({ name, fieldNames }) => {
+                const segData = dynamicFields[name];
+                if (!segData || typeof segData !== "object") return;
+
+                const block = document.createElement("div");
+                block.className = "segment-block";
+
+                let inner = `
+                    <div class="segment-title">${escapeHtml(name)}</div>
+                    <div class="segment-body">
+                        <div class="field-grid">
+                `;
+
+                const rendered = new Set();
+
+                fieldNames.forEach(fname => {
+                    if (rendered.has(fname)) return;
+                    rendered.add(fname);
+
+                    const val = String(segData[fname] ?? "").trim();
+
+                    inner += `
+                        <div class="field-item">
+                            <span class="field-label">${escapeHtml(fname)}</span>
+                            <span class="field-value">${val ? escapeHtml(val) : "—"}</span>
+                        </div>
+                    `;
+                });
+
+                Object.keys(segData).forEach(fname => {
+                    if (rendered.has(fname)) return;
+                    rendered.add(fname);
+
+                    const val = String(segData[fname] ?? "").trim();
+
+                    inner += `
+                        <div class="field-item">
+                            <span class="field-label">${escapeHtml(fname)}</span>
+                            <span class="field-value">${val ? escapeHtml(val) : "—"}</span>
+                        </div>
+                    `;
+                });
+
+                inner += `</div></div>`;
+
+                block.innerHTML = inner;
+                wrap.appendChild(block);
+            });
+        }
+
+
+        // =====================================================
+        // RENDER — ITEMS  (badge removed)
+        // =====================================================
+
+        function renderItems(bill) {
+            const tbody = document.getElementById("itemsBody");
+            tbody.innerHTML = "";
+
+            const items = Array.isArray(bill.items) ? bill.items : [];
+
+            if (!items.length) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-3">
+                            No items.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            items.forEach((item, idx) => {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td class="text-center">${idx + 1}</td>
+                    <td>${escapeHtml(item.name || "-")}</td>
+                    <td class="text-center">${item.quantity ?? ""}</td>
+                    <td class="text-center">${escapeHtml(item.unit || "")}</td>
+                    <td class="text-end">${formatMoney(item.price)}</td>
+                    <td class="text-end">${formatMoney(item.amount)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+
+        // =====================================================
+        // RENDER — TOTALS  (hide tax rows when rate = 0)
+        // =====================================================
+
+        function renderTotals(bill) {
+            const t = bill.totals || {};
+            const rates = bill.taxRates || {};
+
+            document.getElementById("subtotal").textContent =
+                formatMoney(t.subtotal);
+
+            const discAmt = Number(t.discount) || 0;
+            const discountRow = document.getElementById("discountRow");
+
+            if (discAmt > 0) {
+                discountRow.classList.remove("d-none");
+
+                const d = bill.discount || {};
+                let label = "Discount";
+                if (d.type === "percent") {
+                    label = `Discount (${Number(d.value) || 0}%)`;
+                }
+
+                document.getElementById("discountLabel").textContent = label;
+                document.getElementById("discountAmount").textContent =
+                    "− " + formatMoney(discAmt);
+            }
+            else {
+                discountRow.classList.add("d-none");
+            }
+
+            document.getElementById("taxableAmount").textContent =
+                formatMoney(t.taxable);
+
+            const isInState = rates.type === "in-state";
+
+            const cgstRate  = Number(rates.cgstRate) || 0;
+            const sgstRate  = Number(rates.sgstRate) || 0;
+            const igstRate  = Number(rates.igstRate) || 0;
+
+            const cgstRow = document.getElementById("cgstRow");
+            const sgstRow = document.getElementById("sgstRow");
+            const igstRow = document.getElementById("igstRow");
+
+            if (isInState) {
+                igstRow.classList.add("d-none");
+
+                if (cgstRate > 0) {
+                    cgstRow.classList.remove("d-none");
+                    document.getElementById("cgstRateLabel").textContent = cgstRate;
+                    document.getElementById("cgstAmount").textContent =
+                        formatMoney(t.cgst);
+                }
+                else {
+                    cgstRow.classList.add("d-none");
+                }
+
+                if (sgstRate > 0) {
+                    sgstRow.classList.remove("d-none");
+                    document.getElementById("sgstRateLabel").textContent = sgstRate;
+                    document.getElementById("sgstAmount").textContent =
+                        formatMoney(t.sgst);
+                }
+                else {
+                    sgstRow.classList.add("d-none");
+                }
+            }
+            else {
+                cgstRow.classList.add("d-none");
+                sgstRow.classList.add("d-none");
+
+                if (igstRate > 0) {
+                    igstRow.classList.remove("d-none");
+                    document.getElementById("igstRateLabel").textContent = igstRate;
+                    document.getElementById("igstAmount").textContent =
+                        formatMoney(t.igst);
+                }
+                else {
+                    igstRow.classList.add("d-none");
+                }
+            }
+
+            const grandTotal = Number(t.grandTotal) || 0;
+
+            document.getElementById("grandTotal").textContent =
+                formatMoney(grandTotal);
+
+            // Grand total in words
+            document.getElementById("grandTotalWords").textContent =
+                numberToWords(grandTotal);
+        }
+
+
+        // =====================================================
+        // ACTIONS
+        // =====================================================
+
+        document.getElementById("printBtn").addEventListener("click", () => {
+            window.print();
+        });
+
+        document.getElementById("downloadBtn").addEventListener("click", () => {
+            window.print();
+        });
+
+    </script>
+
+</body>
+
+</html>

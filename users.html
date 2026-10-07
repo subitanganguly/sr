@@ -1,0 +1,3982 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+    <title>Users - SR Group</title>
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet">
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+        rel="stylesheet">
+
+    <link rel="stylesheet"
+        href="sidebar/sidebar.css">
+
+    <style>
+        .project-access-block {
+            background: #fff;
+            border: 1px dashed #cbd5e1;
+            border-radius: 6px;
+            padding: 10px 12px;
+            margin-top: 8px;
+            margin-left: 24px;
+        }
+
+        .project-access-title {
+            font-size: 0.8rem;
+            color: #64748b;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .project-checkbox-wrap {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 0;
+            font-size: 0.875rem;
+        }
+
+        .project-checkbox-wrap input[type="checkbox"] {
+            margin: 0;
+        }
+
+        .project-badge {
+            font-size: 0.7rem;
+            padding: 3px 8px;
+            margin: 2px 2px 2px 0;
+        }
+
+        .role-badge-project-admin {
+            background: #6f42c1;
+        }
+
+        .role-badge-owner {
+            background: #b8860b;
+            color: #fff;
+        }
+    </style>
+
+</head>
+
+
+<body>
+
+    <div id="sidebar-container"></div>
+
+    <main id="main-content">
+
+        <div class="container-fluid p-4">
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+
+                <div>
+
+                    <h3 class="mb-1">
+
+                        <i class="bi bi-people me-2"></i>
+
+                        Users
+
+                    </h3>
+
+                    <p class="text-muted mb-0">
+
+                        Manage system users.
+
+                    </p>
+
+                </div>
+
+
+                <button
+                    class="btn btn-primary"
+                    data-bs-toggle="modal"
+                    data-bs-target="#createUserModal">
+
+                    <i class="bi bi-person-plus me-2"></i>
+
+                    Create User
+
+                </button>
+
+            </div>
+
+
+            <div class="alert alert-light border">
+
+                <div class="d-flex align-items-center">
+
+                    <i class="bi bi-person-circle fs-4 me-3"></i>
+
+                    <div>
+
+                        <div class="small text-muted">
+
+                            Logged in as
+
+                        </div>
+
+                        <strong id="currentUserName">
+
+                            Loading...
+
+                        </strong>
+
+                        <span
+                            class="badge bg-primary ms-2"
+                            id="currentUserRole">
+
+                            Loading...
+
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="card shadow-sm">
+
+                <div class="card-header bg-white">
+
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+
+                        <strong>
+
+                            <i class="bi bi-list-ul me-2"></i>
+
+                            Users
+
+                        </strong>
+
+                        <div class="input-group input-group-sm" style="max-width: 320px;">
+
+                            <span class="input-group-text bg-white">
+
+                                <i class="bi bi-search"></i>
+
+                            </span>
+
+                            <input
+                                type="text"
+                                class="form-control"
+                                id="userSearchInput"
+                                placeholder="Search by name, email, role...">
+
+                            <button
+                                class="btn btn-outline-secondary"
+                                type="button"
+                                id="clearSearchBtn"
+                                title="Clear search">
+
+                                <i class="bi bi-x-lg"></i>
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="table-responsive">
+
+                    <table class="table table-hover mb-0">
+
+                        <thead class="table-light">
+
+                            <tr>
+
+                                <th>Name</th>
+
+                                <th>Email</th>
+
+                                <th>Role</th>
+
+                                <th>Business Access</th>
+
+                                <th>Project Access</th>
+
+                                <th>Measurement Sheet</th>
+
+                                <th>Status</th>
+
+                                <th>Actions</th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody id="usersTableBody">
+
+                            <tr>
+
+                                <td
+                                    colspan="8"
+                                    class="text-center text-muted py-4">
+
+                                    Loading...
+
+                                </td>
+
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+
+                <div class="card-footer bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
+
+                    <div class="small text-muted" id="paginationInfo">
+
+                        Loading...
+
+                    </div>
+
+                    <nav aria-label="Users pagination">
+
+                        <ul class="pagination pagination-sm mb-0" id="paginationControls">
+
+                        </ul>
+
+                    </nav>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+
+    <!-- ================================================= -->
+    <!-- CREATE USER MODAL -->
+    <!-- ================================================= -->
+
+    <div
+        class="modal fade"
+        id="createUserModal"
+        tabindex="-1"
+        aria-hidden="true">
+
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+
+            <div class="modal-content">
+
+                <form id="createUserForm">
+
+                    <div class="modal-header">
+
+                        <h5 class="modal-title">
+
+                            <i class="bi bi-person-plus me-2"></i>
+
+                            Create User
+
+                        </h5>
+
+                        <button
+                            type="button"
+                            class="btn-close"
+                            data-bs-dismiss="modal">
+
+                        </button>
+
+                    </div>
+
+
+                    <div class="modal-body">
+
+                        <div
+                            id="statusAlert"
+                            class="alert d-none">
+
+                        </div>
+
+
+                        <div class="mb-3">
+
+                            <label
+                                for="name"
+                                class="form-label">
+
+                                Full Name
+
+                            </label>
+
+                            <input
+                                type="text"
+                                class="form-control"
+                                id="name"
+                                required>
+
+                        </div>
+
+
+                        <div class="mb-3">
+
+                            <label
+                                for="email"
+                                class="form-label">
+
+                                Email
+
+                            </label>
+
+                            <input
+                                type="email"
+                                class="form-control"
+                                id="email"
+                                required>
+
+                        </div>
+
+
+                        <div class="mb-3">
+
+                            <label
+                                for="password"
+                                class="form-label">
+
+                                Password
+
+                            </label>
+
+                            <input
+                                type="password"
+                                class="form-control"
+                                id="password"
+                                minlength="6"
+                                required>
+
+                            <div class="form-text">
+
+                                Minimum 6 characters.
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="mb-3">
+
+                            <label
+                                for="role"
+                                class="form-label">
+
+                                Role
+
+                            </label>
+
+                            <select
+                                class="form-select"
+                                id="role"
+                                required>
+
+                                <option
+                                    value="business-admin"
+                                    selected>
+
+                                    Business Admin
+
+                                </option>
+
+                                <option
+                                    value="project-admin"
+                                    id="projectAdminOption">
+
+                                    Project Admin
+
+                                </option>
+
+                                <option
+                                    value="owner"
+                                    id="ownerOption">
+
+                                    Owner (read-only)
+
+                                </option>
+
+                                <option
+                                    value="main-admin"
+                                    id="mainAdminOption">
+
+                                    Main Admin
+
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+                        <div
+                            id="businessAccessSection"
+                            class="border rounded p-3 bg-light">
+
+                            <div
+                                class="d-flex justify-content-between align-items-center mb-3">
+
+                                <div>
+
+                                    <label class="form-label fw-semibold mb-1">
+
+                                        <i class="bi bi-building me-1"></i>
+
+                                        <span id="accessSectionTitle">Business Access</span>
+
+                                    </label>
+
+                                    <div class="small text-muted" id="accessSectionHint">
+
+                                        Select businesses. Construction
+                                        businesses will show their projects.
+
+                                    </div>
+
+                                </div>
+
+
+                                <div class="btn-group btn-group-sm">
+
+                                    <button
+                                        type="button"
+                                        class="btn btn-outline-primary"
+                                        id="selectAllBusinesses">
+
+                                        Select All
+
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        class="btn btn-outline-secondary"
+                                        id="clearAllBusinesses">
+
+                                        Clear
+
+                                    </button>
+
+                                </div>
+
+                            </div>
+
+
+                            <div
+                                id="businessLoading"
+                                class="text-center text-muted py-3">
+
+                                <div
+                                    class="spinner-border spinner-border-sm me-2">
+                                </div>
+
+                                Loading businesses...
+
+                            </div>
+
+
+                            <div
+                                id="businessList"
+                                class="row g-2"
+                                style="max-height: 400px; overflow-y: auto;">
+
+                            </div>
+
+
+                            <div
+                                id="noBusinesses"
+                                class="text-center text-muted py-3 d-none">
+
+                                <i class="bi bi-building fs-3 d-block mb-2"></i>
+
+                                No businesses found.
+
+                            </div>
+
+
+                            <div
+                                id="selectedBusinessCount"
+                                class="small text-primary mt-3">
+
+                                0 businesses selected
+
+                            </div>
+
+                        </div>
+
+
+                        <div
+                            id="measurementSheetSection"
+                            class="border rounded p-3 bg-light mt-3">
+
+                            <div class="form-check form-switch">
+
+                                <input
+                                    class="form-check-input"
+                                    type="checkbox"
+                                    role="switch"
+                                    id="measurementSheetAccess">
+
+                                <label
+                                    class="form-check-label fw-semibold"
+                                    for="measurementSheetAccess">
+
+                                    <i class="bi bi-rulers me-1"></i>
+
+                                    Measurement Sheet Access
+
+                                </label>
+
+                                <div class="small text-muted mt-1">
+
+                                    Enable this to allow the business-admin
+                                    to access the Measurement Sheet.
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="modal-footer">
+
+                        <button
+                            type="button"
+                            class="btn btn-secondary"
+                            data-bs-dismiss="modal">
+
+                            Cancel
+
+                        </button>
+
+                        <button
+                            type="submit"
+                            class="btn btn-primary"
+                            id="createUserBtn">
+
+                            <i class="bi bi-person-plus me-2"></i>
+
+                            Create User
+
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- ================================================= -->
+    <!-- EDIT USER MODAL -->
+    <!-- ================================================= -->
+
+    <div
+        class="modal fade"
+        id="editUserModal"
+        tabindex="-1"
+        aria-hidden="true">
+
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+
+            <div class="modal-content">
+
+                <form id="editUserForm">
+
+                    <div class="modal-header">
+
+                        <h5 class="modal-title">
+                            <i class="bi bi-pencil-square me-2"></i>
+                            Edit User
+                        </h5>
+
+                        <button
+                            type="button"
+                            class="btn-close"
+                            data-bs-dismiss="modal">
+                        </button>
+
+                    </div>
+
+                    <div class="modal-body">
+
+                        <div
+                            id="editStatusAlert"
+                            class="alert d-none">
+                        </div>
+
+                        <input type="hidden" id="editUid">
+
+                        <div class="mb-3">
+                            <label for="editName" class="form-label">
+                                Full Name
+                            </label>
+                            <input
+                                type="text"
+                                class="form-control"
+                                id="editName"
+                                required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="editEmail" class="form-label">
+                                Email
+                            </label>
+                            <input
+                                type="email"
+                                class="form-control"
+                                id="editEmail"
+                                readonly>
+                            <div class="form-text">
+                                Firebase Authentication email is not changed here.
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="editRole" class="form-label">
+                                Role
+                            </label>
+                            <select
+                                class="form-select"
+                                id="editRole"
+                                required>
+
+                                <option value="business-admin">
+                                    Business Admin
+                                </option>
+
+                                <option value="project-admin">
+                                    Project Admin
+                                </option>
+
+                                <option value="owner" id="editOwnerOption">
+                                    Owner (read-only)
+                                </option>
+
+                                <option value="main-admin" id="editMainAdminOption">
+                                    Main Admin
+                                </option>
+
+                            </select>
+                        </div>
+
+                        <div
+                            id="editBusinessAccessSection"
+                            class="border rounded p-3 bg-light">
+
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+
+                                <div>
+                                    <label class="form-label fw-semibold mb-1">
+                                        <i class="bi bi-building me-1"></i>
+                                        <span id="editAccessSectionTitle">Business Access</span>
+                                    </label>
+
+                                    <div class="small text-muted" id="editAccessSectionHint">
+                                        Select businesses. Construction
+                                        businesses will show their projects.
+                                    </div>
+                                </div>
+
+                                <div class="btn-group btn-group-sm">
+
+                                    <button
+                                        type="button"
+                                        class="btn btn-outline-primary"
+                                        id="editSelectAllBusinesses">
+                                        Select All
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        class="btn btn-outline-secondary"
+                                        id="editClearAllBusinesses">
+                                        Clear
+                                    </button>
+
+                                </div>
+
+                            </div>
+
+                            <div
+                                id="editBusinessList"
+                                class="row g-2"
+                                style="max-height: 400px; overflow-y: auto;">
+                            </div>
+
+                            <div
+                                id="editSelectedBusinessCount"
+                                class="small text-primary mt-3">
+                                0 businesses selected
+                            </div>
+
+                        </div>
+
+                        <div
+                            id="editMeasurementSheetSection"
+                            class="border rounded p-3 bg-light mt-3">
+
+                            <div class="form-check form-switch">
+
+                                <input
+                                    class="form-check-input"
+                                    type="checkbox"
+                                    role="switch"
+                                    id="editMeasurementSheetAccess">
+
+                                <label
+                                    class="form-check-label fw-semibold"
+                                    for="editMeasurementSheetAccess">
+
+                                    <i class="bi bi-rulers me-1"></i>
+
+                                    Measurement Sheet Access
+
+                                </label>
+
+                                <div class="small text-muted mt-1">
+
+                                    Enable this to allow the business-admin
+                                    to access the Measurement Sheet.
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="modal-footer">
+
+                        <button
+                            type="button"
+                            class="btn btn-secondary"
+                            data-bs-dismiss="modal">
+                            Cancel
+                        </button>
+
+                        <button
+                            type="submit"
+                            class="btn btn-primary"
+                            id="saveUserBtn">
+                            <i class="bi bi-check-lg me-2"></i>
+                            Save Changes
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <script
+        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js">
+    </script>
+
+
+    <script
+        type="module"
+        src="sidebar/sidebar.js">
+    </script>
+
+
+    <script type="module">
+
+        // =====================================================
+        // IMPORTS
+        // =====================================================
+
+        import {
+            auth,
+            db
+        } from "./firebase-config.js";
+
+
+        import {
+            onAuthStateChanged,
+            signOut,
+            createUserWithEmailAndPassword,
+            getAuth
+        } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+
+
+        import {
+            ref,
+            get,
+            set,
+            update,
+            remove
+        } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-database.js";
+
+
+        import {
+            initializeApp,
+            deleteApp
+        } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+
+
+        // =====================================================
+        // CONSTANTS
+        // =====================================================
+
+        // Who can access this Users page
+        const allowedRoles = [
+            "main-admin",
+            "dev-admin"
+        ];
+
+        // All known roles
+        const ALL_ROLES = [
+            "main-admin",
+            "dev-admin",
+            "owner",
+            "business-admin",
+            "project-admin"
+        ];
+
+        // Roles that require business/project access
+        const SCOPED_ROLES = [
+            "business-admin",
+            "project-admin"
+        ];
+
+
+        // =====================================================
+        // ELEMENTS
+        // =====================================================
+
+        const form =
+            document.getElementById("createUserForm");
+
+
+        const createUserBtn =
+            document.getElementById("createUserBtn");
+
+
+        const statusAlert =
+            document.getElementById("statusAlert");
+
+
+        const usersTableBody =
+            document.getElementById("usersTableBody");
+
+
+        const roleSelect =
+            document.getElementById("role");
+
+
+        const mainAdminOption =
+            document.getElementById("mainAdminOption");
+
+
+        const ownerOption =
+            document.getElementById("ownerOption");
+
+
+        const projectAdminOption =
+            document.getElementById("projectAdminOption");
+
+
+        const businessAccessSection =
+            document.getElementById("businessAccessSection");
+
+
+        const businessList =
+            document.getElementById("businessList");
+
+
+        const businessLoading =
+            document.getElementById("businessLoading");
+
+
+        const noBusinesses =
+            document.getElementById("noBusinesses");
+
+
+        const selectedBusinessCount =
+            document.getElementById("selectedBusinessCount");
+
+
+        const accessSectionTitle =
+            document.getElementById("accessSectionTitle");
+
+
+        const accessSectionHint =
+            document.getElementById("accessSectionHint");
+
+
+        const selectAllBusinesses =
+            document.getElementById("selectAllBusinesses");
+
+
+        const clearAllBusinesses =
+            document.getElementById("clearAllBusinesses");
+
+        const editUserForm =
+            document.getElementById("editUserForm");
+
+        const editUid =
+            document.getElementById("editUid");
+
+        const editName =
+            document.getElementById("editName");
+
+        const editEmail =
+            document.getElementById("editEmail");
+
+        const editRole =
+            document.getElementById("editRole");
+
+        const editOwnerOption =
+            document.getElementById("editOwnerOption");
+
+        const editMainAdminOption =
+            document.getElementById("editMainAdminOption");
+
+        const editBusinessAccessSection =
+            document.getElementById("editBusinessAccessSection");
+
+        const editBusinessList =
+            document.getElementById("editBusinessList");
+
+        const editSelectedBusinessCount =
+            document.getElementById("editSelectedBusinessCount");
+
+        const editAccessSectionTitle =
+            document.getElementById("editAccessSectionTitle");
+
+        const editAccessSectionHint =
+            document.getElementById("editAccessSectionHint");
+
+        const editSelectAllBusinesses =
+            document.getElementById("editSelectAllBusinesses");
+
+        const editClearAllBusinesses =
+            document.getElementById("editClearAllBusinesses");
+
+        const editStatusAlert =
+            document.getElementById("editStatusAlert");
+
+        const saveUserBtn =
+            document.getElementById("saveUserBtn");
+
+        const userSearchInput =
+            document.getElementById("userSearchInput");
+
+        const clearSearchBtn =
+            document.getElementById("clearSearchBtn");
+
+        const paginationControls =
+            document.getElementById("paginationControls");
+
+        const paginationInfo =
+            document.getElementById("paginationInfo");
+
+        const measurementSheetSection =
+            document.getElementById("measurementSheetSection");
+
+        const measurementSheetAccess =
+            document.getElementById("measurementSheetAccess");
+
+        const editMeasurementSheetSection =
+            document.getElementById("editMeasurementSheetSection");
+
+        const editMeasurementSheetAccess =
+            document.getElementById("editMeasurementSheetAccess");
+
+
+        // =====================================================
+        // STATE
+        // =====================================================
+
+        let currentAdminRole = "";
+
+        let businesses = {};
+
+        let projectCache = {};
+
+
+        const USERS_PER_PAGE = 15;
+
+        let allUsers = [];
+
+        let filteredUsers = [];
+
+        let currentPage = 1;
+
+
+        // =====================================================
+        // STATUS HELPERS
+        // =====================================================
+
+        function showStatus(message, type = "danger") {
+
+            statusAlert.className = `alert alert-${type}`;
+
+            statusAlert.textContent = message;
+
+        }
+
+
+        function hideStatus() {
+
+            statusAlert.className = "alert d-none";
+
+            statusAlert.textContent = "";
+
+        }
+
+        function showEditStatus(message, type = "danger") {
+
+            editStatusAlert.className = `alert alert-${type}`;
+
+            editStatusAlert.textContent = message;
+
+        }
+
+        function hideEditStatus() {
+
+            editStatusAlert.className = "alert d-none";
+
+            editStatusAlert.textContent = "";
+
+        }
+
+
+        // =====================================================
+        // AUTH
+        // =====================================================
+
+        onAuthStateChanged(
+            auth,
+            async (firebaseUser) => {
+
+                if (!firebaseUser) {
+
+                    window.location.href = "login.html";
+
+                    return;
+
+                }
+
+
+                try {
+
+                    const userRef =
+                        ref(
+                            db,
+                            `sr_group/users/${firebaseUser.uid}`
+                        );
+
+
+                    const snapshot = await get(userRef);
+
+
+                    if (!snapshot.exists()) {
+
+                        await signOut(auth);
+
+                        sessionStorage.removeItem("userProfile");
+
+                        window.location.href = "login.html";
+
+                        return;
+
+                    }
+
+
+                    const userData = snapshot.val();
+
+
+                    currentAdminRole = userData.role || "";
+
+
+                    if (!allowedRoles.includes(currentAdminRole)) {
+
+                        document.body.innerHTML = `
+
+                            <div class="container py-5">
+
+                                <div class="alert alert-danger text-center">
+
+                                    <i class="bi bi-shield-x fs-1"></i>
+
+                                    <h4 class="mt-3">
+
+                                        Access Denied
+
+                                    </h4>
+
+                                    <p class="mb-0">
+
+                                        You do not have permission
+                                        to manage users.
+
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+                        `;
+
+                        return;
+
+                    }
+
+
+                    document.getElementById(
+                        "currentUserName"
+                    ).textContent =
+                        userData.name || "User";
+
+
+                    document.getElementById(
+                        "currentUserRole"
+                    ).textContent =
+                        currentAdminRole;
+
+
+                    // Only main-admin can create main-admin or owner
+                    if (currentAdminRole === "main-admin") {
+
+                        mainAdminOption.hidden = false;
+
+                        ownerOption.hidden = false;
+
+                    } else {
+
+                        mainAdminOption.hidden = true;
+
+                        ownerOption.hidden = true;
+
+                    }
+
+
+                    await loadBusinesses();
+
+
+                    updateBusinessAccessVisibility();
+
+
+                    await loadUsers();
+
+                }
+
+                catch (error) {
+
+                    console.error("User verification error:", error);
+
+                    window.location.href = "login.html";
+
+                }
+
+            }
+        );
+
+
+        // =====================================================
+        // LOAD BUSINESSES + PROJECTS
+        // =====================================================
+
+        async function loadBusinesses() {
+
+            businessLoading.classList.remove("d-none");
+
+            businessList.innerHTML = "";
+
+            noBusinesses.classList.add("d-none");
+
+
+            try {
+
+                const businessesRef = ref(db, "sr_group/businesses");
+
+                const snapshot = await get(businessesRef);
+
+
+                if (!snapshot.exists()) {
+
+                    businesses = {};
+
+                    projectCache = {};
+
+                    businessLoading.classList.add("d-none");
+
+                    noBusinesses.classList.remove("d-none");
+
+                    updateSelectedBusinessCount();
+
+                    return;
+
+                }
+
+
+                businesses = snapshot.val() || {};
+
+
+                await preloadProjects();
+
+
+                renderBusinessList();
+
+            }
+
+            catch (error) {
+
+                console.error("Load businesses error:", error);
+
+
+                businessList.innerHTML = `
+
+                    <div class="col-12">
+
+                        <div class="alert alert-danger mb-0">
+
+                            Unable to load businesses.
+
+                        </div>
+
+                    </div>
+
+                `;
+
+            }
+
+            finally {
+
+                businessLoading.classList.add("d-none");
+
+            }
+
+        }
+
+
+        // =====================================================
+        // PRELOAD PROJECTS
+        // =====================================================
+
+        async function preloadProjects() {
+
+            projectCache = {};
+
+
+            const constructionBusinesses =
+
+                Object.entries(businesses)
+
+                    .filter(([id, b]) => b && b.construction === true);
+
+
+            if (!constructionBusinesses.length) return;
+
+
+            await Promise.all(
+
+                constructionBusinesses.map(async ([businessId]) => {
+
+                    try {
+
+                        const projSnap = await get(
+                            ref(db, `sr_group/businesses/${businessId}/projects`)
+                        );
+
+                        if (!projSnap.exists()) {
+
+                            projectCache[businessId] = {};
+
+                            return;
+
+                        }
+
+                        const raw = projSnap.val() || {};
+
+                        const normalized = {};
+
+                        Object.entries(raw).forEach(([pushId, proj]) => {
+
+                            if (!proj || typeof proj !== "object") return;
+                            if (pushId === "_placeholder") return;
+
+                            normalized[pushId] = {
+                                projectId: String(proj.projectId || ""),
+                                name: String(proj.projectName || proj.projectId || pushId)
+                            };
+
+                        });
+
+                        projectCache[businessId] = normalized;
+
+                    }
+
+                    catch (error) {
+
+                        console.warn(
+                            `[preloadProjects] data read failed for ${businessId}`,
+                            error
+                        );
+
+                        projectCache[businessId] = {};
+
+                    }
+
+                })
+
+            );
+
+        }
+
+
+        // =====================================================
+        // RENDER CREATE BUSINESS LIST
+        // =====================================================
+
+        function renderBusinessList() {
+
+            businessList.innerHTML = "";
+
+
+            const selectedRole = roleSelect.value;
+
+            const isProjectAdmin = selectedRole === "project-admin";
+
+
+            let entries = Object.entries(businesses);
+
+
+            if (isProjectAdmin) {
+
+                entries = entries.filter(([id, b]) => {
+
+                    if (!b || b.construction !== true) return false;
+
+                    const projects = projectCache[id] || {};
+
+                    return Object.keys(projects).length > 0;
+
+                });
+
+            }
+
+
+            if (!entries.length) {
+
+                noBusinesses.classList.remove("d-none");
+
+                return;
+
+            }
+
+
+            noBusinesses.classList.add("d-none");
+
+
+            entries.forEach(([businessId, business]) => {
+
+                const businessName = business?.name || businessId;
+
+                const isConstruction = business?.construction === true;
+
+                const projects = projectCache[businessId] || {};
+
+                const hasProjects = Object.keys(projects).length > 0;
+
+
+                const col = document.createElement("div");
+
+                col.className = "col-12";
+
+
+                let projectsHtml = "";
+
+                if (isConstruction) {
+
+                    if (hasProjects) {
+
+                        const projectCheckboxes =
+
+                            Object.entries(projects)
+
+                                .map(([pushId, p]) => `
+
+                                    <label class="project-checkbox-wrap">
+
+                                        <input
+                                            type="checkbox"
+                                            class="project-checkbox"
+                                            data-business-id="${escapeHtmlAttribute(businessId)}"
+                                            value="${escapeHtmlAttribute(pushId)}">
+
+                                        <span>
+
+                                            <strong>${escapeHtml(p.projectId)}</strong>
+
+                                            <span class="text-muted ms-1">
+                                                — ${escapeHtml(p.name)}
+                                            </span>
+
+                                        </span>
+
+                                    </label>
+
+                                `)
+
+                                .join("");
+
+                        projectsHtml = `
+
+                            <div class="project-access-block">
+
+                                <div class="project-access-title">
+
+                                    <i class="bi bi-list-check me-1"></i>
+
+                                    Projects (leave unchecked for no project access)
+
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+
+                                    <div class="small text-muted">
+
+                                        <span class="project-count-badge"
+                                            data-business-id="${escapeHtmlAttribute(businessId)}">
+
+                                            0 selected
+
+                                        </span>
+
+                                    </div>
+
+                                    <div class="btn-group btn-group-sm">
+
+                                        <button
+                                            type="button"
+                                            class="btn btn-outline-primary btn-sm select-all-projects"
+                                            data-business-id="${escapeHtmlAttribute(businessId)}">
+
+                                            All
+
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            class="btn btn-outline-secondary btn-sm clear-all-projects"
+                                            data-business-id="${escapeHtmlAttribute(businessId)}">
+
+                                            None
+
+                                        </button>
+
+                                    </div>
+
+                                </div>
+
+                                ${projectCheckboxes}
+
+                            </div>
+
+                        `;
+
+                    } else {
+
+                        projectsHtml = `
+
+                            <div class="project-access-block">
+
+                                <div class="small text-muted">
+
+                                    <i class="bi bi-info-circle me-1"></i>
+
+                                    No projects defined for this business yet.
+
+                                </div>
+
+                            </div>
+
+                        `;
+
+                    }
+
+                }
+
+
+                col.innerHTML = `
+
+                    <div class="form-check border rounded p-2 ps-5 bg-white">
+
+                        <input
+                            class="form-check-input business-checkbox"
+                            type="checkbox"
+                            value="${escapeHtmlAttribute(businessId)}"
+                            data-construction="${isConstruction ? "true" : "false"}"
+                            id="business_${escapeHtmlAttribute(businessId)}">
+
+                        <label
+                            class="form-check-label w-100"
+                            for="business_${escapeHtmlAttribute(businessId)}">
+
+                            <strong>
+
+                                ${escapeHtml(businessName)}
+
+                            </strong>
+
+                            <small class="text-muted d-block">
+
+                                ${escapeHtml(businessId)}
+
+                                ${isConstruction
+                                    ? ` <span class="badge badge-construction ms-1"
+                                        style="background:#fff3cd;color:#856404;border:1px solid #ffe69c;">
+                                            <i class="bi bi-cone-striped me-1"></i>Construction
+                                        </span>`
+                                    : ""}
+
+                            </small>
+
+                        </label>
+
+                        <div class="project-wrapper-${escapeHtmlAttribute(businessId)} d-none">
+
+                            ${projectsHtml}
+
+                        </div>
+
+                    </div>
+
+                `;
+
+                businessList.appendChild(col);
+
+            });
+
+
+            document
+                .querySelectorAll(".business-checkbox")
+                .forEach(checkbox => {
+
+                    checkbox.addEventListener(
+                        "change",
+                        handleBusinessCheckboxChange
+                    );
+
+                });
+
+            document
+                .querySelectorAll(".project-checkbox")
+                .forEach(cb => {
+
+                    cb.addEventListener("change", () => {
+
+                        updateProjectCount(cb.dataset.businessId);
+
+                    });
+
+                });
+
+            document
+                .querySelectorAll(".select-all-projects")
+                .forEach(btn => {
+
+                    btn.addEventListener("click", () => {
+
+                        const bid = btn.dataset.businessId;
+
+                        document
+                            .querySelectorAll(
+                                `.project-checkbox[data-business-id="${bid}"]`
+                            )
+                            .forEach(cb => { cb.checked = true; });
+
+                        updateProjectCount(bid);
+
+                    });
+
+                });
+
+            document
+                .querySelectorAll(".clear-all-projects")
+                .forEach(btn => {
+
+                    btn.addEventListener("click", () => {
+
+                        const bid = btn.dataset.businessId;
+
+                        document
+                            .querySelectorAll(
+                                `.project-checkbox[data-business-id="${bid}"]`
+                            )
+                            .forEach(cb => { cb.checked = false; });
+
+                        updateProjectCount(bid);
+
+                    });
+
+                });
+
+
+            updateSelectedBusinessCount();
+
+        }
+
+
+        // =====================================================
+        // BUSINESS CHECKBOX HANDLER
+        // =====================================================
+
+        function handleBusinessCheckboxChange(event) {
+
+            const checkbox = event.target;
+
+            const businessId = checkbox.value;
+
+            const wrapper = document.querySelector(
+                `.project-wrapper-${CSS.escape(businessId)}`
+            );
+
+            if (wrapper) {
+
+                if (checkbox.checked) {
+
+                    wrapper.classList.remove("d-none");
+
+                } else {
+
+                    wrapper.classList.add("d-none");
+
+                    wrapper
+                        .querySelectorAll(".project-checkbox")
+                        .forEach(cb => { cb.checked = false; });
+
+                    updateProjectCount(businessId);
+
+                }
+
+            }
+
+            updateSelectedBusinessCount();
+
+        }
+
+
+        function updateProjectCount(businessId) {
+
+            const count = document.querySelectorAll(
+                `.project-checkbox[data-business-id="${businessId}"]:checked`
+            ).length;
+
+            const badge = document.querySelector(
+                `.project-count-badge[data-business-id="${businessId}"]`
+            );
+
+            if (badge) {
+
+                badge.textContent = `${count} selected`;
+
+            }
+
+        }
+
+
+        // =====================================================
+        // VISIBILITY / HINT TEXT
+        // =====================================================
+
+        function updateBusinessAccessVisibility() {
+
+            const selectedRole = roleSelect.value;
+
+            const isProjectAdmin = selectedRole === "project-admin";
+            const isBusinessAdmin = selectedRole === "business-admin";
+
+
+            if (isBusinessAdmin || isProjectAdmin) {
+
+                businessAccessSection.classList.remove("d-none");
+
+                if (isBusinessAdmin) {
+                    measurementSheetSection.classList.remove("d-none");
+                } else {
+                    measurementSheetSection.classList.add("d-none");
+                    measurementSheetAccess.checked = false;
+                }
+
+
+                if (isProjectAdmin) {
+
+                    accessSectionTitle.textContent = "Project Access";
+
+                    accessSectionHint.textContent =
+                        "Select construction businesses and tick the projects this user can access.";
+
+                } else {
+
+                    accessSectionTitle.textContent = "Business Access";
+
+                    accessSectionHint.textContent =
+                        "Select businesses. Construction businesses will show their projects.";
+
+                }
+
+            } else {
+
+                businessAccessSection.classList.add("d-none");
+
+                measurementSheetSection.classList.add("d-none");
+
+                clearBusinessSelection();
+
+                measurementSheetAccess.checked = false;
+
+            }
+
+        }
+
+
+        roleSelect.addEventListener("change", () => {
+
+            renderBusinessList();
+
+            updateBusinessAccessVisibility();
+
+        });
+
+
+        selectAllBusinesses.addEventListener("click", () => {
+
+            document
+                .querySelectorAll(".business-checkbox")
+                .forEach(checkbox => {
+
+                    checkbox.checked = true;
+
+                    const businessId = checkbox.value;
+
+                    const wrapper = document.querySelector(
+                        `.project-wrapper-${CSS.escape(businessId)}`
+                    );
+
+                    if (wrapper) wrapper.classList.remove("d-none");
+
+                });
+
+            updateSelectedBusinessCount();
+
+        });
+
+
+        clearAllBusinesses.addEventListener("click", () => {
+
+            clearBusinessSelection();
+
+        });
+
+
+        function clearBusinessSelection() {
+
+            document
+                .querySelectorAll(".business-checkbox")
+                .forEach(checkbox => {
+
+                    checkbox.checked = false;
+
+                    const businessId = checkbox.value;
+
+                    const wrapper = document.querySelector(
+                        `.project-wrapper-${CSS.escape(businessId)}`
+                    );
+
+                    if (wrapper) {
+
+                        wrapper.classList.add("d-none");
+
+                        wrapper
+                            .querySelectorAll(".project-checkbox")
+                            .forEach(cb => { cb.checked = false; });
+
+                        updateProjectCount(businessId);
+
+                    }
+
+                });
+
+            updateSelectedBusinessCount();
+
+        }
+
+
+        function updateSelectedBusinessCount() {
+
+            const selected = document.querySelectorAll(
+                ".business-checkbox:checked"
+            ).length;
+
+            selectedBusinessCount.textContent =
+                `${selected} business${selected === 1 ? "" : "es"} selected`;
+
+        }
+
+
+        // =====================================================
+        // GET SELECTED ACCESS
+        // =====================================================
+
+        function getSelectedBusinessAccess() {
+
+            const businessAccess = {};
+
+            const projectAccess = {};
+
+
+            document
+                .querySelectorAll(".business-checkbox:checked")
+                .forEach(checkbox => {
+
+                    const businessId = checkbox.value;
+
+                    const business = businesses[businessId];
+
+                    if (!business) return;
+
+
+                    businessAccess[businessId] = {
+                        name: business.name || businessId
+                    };
+
+
+                    const selectedProjects =
+
+                        document.querySelectorAll(
+                            `.project-checkbox[data-business-id="${businessId}"]:checked`
+                        );
+
+
+                    if (selectedProjects.length > 0) {
+
+                        projectAccess[businessId] = {};
+
+                        selectedProjects.forEach(cb => {
+
+                            const pushId = cb.value;
+
+                            const proj = projectCache[businessId]?.[pushId];
+
+                            if (proj) {
+
+                                projectAccess[businessId][pushId] = {
+                                    name: proj.name || proj.projectId,
+                                    projectId: proj.projectId
+                                };
+
+                            }
+
+                        });
+
+                    }
+
+                });
+
+
+            return { businessAccess, projectAccess };
+
+        }
+
+
+        // =====================================================
+        // LOAD USERS
+        // =====================================================
+
+        async function loadUsers() {
+
+            try {
+
+                const usersRef = ref(db, "sr_group/users");
+
+                const snapshot = await get(usersRef);
+
+
+                if (!snapshot.exists()) {
+
+                    allUsers = [];
+
+                    filteredUsers = [];
+
+                    currentPage = 1;
+
+                    renderUsersTable();
+
+                    return;
+
+                }
+
+
+                // const users = snapshot.val();
+
+
+                // allUsers = Object.entries(users).map(
+                //     ([uid, user]) => ({
+                //         uid,
+                //         ...user
+                //     })
+                // );
+
+
+                // applySearchAndRender();
+
+                const users = snapshot.val();
+
+
+                // ✅ Hide dev-admin users from the list
+                allUsers = Object.entries(users)
+                    .map(
+                        ([uid, user]) => ({
+                            uid,
+                            ...user
+                        })
+                    )
+                    .filter(user => user.role !== "dev-admin");
+
+
+                applySearchAndRender();
+
+            }
+
+            catch (error) {
+
+                console.error("Load users error:", error);
+
+
+                usersTableBody.innerHTML = `
+
+                    <tr>
+
+                        <td
+                            colspan="8"
+                            class="text-center text-danger py-4">
+
+                            Unable to load users.
+
+                        </td>
+
+                    </tr>
+
+                `;
+
+                paginationInfo.textContent = "";
+
+                paginationControls.innerHTML = "";
+
+            }
+
+        }
+
+
+        // =====================================================
+        // SEARCH / FILTER
+        // =====================================================
+
+        function applySearchAndRender() {
+
+            const query =
+                (userSearchInput.value || "")
+                    .trim()
+                    .toLowerCase();
+
+
+            if (!query) {
+
+                filteredUsers = [...allUsers];
+
+            } else {
+
+                filteredUsers =
+                    allUsers.filter(user => {
+
+                        const name = String(user.name || "").toLowerCase();
+                        const email = String(user.email || "").toLowerCase();
+                        const role = String(user.role || "").toLowerCase();
+
+                        return (
+                            name.includes(query) ||
+                            email.includes(query) ||
+                            role.includes(query)
+                        );
+
+                    });
+
+            }
+
+
+            currentPage = 1;
+
+            renderUsersTable();
+
+        }
+
+
+        userSearchInput.addEventListener("input", () => {
+
+            applySearchAndRender();
+
+        });
+
+
+        clearSearchBtn.addEventListener("click", () => {
+
+            userSearchInput.value = "";
+
+            applySearchAndRender();
+
+            userSearchInput.focus();
+
+        });
+
+
+        // =====================================================
+        // RENDER USERS TABLE
+        // =====================================================
+
+        function renderUsersTable() {
+
+            usersTableBody.innerHTML = "";
+
+
+            if (!filteredUsers.length) {
+
+                usersTableBody.innerHTML = `
+
+                    <tr>
+
+                        <td
+                            colspan="8"
+                            class="text-center text-muted py-4">
+
+                            ${allUsers.length
+                                ? "No users match your search."
+                                : "No users found."}
+
+                        </td>
+
+                    </tr>
+
+                `;
+
+                paginationInfo.textContent = "";
+
+                paginationControls.innerHTML = "";
+
+                return;
+
+            }
+
+
+            const totalPages =
+                Math.ceil(filteredUsers.length / USERS_PER_PAGE);
+
+
+            if (currentPage > totalPages) currentPage = totalPages;
+            if (currentPage < 1) currentPage = 1;
+
+
+            const startIndex =
+                (currentPage - 1) * USERS_PER_PAGE;
+
+
+            const pageUsers =
+                filteredUsers.slice(
+                    startIndex,
+                    startIndex + USERS_PER_PAGE
+                );
+
+
+            pageUsers.forEach(user => {
+
+                const uid = user.uid;
+
+                const row = document.createElement("tr");
+
+
+                // ----- Business access display -----
+
+                let businessAccessHtml =
+                    `<span class="text-muted">All Businesses</span>`;
+
+
+                if (SCOPED_ROLES.includes(user.role)) {
+
+                    const access = user.businessAccess || {};
+
+                    const accessEntries = Object.entries(access);
+
+
+                    if (accessEntries.length === 0) {
+
+                        businessAccessHtml = `
+
+                            <span class="badge bg-warning text-dark">
+
+                                No Access
+
+                            </span>
+
+                        `;
+
+                    } else {
+
+                        businessAccessHtml = accessEntries
+                            .map(([businessId, business]) => `
+
+                                <span
+                                    class="badge bg-light text-dark border me-1 mb-1">
+
+                                    ${escapeHtml(business.name || businessId)}
+
+                                </span>
+
+                            `)
+                            .join("");
+
+                    }
+
+                }
+
+
+                // ----- Project access display -----
+
+                let projectAccessHtml = "";
+
+
+                if (SCOPED_ROLES.includes(user.role)) {
+
+                    const pa = user.projectAccess || {};
+
+                    const entries = Object.entries(pa);
+
+                    if (entries.length === 0) {
+
+                        projectAccessHtml =
+                            `<span class="text-muted small">—</span>`;
+
+                    } else {
+
+                        projectAccessHtml = entries
+                            .map(([businessId, projects]) => {
+
+                                const list = Object.values(projects || {});
+
+                                if (!list.length) return "";
+
+                                const businessName =
+                                    user.businessAccess?.[businessId]?.name ||
+                                    businessId;
+
+                                const badges = list
+                                    .map(p => `
+
+                                        <span class="badge bg-primary-subtle text-primary-emphasis border project-badge">
+
+                                            ${escapeHtml(p.projectId || "")}
+
+                                            <span class="text-muted ms-1">
+
+                                                ${escapeHtml(p.name || "")}
+
+                                            </span>
+
+                                        </span>
+
+                                    `)
+                                    .join("");
+
+                                return `
+
+                                    <div class="mb-1">
+
+                                        <small class="text-muted d-block">
+
+                                            ${escapeHtml(businessName)}
+
+                                        </small>
+
+                                        ${badges}
+
+                                    </div>
+
+                                `;
+
+                            })
+                            .join("");
+
+                    }
+
+                } else {
+
+                    projectAccessHtml =
+                        `<span class="text-muted small">—</span>`;
+
+                }
+
+
+                // ----- Measurement sheet -----
+
+                let measurementSheetHtml = "";
+
+                if (user.role === "business-admin") {
+
+                    const hasAccess = user.measurementSheetAccess === true;
+
+                    measurementSheetHtml = hasAccess
+                        ? `<span class="badge bg-success">
+                                <i class="bi bi-check-circle me-1"></i>Enabled
+                           </span>`
+                        : `<span class="badge bg-secondary">
+                                <i class="bi bi-slash-circle me-1"></i>Disabled
+                           </span>`;
+
+                } else if (user.role === "project-admin") {
+
+                    measurementSheetHtml =
+                        `<span class="badge bg-light text-muted border">
+                            N/A
+                       </span>`;
+
+                } else {
+
+                    // main-admin / dev-admin / owner → full access
+                    measurementSheetHtml =
+                        `<span class="badge bg-success">
+                                <i class="bi bi-check-circle me-1"></i>Full Access
+                           </span>`;
+
+                }
+
+
+                // ----- Role badge -----
+
+                let roleBadgeClass = "bg-primary";
+
+                if (user.role === "main-admin") roleBadgeClass = "bg-danger";
+                else if (user.role === "dev-admin") roleBadgeClass = "bg-dark";
+                else if (user.role === "owner") roleBadgeClass = "role-badge-owner";
+                else if (user.role === "project-admin") roleBadgeClass = "role-badge-project-admin";
+                else if (user.role === "business-admin") roleBadgeClass = "bg-primary";
+
+
+                // ----- Status -----
+
+                const isActive =
+                    user["user-status"] !== false &&
+                    user["user-status"] !== "false";
+
+                const isSelf =
+                    auth.currentUser &&
+                    auth.currentUser.uid === uid;
+
+                const statusHtml = isActive
+                    ? `<span class="badge bg-success">
+                            <i class="bi bi-check-circle me-1"></i>Enabled
+                       </span>`
+                    : `<span class="badge bg-secondary">
+                            <i class="bi bi-slash-circle me-1"></i>Disabled
+                       </span>`;
+
+                const toggleButton = isActive
+                    ? `<button
+                            type="button"
+                            class="btn btn-sm btn-outline-warning"
+                            title="Disable User"
+                            onclick="toggleUserStatus('${escapeJs(uid)}', false)">
+                            <i class="bi bi-person-slash"></i>
+                       </button>`
+                    : `<button
+                            type="button"
+                            class="btn btn-sm btn-outline-success"
+                            title="Enable User"
+                            onclick="toggleUserStatus('${escapeJs(uid)}', true)">
+                            <i class="bi bi-person-check"></i>
+                       </button>`;
+
+                row.innerHTML = `
+
+                    <td>
+                        ${escapeHtml(user.name || "-")}
+                    </td>
+
+                    <td>
+                        ${escapeHtml(user.email || "-")}
+                    </td>
+
+                    <td>
+                        <span class="badge ${roleBadgeClass}">
+                            ${escapeHtml(user.role || "-")}
+                        </span>
+                    </td>
+
+                    <td>
+                        ${businessAccessHtml}
+                    </td>
+
+                    <td>
+                        ${projectAccessHtml}
+                    </td>
+
+                    <td>
+                        ${measurementSheetHtml}
+                    </td>
+
+                    <td>
+                        ${statusHtml}
+                    </td>
+
+                    <td>
+                        <div class="btn-group btn-group-sm" role="group">
+
+                            <button
+                                type="button"
+                                class="btn btn-outline-primary"
+                                title="Edit User"
+                                onclick="openEditUser('${escapeJs(uid)}')">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+
+                            ${toggleButton}
+
+                            <button
+                                type="button"
+                                class="btn btn-outline-danger"
+                                title="${isSelf ? "You cannot delete yourself" : "Delete User"}"
+                                ${isSelf ? "disabled" : ""}
+                                onclick="deleteUser('${escapeJs(uid)}')">
+                                <i class="bi bi-trash"></i>
+                            </button>
+
+                        </div>
+                    </td>
+
+                `;
+
+
+                usersTableBody.appendChild(row);
+
+            });
+
+
+            renderPagination(totalPages);
+
+        }
+
+
+        // =====================================================
+        // PAGINATION
+        // =====================================================
+
+        function renderPagination(totalPages) {
+
+            const startRecord =
+                (currentPage - 1) * USERS_PER_PAGE + 1;
+
+            const endRecord =
+                Math.min(
+                    currentPage * USERS_PER_PAGE,
+                    filteredUsers.length
+                );
+
+
+            paginationInfo.textContent =
+                `Showing ${startRecord}-${endRecord} of ${filteredUsers.length} user${filteredUsers.length === 1 ? "" : "s"}`;
+
+
+            paginationControls.innerHTML = "";
+
+
+            if (totalPages <= 1) return;
+
+
+            const prevLi = document.createElement("li");
+
+            prevLi.className =
+                `page-item ${currentPage === 1 ? "disabled" : ""}`;
+
+            prevLi.innerHTML = `
+                <button class="page-link" type="button" aria-label="Previous">
+                    <i class="bi bi-chevron-left"></i>
+                </button>
+            `;
+
+            prevLi.querySelector("button").addEventListener("click", () => {
+
+                if (currentPage > 1) {
+
+                    currentPage--;
+
+                    renderUsersTable();
+
+                }
+
+            });
+
+            paginationControls.appendChild(prevLi);
+
+
+            const maxVisible = 5;
+
+            let startPage =
+                Math.max(1, currentPage - Math.floor(maxVisible / 2));
+
+            let endPage =
+                Math.min(totalPages, startPage + maxVisible - 1);
+
+
+            if (endPage - startPage + 1 < maxVisible) {
+
+                startPage = Math.max(1, endPage - maxVisible + 1);
+
+            }
+
+
+            if (startPage > 1) {
+
+                addPageItem(1);
+
+                if (startPage > 2) addEllipsis();
+
+            }
+
+
+            for (let page = startPage; page <= endPage; page++) {
+
+                addPageItem(page);
+
+            }
+
+
+            if (endPage < totalPages) {
+
+                if (endPage < totalPages - 1) addEllipsis();
+
+                addPageItem(totalPages);
+
+            }
+
+
+            const nextLi = document.createElement("li");
+
+            nextLi.className =
+                `page-item ${currentPage === totalPages ? "disabled" : ""}`;
+
+            nextLi.innerHTML = `
+                <button class="page-link" type="button" aria-label="Next">
+                    <i class="bi bi-chevron-right"></i>
+                </button>
+            `;
+
+            nextLi.querySelector("button").addEventListener("click", () => {
+
+                if (currentPage < totalPages) {
+
+                    currentPage++;
+
+                    renderUsersTable();
+
+                }
+
+            });
+
+            paginationControls.appendChild(nextLi);
+
+
+            function addPageItem(page) {
+
+                const li = document.createElement("li");
+
+                li.className =
+                    `page-item ${page === currentPage ? "active" : ""}`;
+
+                li.innerHTML = `
+                    <button class="page-link" type="button">
+                        ${page}
+                    </button>
+                `;
+
+                li.querySelector("button").addEventListener("click", () => {
+
+                    currentPage = page;
+
+                    renderUsersTable();
+
+                });
+
+                paginationControls.appendChild(li);
+
+            }
+
+
+            function addEllipsis() {
+
+                const li = document.createElement("li");
+
+                li.className = "page-item disabled";
+
+                li.innerHTML = `<span class="page-link">…</span>`;
+
+                paginationControls.appendChild(li);
+
+            }
+
+        }
+
+
+        // =====================================================
+        // EDIT USER
+        // =====================================================
+
+        window.openEditUser = function(uid) {
+
+            const userRef = ref(db, `sr_group/users/${uid}`);
+
+            get(userRef)
+                .then(snapshot => {
+
+                    if (!snapshot.exists()) {
+                        alert("User profile not found.");
+                        return;
+                    }
+
+                    const user = snapshot.val();
+
+                    if (
+                        user.role === "main-admin" &&
+                        currentAdminRole !== "main-admin"
+                    ) {
+                        alert("Only a main-admin can edit a main-admin.");
+                        return;
+                    }
+
+                    if (
+                        user.role === "owner" &&
+                        currentAdminRole !== "main-admin"
+                    ) {
+                        alert("Only a main-admin can edit an owner.");
+                        return;
+                    }
+
+                    editUid.value = uid;
+                    editName.value = user.name || "";
+                    editEmail.value = user.email || "";
+                    editRole.value = user.role || "business-admin";
+
+                    // Only main-admin can see owner/main-admin options
+                    if (currentAdminRole === "main-admin") {
+                        editOwnerOption.hidden = false;
+                        editMainAdminOption.hidden = false;
+                    } else {
+                        editOwnerOption.hidden = true;
+                        editMainAdminOption.hidden = true;
+                    }
+
+                    renderEditBusinessList(
+                        user.businessAccess || {},
+                        user.projectAccess || {},
+                        user.role || "business-admin"
+                    );
+
+                    editMeasurementSheetAccess.checked =
+                        user.measurementSheetAccess === true;
+
+                    updateEditBusinessAccessVisibility();
+                    hideEditStatus();
+
+                    const modal =
+                        new bootstrap.Modal(
+                            document.getElementById("editUserModal")
+                        );
+
+                    modal.show();
+
+                })
+                .catch(error => {
+
+                    console.error("Load user for edit error:", error);
+
+                    alert("Unable to load user details.");
+
+                });
+
+        };
+
+
+        // =====================================================
+        // RENDER EDIT BUSINESS LIST
+        // =====================================================
+
+        function renderEditBusinessList(
+            selectedAccess = {},
+            selectedProjectAccess = {},
+            selectedRole = "business-admin"
+        ) {
+
+            editBusinessList.innerHTML = "";
+
+            const isProjectAdmin = selectedRole === "project-admin";
+
+
+            let entries = Object.entries(businesses);
+
+
+            if (isProjectAdmin) {
+
+                entries = entries.filter(([id, b]) => {
+
+                    const alreadyAssigned =
+                        Object.prototype.hasOwnProperty.call(selectedAccess, id);
+
+                    if (alreadyAssigned) return true;
+
+                    if (!b || b.construction !== true) return false;
+
+                    const projects = projectCache[id] || {};
+
+                    return Object.keys(projects).length > 0;
+
+                });
+
+            }
+
+
+            if (!entries.length) {
+
+                editBusinessList.innerHTML = `
+                    <div class="col-12">
+                        <div class="alert alert-light border mb-0">
+                            No businesses found.
+                        </div>
+                    </div>
+                `;
+
+                updateEditSelectedBusinessCount();
+
+                return;
+
+            }
+
+
+            entries.forEach(([businessId, business]) => {
+
+                const businessName = business?.name || businessId;
+
+                const isConstruction = business?.construction === true;
+
+                const checked =
+                    Object.prototype.hasOwnProperty.call(
+                        selectedAccess,
+                        businessId
+                    );
+
+                const projects = projectCache[businessId] || {};
+
+                const hasProjects = Object.keys(projects).length > 0;
+
+                const businessProjectSelections =
+                    selectedProjectAccess[businessId] || {};
+
+
+                const col = document.createElement("div");
+
+                col.className = "col-12";
+
+
+                let projectsHtml = "";
+
+                if (isConstruction) {
+
+                    if (hasProjects) {
+
+                        const projectCheckboxes =
+
+                            Object.entries(projects)
+
+                                .map(([pushId, p]) => {
+
+                                    const isChecked =
+                                        Object.prototype.hasOwnProperty.call(
+                                            businessProjectSelections,
+                                            pushId
+                                        );
+
+                                    return `
+
+                                        <label class="project-checkbox-wrap">
+
+                                            <input
+                                                type="checkbox"
+                                                class="edit-project-checkbox"
+                                                data-business-id="${escapeHtmlAttribute(businessId)}"
+                                                value="${escapeHtmlAttribute(pushId)}"
+                                                ${isChecked ? "checked" : ""}>
+
+                                            <span>
+
+                                                <strong>${escapeHtml(p.projectId)}</strong>
+
+                                                <span class="text-muted ms-1">
+                                                    — ${escapeHtml(p.name)}
+                                                </span>
+
+                                            </span>
+
+                                        </label>
+
+                                    `;
+
+                                })
+
+                                .join("");
+
+
+                        projectsHtml = `
+
+                            <div class="project-access-block">
+
+                                <div class="project-access-title">
+
+                                    <i class="bi bi-list-check me-1"></i>
+
+                                    Projects (leave unchecked for no project access)
+
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+
+                                    <div class="small text-muted">
+
+                                        <span class="edit-project-count-badge"
+                                            data-business-id="${escapeHtmlAttribute(businessId)}">
+
+                                            0 selected
+
+                                        </span>
+
+                                    </div>
+
+                                    <div class="btn-group btn-group-sm">
+
+                                        <button
+                                            type="button"
+                                            class="btn btn-outline-primary btn-sm edit-select-all-projects"
+                                            data-business-id="${escapeHtmlAttribute(businessId)}">
+
+                                            All
+
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            class="btn btn-outline-secondary btn-sm edit-clear-all-projects"
+                                            data-business-id="${escapeHtmlAttribute(businessId)}">
+
+                                            None
+
+                                        </button>
+
+                                    </div>
+
+                                </div>
+
+                                ${projectCheckboxes}
+
+                            </div>
+
+                        `;
+
+                    } else {
+
+                        projectsHtml = `
+
+                            <div class="project-access-block">
+
+                                <div class="small text-muted">
+
+                                    <i class="bi bi-info-circle me-1"></i>
+
+                                    No projects defined for this business yet.
+
+                                </div>
+
+                            </div>
+
+                        `;
+
+                    }
+
+                }
+
+
+                col.innerHTML = `
+
+                    <div class="form-check border rounded p-2 ps-5 bg-white">
+
+                        <input
+                            class="form-check-input edit-business-checkbox"
+                            type="checkbox"
+                            value="${escapeHtmlAttribute(businessId)}"
+                            id="edit_business_${escapeHtmlAttribute(businessId)}"
+                            ${checked ? "checked" : ""}>
+
+                        <label
+                            class="form-check-label w-100"
+                            for="edit_business_${escapeHtmlAttribute(businessId)}">
+
+                            <strong>${escapeHtml(businessName)}</strong>
+
+                            <small class="text-muted d-block">
+
+                                ${escapeHtml(businessId)}
+
+                                ${isConstruction
+                                    ? ` <span class="badge ms-1"
+                                        style="background:#fff3cd;color:#856404;border:1px solid #ffe69c;">
+                                            <i class="bi bi-cone-striped me-1"></i>Construction
+                                        </span>`
+                                    : ""}
+
+                            </small>
+
+                        </label>
+
+                        <div class="edit-project-wrapper-${escapeHtmlAttribute(businessId)} ${checked ? "" : "d-none"}">
+
+                            ${projectsHtml}
+
+                        </div>
+
+                    </div>
+
+                `;
+
+                editBusinessList.appendChild(col);
+
+            });
+
+
+            document
+                .querySelectorAll(".edit-business-checkbox")
+                .forEach(cb => {
+
+                    cb.addEventListener("change", handleEditBusinessCheckboxChange);
+
+                });
+
+
+            document
+                .querySelectorAll(".edit-project-checkbox")
+                .forEach(cb => {
+
+                    cb.addEventListener("change", () => {
+
+                        updateEditProjectCount(cb.dataset.businessId);
+
+                    });
+
+                });
+
+
+            document
+                .querySelectorAll(".edit-select-all-projects")
+                .forEach(btn => {
+
+                    btn.addEventListener("click", () => {
+
+                        const bid = btn.dataset.businessId;
+
+                        document
+                            .querySelectorAll(
+                                `.edit-project-checkbox[data-business-id="${bid}"]`
+                            )
+                            .forEach(cb => { cb.checked = true; });
+
+                        updateEditProjectCount(bid);
+
+                    });
+
+                });
+
+            document
+                .querySelectorAll(".edit-clear-all-projects")
+                .forEach(btn => {
+
+                    btn.addEventListener("click", () => {
+
+                        const bid = btn.dataset.businessId;
+
+                        document
+                            .querySelectorAll(
+                                `.edit-project-checkbox[data-business-id="${bid}"]`
+                            )
+                            .forEach(cb => { cb.checked = false; });
+
+                        updateEditProjectCount(bid);
+
+                    });
+
+                });
+
+
+            Object.keys(projectCache).forEach(bid => {
+
+                updateEditProjectCount(bid);
+
+            });
+
+
+            updateEditSelectedBusinessCount();
+
+        }
+
+
+        function handleEditBusinessCheckboxChange(event) {
+
+            const checkbox = event.target;
+
+            const businessId = checkbox.value;
+
+            const wrapper = document.querySelector(
+                `.edit-project-wrapper-${CSS.escape(businessId)}`
+            );
+
+            if (wrapper) {
+
+                if (checkbox.checked) {
+
+                    wrapper.classList.remove("d-none");
+
+                } else {
+
+                    wrapper.classList.add("d-none");
+
+                    wrapper
+                        .querySelectorAll(".edit-project-checkbox")
+                        .forEach(cb => { cb.checked = false; });
+
+                    updateEditProjectCount(businessId);
+
+                }
+
+            }
+
+            updateEditSelectedBusinessCount();
+
+        }
+
+
+        function updateEditProjectCount(businessId) {
+
+            const count = document.querySelectorAll(
+                `.edit-project-checkbox[data-business-id="${businessId}"]:checked`
+            ).length;
+
+            const badge = document.querySelector(
+                `.edit-project-count-badge[data-business-id="${businessId}"]`
+            );
+
+            if (badge) {
+
+                badge.textContent = `${count} selected`;
+
+            }
+
+        }
+
+
+        function updateEditBusinessAccessVisibility() {
+
+            const selectedRole = editRole.value;
+
+            const isProjectAdmin = selectedRole === "project-admin";
+            const isBusinessAdmin = selectedRole === "business-admin";
+
+
+            if (isBusinessAdmin || isProjectAdmin) {
+
+                editBusinessAccessSection.classList.remove("d-none");
+
+                if (isBusinessAdmin) {
+
+                    editMeasurementSheetSection.classList.remove("d-none");
+
+                } else {
+
+                    editMeasurementSheetSection.classList.add("d-none");
+
+                    editMeasurementSheetAccess.checked = false;
+
+                }
+
+
+                if (isProjectAdmin) {
+
+                    editAccessSectionTitle.textContent = "Project Access";
+
+                    editAccessSectionHint.textContent =
+                        "Select construction businesses and tick the projects this user can access.";
+
+                } else {
+
+                    editAccessSectionTitle.textContent = "Business Access";
+
+                    editAccessSectionHint.textContent =
+                        "Select businesses. Construction businesses will show their projects.";
+
+                }
+
+            } else {
+
+                editBusinessAccessSection.classList.add("d-none");
+
+                editMeasurementSheetSection.classList.add("d-none");
+
+            }
+
+        }
+
+
+        function updateEditSelectedBusinessCount() {
+
+            const selected =
+                document.querySelectorAll(
+                    ".edit-business-checkbox:checked"
+                ).length;
+
+            editSelectedBusinessCount.textContent =
+                `${selected} business${selected === 1 ? "" : "es"} selected`;
+
+        }
+
+
+        function getEditBusinessAccess() {
+
+            const businessAccess = {};
+
+            const projectAccess = {};
+
+
+            document
+                .querySelectorAll(".edit-business-checkbox:checked")
+                .forEach(checkbox => {
+
+                    const businessId = checkbox.value;
+
+                    const business = businesses[businessId];
+
+                    if (business) {
+
+                        businessAccess[businessId] = {
+                            name: business.name || businessId
+                        };
+
+                    }
+
+
+                    const selectedProjects =
+                        document.querySelectorAll(
+                            `.edit-project-checkbox[data-business-id="${businessId}"]:checked`
+                        );
+
+
+                    if (selectedProjects.length > 0) {
+
+                        projectAccess[businessId] = {};
+
+                        selectedProjects.forEach(cb => {
+
+                            const pushId = cb.value;
+
+                            const proj = projectCache[businessId]?.[pushId];
+
+                            if (proj) {
+
+                                projectAccess[businessId][pushId] = {
+                                    name: proj.name || proj.projectId,
+                                    projectId: proj.projectId
+                                };
+
+                            }
+
+                        });
+
+                    }
+
+                });
+
+
+            return { businessAccess, projectAccess };
+
+        }
+
+
+        editRole.addEventListener(
+            "change",
+            () => {
+
+                const uid = editUid.value;
+
+                if (!uid) return;
+
+                get(ref(db, `sr_group/users/${uid}`))
+                    .then(snap => {
+
+                        if (!snap.exists()) return;
+
+                        const user = snap.val();
+
+                        renderEditBusinessList(
+                            user.businessAccess || {},
+                            user.projectAccess || {},
+                            editRole.value
+                        );
+
+                        updateEditBusinessAccessVisibility();
+
+                    });
+
+            }
+        );
+
+
+        editSelectAllBusinesses.addEventListener("click", () => {
+
+            document
+                .querySelectorAll(".edit-business-checkbox")
+                .forEach(checkbox => {
+
+                    checkbox.checked = true;
+
+                    const bid = checkbox.value;
+
+                    const wrapper = document.querySelector(
+                        `.edit-project-wrapper-${CSS.escape(bid)}`
+                    );
+
+                    if (wrapper) wrapper.classList.remove("d-none");
+
+                });
+
+            updateEditSelectedBusinessCount();
+
+        });
+
+
+        editClearAllBusinesses.addEventListener("click", () => {
+
+            document
+                .querySelectorAll(".edit-business-checkbox")
+                .forEach(checkbox => {
+
+                    checkbox.checked = false;
+
+                    const bid = checkbox.value;
+
+                    const wrapper = document.querySelector(
+                        `.edit-project-wrapper-${CSS.escape(bid)}`
+                    );
+
+                    if (wrapper) {
+
+                        wrapper.classList.add("d-none");
+
+                        wrapper
+                            .querySelectorAll(".edit-project-checkbox")
+                            .forEach(cb => { cb.checked = false; });
+
+                        updateEditProjectCount(bid);
+
+                    }
+
+                });
+
+            updateEditSelectedBusinessCount();
+
+        });
+
+
+        // =====================================================
+        // SAVE EDITED USER
+        // =====================================================
+
+        editUserForm.addEventListener(
+            "submit",
+            async event => {
+
+                event.preventDefault();
+                hideEditStatus();
+
+                const uid = editUid.value;
+                const name = editName.value.trim();
+                const selectedRole = editRole.value;
+
+                if (!uid || !name) {
+
+                    showEditStatus("Please enter the user's name.");
+
+                    return;
+
+                }
+
+                if (
+                    !["main-admin", "dev-admin"].includes(currentAdminRole)
+                ) {
+
+                    showEditStatus("You do not have permission to edit users.");
+
+                    return;
+
+                }
+
+                // Only main-admin can assign main-admin or owner
+                if (
+                    (selectedRole === "main-admin" || selectedRole === "owner") &&
+                    currentAdminRole !== "main-admin"
+                ) {
+
+                    showEditStatus(
+                        "Only a main-admin can assign the main-admin or owner role."
+                    );
+
+                    return;
+
+                }
+
+                const existingSnapshot =
+                    await get(ref(db, `sr_group/users/${uid}`));
+
+                if (!existingSnapshot.exists()) {
+
+                    showEditStatus("User profile no longer exists.");
+
+                    return;
+
+                }
+
+                const existingUser = existingSnapshot.val();
+
+                if (
+                    existingUser.role === "main-admin" &&
+                    currentAdminRole !== "main-admin"
+                ) {
+
+                    showEditStatus("Only a main-admin can edit a main-admin.");
+
+                    return;
+
+                }
+
+                if (
+                    existingUser.role === "owner" &&
+                    currentAdminRole !== "main-admin"
+                ) {
+
+                    showEditStatus("Only a main-admin can edit an owner.");
+
+                    return;
+
+                }
+
+                let businessAccess = {};
+                let projectAccess = {};
+
+                if (SCOPED_ROLES.includes(selectedRole)) {
+
+                    const result = getEditBusinessAccess();
+
+                    businessAccess = result.businessAccess;
+
+                    projectAccess = result.projectAccess;
+
+                    if (Object.keys(businessAccess).length === 0) {
+
+                        showEditStatus(
+                            "Please select at least one business."
+                        );
+
+                        return;
+
+                    }
+
+                    if (
+                        selectedRole === "project-admin" &&
+                        Object.keys(projectAccess).length === 0
+                    ) {
+
+                        showEditStatus(
+                            "Please select at least one project for this project-admin."
+                        );
+
+                        return;
+
+                    }
+
+                }
+
+                saveUserBtn.disabled = true;
+
+                saveUserBtn.innerHTML = `
+                    <span class="spinner-border spinner-border-sm me-2"></span>
+                    Saving...
+                `;
+
+                try {
+
+                    const updates = {
+                        name: name,
+                        role: selectedRole
+                    };
+
+                    if (SCOPED_ROLES.includes(selectedRole)) {
+
+                        updates.businessAccess = businessAccess;
+
+                        updates.projectAccess =
+                            Object.keys(projectAccess).length
+                                ? projectAccess
+                                : null;
+
+                        updates.measurementSheetAccess =
+                            selectedRole === "business-admin"
+                                ? editMeasurementSheetAccess.checked
+                                : null;
+
+                    } else {
+
+                        updates.businessAccess = null;
+
+                        updates.projectAccess = null;
+
+                        updates.measurementSheetAccess = null;
+
+                    }
+
+                    await update(
+                        ref(db, `sr_group/users/${uid}`),
+                        updates
+                    );
+
+                    showEditStatus("User updated successfully.", "success");
+
+                    await loadUsers();
+
+                    setTimeout(() => {
+
+                        const modalElement =
+                            document.getElementById("editUserModal");
+
+                        const modal =
+                            bootstrap.Modal.getInstance(modalElement);
+
+                        if (modal) modal.hide();
+
+                    }, 700);
+
+                }
+
+                catch (error) {
+
+                    console.error("Edit user error:", error);
+
+                    showEditStatus(
+                        error.message || "Unable to update user."
+                    );
+
+                }
+
+                finally {
+
+                    saveUserBtn.disabled = false;
+
+                    saveUserBtn.innerHTML = `
+                        <i class="bi bi-check-lg me-2"></i>
+                        Save Changes
+                    `;
+
+                }
+
+            }
+        );
+
+
+        // =====================================================
+        // TOGGLE STATUS / DELETE
+        // =====================================================
+
+        window.toggleUserStatus = async function(uid, enable) {
+
+            if (
+                !["main-admin", "dev-admin"].includes(currentAdminRole)
+            ) {
+
+                alert("You do not have permission to change user status.");
+
+                return;
+
+            }
+
+            if (auth.currentUser && auth.currentUser.uid === uid) {
+
+                alert("You cannot disable your own account.");
+
+                return;
+
+            }
+
+            try {
+
+                const snapshot =
+                    await get(ref(db, `sr_group/users/${uid}`));
+
+                if (!snapshot.exists()) {
+
+                    alert("User profile not found.");
+
+                    return;
+
+                }
+
+                const user = snapshot.val();
+
+                if (
+                    user.role === "main-admin" &&
+                    currentAdminRole !== "main-admin"
+                ) {
+
+                    alert(
+                        "Only a main-admin can change another main-admin's status."
+                    );
+
+                    return;
+
+                }
+
+                if (
+                    user.role === "owner" &&
+                    currentAdminRole !== "main-admin"
+                ) {
+
+                    alert(
+                        "Only a main-admin can change an owner's status."
+                    );
+
+                    return;
+
+                }
+
+                const action = enable ? "enable" : "disable";
+
+                const confirmed = confirm(
+                    `Are you sure you want to ${action} "${user.name || user.email}"?`
+                );
+
+                if (!confirmed) return;
+
+                await update(
+                    ref(db, `sr_group/users/${uid}`),
+                    { "user-status": enable }
+                );
+
+                await loadUsers();
+
+            }
+
+            catch (error) {
+
+                console.error("Toggle user status error:", error);
+
+                alert(error.message || "Unable to change user status.");
+
+            }
+
+        };
+
+
+        window.deleteUser = async function(uid) {
+
+            if (
+                !["main-admin", "dev-admin"].includes(currentAdminRole)
+            ) {
+
+                alert("You do not have permission to delete users.");
+
+                return;
+
+            }
+
+            if (auth.currentUser && auth.currentUser.uid === uid) {
+
+                alert("You cannot delete your own account.");
+
+                return;
+
+            }
+
+            try {
+
+                const snapshot =
+                    await get(ref(db, `sr_group/users/${uid}`));
+
+                if (!snapshot.exists()) {
+
+                    alert("User profile not found.");
+
+                    return;
+
+                }
+
+                const user = snapshot.val();
+
+                if (
+                    user.role === "main-admin" &&
+                    currentAdminRole !== "main-admin"
+                ) {
+
+                    alert("Only a main-admin can delete a main-admin.");
+
+                    return;
+
+                }
+
+                if (
+                    user.role === "owner" &&
+                    currentAdminRole !== "main-admin"
+                ) {
+
+                    alert("Only a main-admin can delete an owner.");
+
+                    return;
+
+                }
+
+                const confirmed = confirm(
+                    `Delete user "${user.name || user.email}"?\n\nThis removes the user's SR Group profile.`
+                );
+
+                if (!confirmed) return;
+
+                await remove(ref(db, `sr_group/users/${uid}`));
+
+                await loadUsers();
+
+                alert("User profile deleted successfully.");
+
+            }
+
+            catch (error) {
+
+                console.error("Delete user error:", error);
+
+                alert(error.message || "Unable to delete user.");
+
+            }
+
+        };
+
+
+        // =====================================================
+        // CREATE USER
+        // =====================================================
+
+        form.addEventListener(
+            "submit",
+            async function (event) {
+
+                event.preventDefault();
+
+                hideStatus();
+
+
+                const name =
+                    document.getElementById("name").value.trim();
+
+                const email =
+                    document.getElementById("email").value.trim();
+
+                const password =
+                    document.getElementById("password").value;
+
+                const selectedRole = roleSelect.value;
+
+
+                if (!name || !email || !password) {
+
+                    showStatus("Please fill all fields.");
+
+                    return;
+
+                }
+
+
+                // Only main-admin can create main-admin or owner
+                if (
+                    (selectedRole === "main-admin" || selectedRole === "owner") &&
+                    currentAdminRole !== "main-admin"
+                ) {
+
+                    showStatus(
+                        "Only a main-admin can create a main-admin or owner."
+                    );
+
+                    return;
+
+                }
+
+
+                if (
+                    !["main-admin", "dev-admin"].includes(currentAdminRole)
+                ) {
+
+                    showStatus(
+                        "You do not have permission to create users."
+                    );
+
+                    return;
+
+                }
+
+
+                let businessAccess = {};
+                let projectAccess = {};
+
+
+                if (SCOPED_ROLES.includes(selectedRole)) {
+
+                    const result = getSelectedBusinessAccess();
+
+                    businessAccess = result.businessAccess;
+
+                    projectAccess = result.projectAccess;
+
+
+                    if (Object.keys(businessAccess).length === 0) {
+
+                        showStatus(
+                            "Please select at least one business."
+                        );
+
+                        return;
+
+                    }
+
+                    if (
+                        selectedRole === "project-admin" &&
+                        Object.keys(projectAccess).length === 0
+                    ) {
+
+                        showStatus(
+                            "Please select at least one project for this project-admin."
+                        );
+
+                        return;
+
+                    }
+
+                }
+
+
+                createUserBtn.disabled = true;
+
+                createUserBtn.innerHTML = `
+                    <span class="spinner-border spinner-border-sm me-2"></span>
+                    Creating...
+                `;
+
+
+                let secondaryApp = null;
+
+
+                try {
+
+                    const firebaseConfig = {
+
+                        apiKey:
+                            "AIzaSyCDZoBecmF5q3xibgtJm5bwOLyI9x7nzCU",
+
+                        authDomain:
+                            "toribill.firebaseapp.com",
+
+                        databaseURL:
+                            "https://toribill-default-rtdb.firebaseio.com",
+
+                        projectId:
+                            "toribill",
+
+                        storageBucket:
+                            "toribill.firebasestorage.app",
+
+                        messagingSenderId:
+                            "887198449730",
+
+                        appId:
+                            "1:887198449730:web:998881b905423af6886ddb"
+
+                    };
+
+
+                    secondaryApp =
+                        initializeApp(
+                            firebaseConfig,
+                            "createUserApp"
+                        );
+
+
+                    const secondaryAuth = getAuth(secondaryApp);
+
+
+                    const credential =
+                        await createUserWithEmailAndPassword(
+                            secondaryAuth,
+                            email,
+                            password
+                        );
+
+
+                    const newUser = credential.user;
+
+
+                    const newUserRef =
+                        ref(db, `sr_group/users/${newUser.uid}`);
+
+
+                    const userProfile = {
+
+                        uid: newUser.uid,
+
+                        name: name,
+
+                        email: email,
+
+                        role: selectedRole,
+
+                        "user-status": true
+
+                    };
+
+
+                    if (SCOPED_ROLES.includes(selectedRole)) {
+
+                        userProfile.businessAccess = businessAccess;
+
+                        userProfile.projectAccess =
+                            Object.keys(projectAccess).length
+                                ? projectAccess
+                                : null;
+
+                        userProfile.measurementSheetAccess =
+                            selectedRole === "business-admin"
+                                ? measurementSheetAccess.checked
+                                : null;
+
+                    }
+
+
+                    await set(newUserRef, userProfile);
+
+
+                    await signOut(secondaryAuth);
+
+                    await deleteApp(secondaryApp);
+
+                    secondaryApp = null;
+
+
+                    showStatus(
+                        `${selectedRole} created successfully.`,
+                        "success"
+                    );
+
+
+                    form.reset();
+
+                    roleSelect.value = "business-admin";
+
+                    renderBusinessList();
+
+                    updateBusinessAccessVisibility();
+
+                    clearBusinessSelection();
+
+                    measurementSheetAccess.checked = false;
+
+
+                    await loadUsers();
+
+
+                    setTimeout(() => {
+
+                        const modalElement =
+                            document.getElementById("createUserModal");
+
+                        const modal =
+                            bootstrap.Modal.getInstance(modalElement);
+
+                        if (modal) modal.hide();
+
+                        hideStatus();
+
+                    }, 1000);
+
+                }
+
+                catch (error) {
+
+                    console.error("Create user error:", error);
+
+
+                    if (secondaryApp) {
+
+                        try { await deleteApp(secondaryApp); }
+
+                        catch (deleteError) {
+
+                            console.error(deleteError);
+
+                        }
+
+                    }
+
+
+                    let message = "Unable to create user.";
+
+
+                    switch (error.code) {
+
+                        case "auth/email-already-in-use":
+                            message = "This email address is already registered.";
+                            break;
+
+                        case "auth/invalid-email":
+                            message = "Please enter a valid email address.";
+                            break;
+
+                        case "auth/weak-password":
+                            message = "Password is too weak. Use at least 6 characters.";
+                            break;
+
+                        case "auth/network-request-failed":
+                            message = "Network error. Please try again.";
+                            break;
+
+                        case "PERMISSION_DENIED":
+                            message = "Database permission denied.";
+                            break;
+
+                        default:
+                            message = error.message || message;
+
+                    }
+
+
+                    showStatus(message, "danger");
+
+                }
+
+                finally {
+
+                    createUserBtn.disabled = false;
+
+                    createUserBtn.innerHTML = `
+                        <i class="bi bi-person-plus me-2"></i>
+                        Create User
+                    `;
+
+                }
+
+            }
+        );
+
+
+        // =====================================================
+        // MODAL OPEN
+        // =====================================================
+
+        document
+            .getElementById("createUserModal")
+            .addEventListener("show.bs.modal", () => {
+
+                hideStatus();
+
+                if (currentAdminRole !== "main-admin") {
+
+                    roleSelect.value = "business-admin";
+
+                }
+
+                renderBusinessList();
+
+                updateBusinessAccessVisibility();
+
+            });
+
+
+        // =====================================================
+        // ESCAPE HELPERS
+        // =====================================================
+
+        function escapeHtml(value) {
+
+            return String(value)
+                .replaceAll("&", "&amp;")
+                .replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;")
+                .replaceAll('"', "&quot;")
+                .replaceAll("'", "&#039;");
+
+        }
+
+
+        function escapeJs(value) {
+
+            return String(value)
+                .replaceAll("\\", "\\\\")
+                .replaceAll("'", "\\'");
+
+        }
+
+        function escapeHtmlAttribute(value) {
+
+            return escapeHtml(value);
+
+        }
+
+    </script>
+
+</body>
+
+</html>
